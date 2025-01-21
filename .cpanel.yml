@@ -1,0 +1,6 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/padelcdf/public_html/
+    - mkdir -p $DEPLOYPATH/images    # This will create the directory if it doesn't exist
+    - /bin/cp -R images $DEPLOYPATH
