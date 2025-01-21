@@ -1,6 +1,6 @@
 ---
 deployment:
-  tasks:
-    - export DEPLOYPATH=/home/padelcdf/apps
-    - mkdir -p $DEPLOYPATH/images    # This will create the directory if it doesn't exist
-    - /bin/cp -R images $DEPLOYPATH
+    tasks:
+        - export DEPLOYPATH=/home/padelcdf/apps
+        - mkdir -p $DEPLOYPATH/images
+        - /bin/cp -R images $DEPLOYPATH
