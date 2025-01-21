@@ -1,13 +1,32 @@
----
 deployment:
     tasks:
         - export DEPLOYPATH=/home/padelcdf/apps/newpadel.pt
         - export TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
         - export LOGFILE=/home/padelcdf/deploy_$TIMESTAMP.log
 
+        # Create deployment directory
         - mkdir -p $DEPLOYPATH
 
+        # Start logging
         - echo "[$(date +'%Y-%m-%d %H:%M:%S')] Starting deployment..." | tee $LOGFILE
+
+        # Copy files
         - (/bin/cp -R * .* $DEPLOYPATH 2>/dev/null || :) 2>&1 | tee -a $LOGFILE
         - (rm -rf $DEPLOYPATH/.git) 2>&1 | tee -a $LOGFILE
+
+        # Try to locate PHP 8.3 by checking common paths
+        - echo "Checking PHP paths..." | tee -a $LOGFILE
+        - ([ -f /opt/alt/php83/usr/bin/php ] && echo "Found at /opt/alt/php83/usr/bin/php") | tee -a $LOGFILE
+        - ([ -f /opt/cpanel/ea-php83/root/usr/bin/php ] && echo "Found at /opt/cpanel/ea-php83/root/usr/bin/php") | tee -a $LOGFILE
+        - ([ -f /usr/local/bin/php83 ] && echo "Found at /usr/local/bin/php83") | tee -a $LOGFILE
+        - ([ -f /usr/bin/php8.3 ] && echo "Found at /usr/bin/php8.3") | tee -a $LOGFILE
+
+        # Try each possible PHP path
+        - echo "Attempting to get PHP version from each path..." | tee -a $LOGFILE
+        - (/opt/alt/php83/usr/bin/php -v || echo "Path 1 failed") | tee -a $LOGFILE
+        - (/opt/cpanel/ea-php83/root/usr/bin/php -v || echo "Path 2 failed") | tee -a $LOGFILE
+        - (/usr/local/bin/php83 -v || echo "Path 3 failed") | tee -a $LOGFILE
+        - (/usr/bin/php8.3 -v || echo "Path 4 failed") | tee -a $LOGFILE
+
+        # Complete deployment
         - echo "[$(date +'%Y-%m-%d %H:%M:%S')] Deployment completed." | tee -a $LOGFILE
