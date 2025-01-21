@@ -2,11 +2,12 @@
 deployment:
     tasks:
         - export DEPLOYPATH=/home/padelcdf/apps/newpadel.pt
-        - export LOGFILE=/home/padelcdf/deploy_$TIMESTAMP.log
         - export TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+        - export LOGFILE=/home/padelcdf/deploy_$TIMESTAMP.log
 
         - mkdir -p $DEPLOYPATH
 
         - echo "[$(date +'%Y-%m-%d %H:%M:%S')] Starting deployment..." | tee $LOGFILE
-        - (rsync -av --exclude '.git' ./ $DEPLOYPATH) 2>&1 | tee -a $LOGFILE
+        - (/bin/cp -R * .* $DEPLOYPATH 2>/dev/null || :) 2>&1 | tee -a $LOGFILE
+        - (rm -rf $DEPLOYPATH/.git) 2>&1 | tee -a $LOGFILE
         - echo "[$(date +'%Y-%m-%d %H:%M:%S')] Deployment completed." | tee -a $LOGFILE
