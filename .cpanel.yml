@@ -1,6 +1,6 @@
 ---
 deployment:
     tasks:
-        - export DEPLOYPATH=/home/padelcdf/apps
-        - mkdir -p $DEPLOYPATH/images
-        - /bin/cp -R images $DEPLOYPATH
+        - export DEPLOYPATH=/home/padelcdf/apps/newpadel.pt
+        - mkdir -p $DEPLOYPATH
+        - rsync -av --exclude '.git' ./ $DEPLOYPATH
