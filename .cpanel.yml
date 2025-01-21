@@ -16,8 +16,8 @@ deployment:
         - echo "[$(date +'%Y-%m-%d %H:%M:%S')] Copy files complete." | tee -a $LOGFILE
 
         # Try each possible PHP path
-        - (/opt/alt/php83/usr/bin/php $DEPLOYPATH/artisan list") | tee -a $LOGFILE
-        - (/opt/alt/php83/usr/bin/php $DEPLOYPATH/artisan migrate --force") | tee -a $LOGFILE
+        - /opt/alt/php83/usr/bin/php $DEPLOYPATH/artisan list 2>&1 | tee -a $LOGFILE
+        - /opt/alt/php83/usr/bin/php $DEPLOYPATH/artisan migrate --force 2>&1 | tee -a $LOGFILE
 
         # Complete deployment
         - echo "[$(date +'%Y-%m-%d %H:%M:%S')] Deployment completed." | tee -a $LOGFILE
