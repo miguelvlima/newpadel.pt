@@ -159,7 +159,7 @@ class Form implements Arrayable
         }
     }
 
-    public function resetExcept(...$properties)
+    protected function resetExcept(...$properties)
     {
         if (count($properties) && is_array($properties[0])) {
             $properties = $properties[0];

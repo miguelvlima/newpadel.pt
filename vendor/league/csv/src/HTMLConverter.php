@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace League\Csv;
 
+use Closure;
 use Deprecated;
 use DOMDocument;
 use DOMElement;
@@ -30,6 +31,8 @@ class HTMLConverter
     /** table id attribute value. */
     protected string $id_value = '';
     protected XMLConverter $xml_converter;
+    /** @var ?Closure(array, array-key): array */
+    protected ?Closure $formatter = null;
 
     public static function create(): self
     {
@@ -60,6 +63,10 @@ class HTMLConverter
      */
     public function convert(iterable $records, array $header_record = [], array $footer_record = []): string
     {
+        if (null !== $this->formatter) {
+            $records = MapIterator::fromIterable($records, $this->formatter);
+        }
+
         $doc = new DOMDocument('1.0');
         if ([] === $header_record && [] === $footer_record) {
             $table = $this->xml_converter->import($records, $doc);
@@ -156,6 +163,19 @@ class HTMLConverter
     {
         $clone = clone $this;
         $clone->xml_converter = $this->xml_converter->fieldElement('td', $fieldname_attribute_name);
+
+        return $clone;
+    }
+
+    /**
+     * Set a callback to format each item before json encode.
+     *
+     * @param ?callable(array, array-key): array $formatter
+     */
+    public function formatter(?callable $formatter): self
+    {
+        $clone = clone $this;
+        $clone->formatter = ($formatter instanceof Closure || null === $formatter) ? $formatter : $formatter(...);
 
         return $clone;
     }

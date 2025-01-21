@@ -135,12 +135,12 @@ final class JsonConverter
     /**
      * @param int<1, max> $depth
      * @param int<1, max> $indentSize
-     * @param ?Closure(T, array-key): mixed $formatter
+     * @param ?callable(T, array-key): mixed $formatter
      * @param int<1, max> $chunkSize
      *
      * @throws InvalidArgumentException
      */
-    private function __construct(int $flags, int $depth, int $indentSize, ?Closure $formatter, int $chunkSize)
+    private function __construct(int $flags, int $depth, int $indentSize, ?callable $formatter, int $chunkSize)
     {
         json_encode([], $flags & ~JSON_THROW_ON_ERROR, $depth);
 
@@ -151,7 +151,7 @@ final class JsonConverter
         $this->flags = $flags;
         $this->depth = $depth;
         $this->indentSize = $indentSize;
-        $this->formatter = $formatter;
+        $this->formatter = ($formatter instanceof Closure || null === $formatter) ? $formatter : $formatter(...);
         $this->chunkSize = $chunkSize;
 
         // Initialize settings and closure to use for conversion.
@@ -345,7 +345,7 @@ final class JsonConverter
     /**
      * Set a callback to format each item before json encode.
      */
-    public function formatter(?Closure $formatter): self
+    public function formatter(?callable $formatter): self
     {
         return new self($this->flags, $this->depth, $this->indentSize, $formatter, $this->chunkSize);
     }
