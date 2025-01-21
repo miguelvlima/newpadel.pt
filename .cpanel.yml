@@ -15,8 +15,7 @@ deployment:
         - (rm -rf $DEPLOYPATH/.git) 2>&1 | tee -a $LOGFILE
         - echo "[$(date +'%Y-%m-%d %H:%M:%S')] Copy files complete." | tee -a $LOGFILE
 
-        # Try each possible PHP path
-        - /opt/alt/php83/usr/bin/php $DEPLOYPATH/artisan list 2>&1 | tee -a $LOGFILE
+        # Laravel commands
         - /opt/alt/php83/usr/bin/php $DEPLOYPATH/artisan migrate --force 2>&1 | tee -a $LOGFILE
 
         # Complete deployment
