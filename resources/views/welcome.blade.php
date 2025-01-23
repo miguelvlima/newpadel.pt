@@ -121,66 +121,14 @@
                             <li style="text-align: left;"><b><font style="opacity:0.5;">RANKING FASE 1</font></b>
                                 <div class="tabsRank-container">
                                     <ul class="tabsRank">
-                                        <li class="active">
-                                            <a href=""><font style="color:black;">M2</font></a>
-                                        </li>
-                                        <li>
-                                            <a href=""><font style="color:black;">M3</font></a>
-                                        </li>
-                                        <li>
-                                            <a href=""><font style="color:black;">M4</font></a>
-                                        </li>
-                                        <li>
-                                            <a href=""><font style="color:black;">M5</font></a>
-                                        </li>
-                                        <li>
-                                            <a href=""><font style="color:black;">F4</font></a>
-                                        </li>
-                                        <li>
-                                            <a href=""><font style="color:black;">F5</font></a>
-                                        </li>
-                                        <li>
-                                            <a href=""><font style="color:black;">MX3</font></a>
-                                        </li>
-                                        <li>
-                                            <a href=""><font style="color:black;">MX4</font></a>
-                                        </li>
+                                        @foreach($rankLinks as $title => $rankLink)
+                                            <li class="active">
+                                                <a href="{{ $rankLink }}" target="_blank">
+                                                    <font style="color:black;">{{ $title }}</font>
+                                                </a>
+                                            </li>
+                                        @endforeach
                                     </ul>
-                                    <div class="tabsRank-content">
-                                        <div class="tabsRank-panel active" data-index="0">
-                                            </br>
-                                            <a target="_blank" href="https://www.tiepadel.com/Rankings/7a803300-c54f-49d5-96b5-2cbd6a6bbcbd">Aceda ao ranking M2 da primeira fase AQUI.</a>
-                                        </div>
-                                        <div class="tabsRank-panel" data-index="1">
-                                            </br>
-                                            <a target="_blank" href="https://www.tiepadel.com/Rankings/dc32d083-b423-4df2-bc5e-08057dc171d7">Aceda ao ranking M3 da primeira fase AQUI.</a>
-                                        </div>
-                                        <div class="tabsRank-panel" data-index="2">
-                                            </br>
-                                            <a target="_blank" href="https://www.tiepadel.com/Rankings/79981824-7532-494e-b236-3fb378c0990d">Aceda ao ranking M4 da primeira fase AQUI.</a>
-                                        </div>
-                                        <div class="tabsRank-panel" data-index="3">
-                                            </br>
-                                            <a target="_blank" href="https://www.tiepadel.com/Rankings/8f366b80-88bd-48fc-8de0-a36c653e8b2b">Aceda ao ranking M5 da primeira fase AQUI.</a>
-                                        </div>
-                                        <div class="tabsRank-panel" data-index="4">
-                                            </br>
-                                            <a target="_blank" href="https://www.tiepadel.com/Rankings/6f7b7f5e-f68b-4ae7-9562-d25ccf9634c3">Aceda ao ranking F4 da primeira fase AQUI.</a>
-                                        </div>
-                                        <div class="tabsRank-panel" data-index="5">
-                                            </br>
-                                            <a target="_blank" href="https://www.tiepadel.com/Rankings/6518768b-b43c-40cf-8b11-ab6b24b108fb">Aceda ao ranking F5 da primeira fase AQUI.</a>
-                                        </div>
-                                        <div class="tabsRank-panel" data-index="6">
-                                            </br>
-                                            <a target="_blank" href="https://www.tiepadel.com/Rankings/282d8a4e-31ec-466e-b8e4-d18426ecee42">Aceda ao ranking MX3 da segunda fase AQUI.</a>
-                                        </div>
-                                        <div class="tabsRank-panel" data-index="7">
-                                            </br>
-                                            <a target="_blank" href="https://www.tiepadel.com/Rankings/32c9148a-214b-4de5-ad95-ef6b6a9dd9c4">Aceda ao ranking MX4 da segunda fase AQUI.</a>
-                                        </div>
-
-                                    </div>
                                 </div>
                             </li>
                         </ul>
