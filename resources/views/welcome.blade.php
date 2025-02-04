@@ -227,7 +227,7 @@
                     <tr class="table-info">
                         <th scope="row">Prime Sócio</th>
                         <td>52 €</td>
-                        <td>85,5 €</td>
+                        <td>90 €</td>
                     </tr>
                     <tr class="table-info">
                         <th scope="row">Prime Não Sócio</th>
