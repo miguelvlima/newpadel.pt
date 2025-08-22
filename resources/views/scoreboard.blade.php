@@ -10,20 +10,20 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Scoreboard – Padel (ao vivo)</title>
+  <title>New Padel Scoreboard</title>
   <style>
     :root { --bg:#000; --fg:#fff; --muted:#b8b8b8; --glass:rgba(255,255,255,.08); }
     *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif}
+    html,body{height:100%;overflow:hidden}
+    body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;display:flex;flex-direction:column;}
     header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
     .brand{display:flex;align-items:center;gap:10px}
     .muted{color:var(--muted)}
     button{background:rgba(255,255,255,.1);color:#fff;border:0;border-radius:14px;padding:8px 12px;cursor:pointer}
     button:hover{background:rgba(255,255,255,.2)}
-    main{padding:16px;display:grid;gap:16px;grid-template-columns:repeat(1,minmax(0,1fr))}
-    @media(min-width:900px){ main{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
-    .tile{aspect-ratio:16/9;border-radius:18px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.05));padding:14px;display:flex;flex-direction:column}
+    main{flex:1;height:100%;padding:16px;display:grid;gap:16px;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);place-items:stretch;overflow:hidden}
+     }
+    .tile{height:100%;aspect-ratio:auto;border-radius:18px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.05));padding:14px;display:flex;flex-direction:column}
     .row{display:flex;align-items:center;justify-content:space-between}
     .badge{font-size:12px;letter-spacing:.12em;text-transform:uppercase;background:rgba(255,255,255,.1);padding:4px 8px;border-radius:6px}
     .teams{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px}
@@ -48,7 +48,7 @@
 </head>
 <body>
   <header>
-    <div class="brand"><span>🎾</span><strong>Scoreboard Padel</strong><span class="muted">ao vivo (Supabase)</span></div>
+    <div class="brand"><strong>New Padel Scoreboard</strong></div>
     <div class="muted" id="status">—</div>
     <div><button id="fs">Ecrã inteiro</button></div>
   </header>
@@ -156,13 +156,32 @@
 
     function render(games){
       grid.innerHTML = '';
-      if (!games.length){
+      let n = games.length;
+      if (!n){
+        grid.style.gridTemplateColumns = 'repeat(1, 1fr)';
+        grid.style.gridTemplateRows = 'repeat(1, 1fr)';
         const ph = document.createElement('div');
         ph.className = 'tile placeholder';
         ph.innerHTML = 'Sem jogos para mostrar. Usa <code>?ids=...</code>';
         grid.appendChild(ph);
         return;
       }
+      // Decide layout sem scroll: 1->1x1, 2->1x2, 3-4->2x2
+      let cols = 1, rows = 1;
+      if (n === 1){ cols = 1; rows = 1; }
+      else if (n === 2){ cols = 2; rows = 1; }
+      else { cols = 2; rows = 2; }
+      grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+
+      games.forEach(g => grid.appendChild(tile(g)));
+      const target = cols * rows;
+      for (let i=games.length; i<target; i++){
+        const ph = document.createElement('div');
+        ph.className = 'tile placeholder';
+        grid.appendChild(ph);
+      }
+    }
       games.forEach(g => grid.appendChild(tile(g)));
       for (let i=games.length; i<Math.min(4,ids.length||4); i++){
         const ph = document.createElement('div');
@@ -263,6 +282,66 @@
         </div>
 
         <div class="teams" style="margin-top:8px">
-          <div class="pair righ
+          <div class="pair right"><div class="names">${pair1}</div></div>
+          <div class="scoreBox">
+            <div class="games">${mainLine}</div>
+            <div class="points">${subLine}</div>
+            <div class="sets">${boxes.join('')}</div>
+          </div>
+          <div class="pair"><div class="names">${pair2}</div></div>
+        </div>
+      `;
+
+      return wrap;
+    }
+
+    async function fetchGames(){
+      if (!ids.length) return [];
+      const { data, error } = await supabase
+        .from(TABLE)
+        .select(SELECT)
+        .in('id', ids)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    }
+
+    // bootstrap
+    let current = [];
+    try { current = await fetchGames(); render(current); touch('Ligado', true); }
+    catch(e){ console.error(e); touch('Erro de leitura', false); }
+
+    // realtime for selected UUIDs
+    if (ids.length){
+      const filter = `id=in.(${ids.join(',')})`;
+      const channel = supabase.channel('games-live')
+        .on('postgres_changes', { event: '*', schema: 'public', table: TABLE, filter }, (payload) => {
+          const row = payload.new;
+          const idx = current.findIndex(g => g.id === row.id);
+          if (idx >= 0) current[idx] = { ...current[idx], ...row };
+          else current.push(row);
+          render(current);
+          touch('Atualizado', true);
+        })
+        .subscribe((status) => {
+          touch(status === 'SUBSCRIBED' ? 'Ligado' : 'Offline', status === 'SUBSCRIBED');
+        });
+
+      setInterval(async () => {
+        try {
+          const fresh = await fetchGames();
+          if (JSON.stringify(fresh) !== JSON.stringify(current)){
+            current = fresh; render(current); touch('Sincronizado', true);
+          }
+        } catch {}
+      }, 15000);
+
+      window.addEventListener('beforeunload', () => supabase.removeChannel(channel));
+    }
+
+    function touch(text, ok){
+      statusEl.innerHTML = `<span class="${ok?'status-ok':'status-bad'}">●</span> ${text} • ${fmtTime(new Date())}`;
+    }
+  </script>
 </body>
 </html>
