@@ -56,23 +56,23 @@
     <div class="tile placeholder">Seleciona jogos com <code>?ids=&lt;uuid1&gt;,&lt;uuid2&gt;</code> (máx 4) • <code>&kiosk=1</code> para TV</div>
   </main>
 
-  <script type="module">
+    <script type="module">
     import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-    // ===== Injeção de config Laravel =====
     const SB = @json($supabase);
     const SUPABASE_URL  = SB.url;
     const SUPABASE_ANON = SB.anon;
 
-    // Fonte de dados
     const TABLE = 'games';
 
-    // Campos que vamos selecionar da tabela public.games
+    // JOIN courts (FK games.court_id -> courts.id) to get court name
+    // Use relationship alias via the FK name for reliability
     const SELECT = [
-      'id','player1','player2','player3','player4','format','score','court_id','created_at'
+      'id','player1','player2','player3','player4',
+      'format','score','court_id','created_at',
+      'court:courts!games_court_id_fkey(name)'
     ].join(',');
 
-    // Lê IDs da query (?ids=uuid,uuid,...) e valida UUID v4
     const params = new URLSearchParams(location.search);
     const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     const ids = (params.get('ids')||'')
@@ -94,25 +94,64 @@
     });
 
     function fmtTime(d){ return d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
+    function escapeHtml(s=''){return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));}
 
-    function tennisPoint(n){
-      // n é inteiro (0..). Map para ténis: 0,15,30,40,AD (>=5 volta a mostrar n p/ casos atípicos)
-      const map = [0,15,30,40,'AD'];
-      return (Number.isFinite(n) && n >= 0 && n < map.length) ? map[n] : (Number.isFinite(n) ? n : '—');
+    // ---------- Rules derived from format ----------
+    function parseFormat(fmt){
+      const f = (fmt||'best_of_3').toLowerCase();
+      const isGP = f.endsWith('_gp');
+      const isProset = f.startsWith('proset');
+      const isSuper = f.startsWith('super_tiebreak');
+      const gamesToWinSet = isProset ? 9 : 6;   // typical
+      const setsToWinMatch = isProset ? 1 : 2;  // proset is single set
+      return {f,isGP,isProset,isSuper,gamesToWinSet,setsToWinMatch};
+    }
+    function countWonSets(sets, cfg){
+      let w1=0, w2=0;
+      for (let i=0;i<sets.length;i++){
+        if (isSetConcluded(sets[i], cfg, i)){
+          const {team1=0, team2=0} = sets[i]||{};
+          if (team1>team2) w1++; else if (team2>team1) w2++;
+        }
+      }
+      return [w1,w2];
+    }
+    function isSetConcluded(s, cfg, index){
+      if (!s) return false;
+      const t1 = Number.isFinite(s.team1)? s.team1 : 0;
+      const t2 = Number.isFinite(s.team2)? s.team2 : 0;
+      const maxV = Math.max(t1,t2), minV = Math.min(t1,t2), diff = Math.abs(t1-t2);
+      if (cfg.isSuper && index === (cfg.setsToWinMatch*2-1)-1){ // 3rd slot on BO3-super
+        // super TB valid: >=10 and diff>=2
+        return (maxV >= 10) && (diff >= 2);
+      }
+      if (cfg.isProset){
+        return (maxV >= cfg.gamesToWinSet) && (diff >= 2);
+      }
+      // Normal BO3: 6-x by 2 or 7-5/7-6 (TB)
+      if (maxV === 7 && (minV === 5 || minV === 6)) return true;
+      return (maxV >= cfg.gamesToWinSet) && (diff >= 2);
     }
 
-    function deriveStatus(score){
-      try{
-        if (!score) return 'pre';
-        const s = score;
-        const anySet = Array.isArray(s.sets) && s.sets.some(set=> (set.team1||0) + (set.team2||0) > 0);
-        const anyCurrent = s.current && (
-          (s.current.games_team1||0) + (s.current.games_team2||0) +
-          (s.current.points_team1||0) + (s.current.points_team2||0) +
-          (s.current.tb_team1||0) + (s.current.tb_team2||0)
-        ) > 0;
-        return (anySet || anyCurrent) ? 'live' : 'pre';
-      }catch{ return 'pre'; }
+    function tennisPoint(n, gp){
+      const map = [0,15,30,40,'AD'];
+      if (!Number.isFinite(n) || n<0) return '—';
+      if (gp) return map[Math.min(n,3)];
+      return map[Math.min(n,4)];
+    }
+
+    function isNormalTBActive(current, cfg){
+      if (cfg.isProset) return false;
+      const g1 = Number(current?.games_team1||0);
+      const g2 = Number(current?.games_team2||0);
+      return g1===cfg.gamesToWinSet && g2===cfg.gamesToWinSet; // 6–6
+    }
+
+    function superTBActive(sets, cfg, matchOver){
+      if (!cfg.isSuper) return false;
+      const [w1,w2] = countWonSets(sets, cfg);
+      if (matchOver) return false;
+      return (w1===1 && w2===1); // 1–1, 3º set é super TB
     }
 
     function render(games){
@@ -133,112 +172,97 @@
     }
 
     function tile(game){
+      const cfg = parseFormat(game.format);
       const s = game.score || {};
-      const status = deriveStatus(s);
-      const isLive = status === 'live';
+      const sets = Array.isArray(s.sets) ? s.sets : [];
+      const cur = s.current || {};
+      const [w1,w2] = countWonSets(sets, cfg);
+      const matchOver = (w1 >= cfg.setsToWinMatch) || (w2 >= cfg.setsToWinMatch);
+      const normalTB = isNormalTBActive(cur, cfg);
+      const superTB = superTBActive(sets, cfg, matchOver);
+
       const pair1 = `${escapeHtml(game.player1)} & ${escapeHtml(game.player2)}`;
       const pair2 = `${escapeHtml(game.player3)} & ${escapeHtml(game.player4)}`;
 
+      const g1 = Number(cur.games_team1||0);
+      const g2 = Number(cur.games_team2||0);
+      const tb1 = Number(cur.tb_team1||0);
+      const tb2 = Number(cur.tb_team2||0);
+      const p1 = Number(cur.points_team1||0);
+      const p2 = Number(cur.points_team2||0);
+
+      // Decide what to show as the MAIN line (foreground current)
+      let mainLine = '';
+      let subLine  = '';
+      if (superTB){
+        mainLine = `Super TB ${tb1}–${tb2}`;
+        subLine  = `Jogos ${g1}–${g2}`;
+      } else if (normalTB){
+        mainLine = `TB ${tb1}–${tb2}`;
+        subLine  = `Jogos ${g1}–${g2}`;
+      } else {
+        mainLine = `${tennisPoint(p1, cfg.isGP)}–${tennisPoint(p2, cfg.isGP)}`;
+        subLine  = `Jogos ${g1}–${g2}`;
+      }
+
+      // Build SETS row: only show concluded or ongoing
+      const maxSets = cfg.setsToWinMatch*2 - 1; // 1..3
+      const boxes = [];
+      for (let i=0;i<Math.min(sets.length, maxSets);i++){
+        const set = sets[i] || {};
+        const concluded = isSetConcluded(set, cfg, i);
+        let showCurrent = false;
+        let label = '';
+        let top = 0, bot = 0;
+
+        if (concluded){
+          top = Number(set.team1||0);
+          bot = Number(set.team2||0);
+        } else {
+          // Ongoing current set?
+          const currentIndex = (()=>{
+            let c=0; for (let k=0;k<Math.min(sets.length, maxSets);k++){ if (isSetConcluded(sets[k], cfg, k)) c++; }
+            return c;
+          })();
+          if (i === currentIndex){
+            if (superTB){
+              const anyTB = (tb1+tb2)>0;
+              if (anyTB){ top = tb1; bot = tb2; label='Super TB'; showCurrent=true; }
+            } else if (normalTB){
+              const anyTB = (tb1+tb2)>0;
+              if (anyTB){ top = tb1; bot = tb2; label='TB'; showCurrent=true; }
+            } else {
+              const anyGames = (g1+g2)>0;
+              if (anyGames){ top = g1; bot = g2; showCurrent=true; }
+            }
+          }
+        }
+
+        if (concluded || showCurrent){
+          boxes.push(`
+            <div class="set ${showCurrent?'current':''}">
+              <strong>${top}</strong>
+              <small>${bot}</small>
+              ${label? `<small>${label}</small>`:''}
+            </div>
+          `);
+        }
+      }
+
       const wrap = document.createElement('div');
       wrap.className = 'tile';
-
-      // Sets
-      const sets = Array.isArray(s.sets) ? s.sets : [];
-      const current = s.current || {};
-      const setHtml = sets.map((set, idx) => {
-        const isCurrent = (idx === sets.findIndex(x => (x.team1||0)===0 && (x.team2||0)===0));
-        return `<div class="set ${isCurrent?'current':''}">
-                  <strong>${Number.isFinite(set.team1)? set.team1 : 0}</strong>
-                  <small>${Number.isFinite(set.team2)? set.team2 : 0}</small>
-                </div>`;
-      }).join('');
-
-      // Games + points atuais (do set em curso)
-      const games1 = Number.isFinite(current.games_team1) ? current.games_team1 : 0;
-      const games2 = Number.isFinite(current.games_team2) ? current.games_team2 : 0;
-      const tb1 = Number.isFinite(current.tb_team1) ? current.tb_team1 : 0;
-      const tb2 = Number.isFinite(current.tb_team2) ? current.tb_team2 : 0;
-      const p1 = Number.isFinite(current.points_team1) ? current.points_team1 : 0;
-      const p2 = Number.isFinite(current.points_team2) ? current.points_team2 : 0;
-
-      const pointsStr = (tb1>0 || tb2>0)
-        ? `TB ${tb1}–${tb2}`
-        : `${tennisPoint(p1)}–${tennisPoint(p2)}`;
+      const courtName = game.court?.name ? `Campo ${escapeHtml(game.court.name)}` : (game.court_id ? `Campo ${escapeHtml(String(game.court_id)).slice(0,8)}` : '');
 
       wrap.innerHTML = `
         <div class="row">
           <div>
             <span class="badge">${escapeHtml(game.format || 'best_of_3')}</span>
-            ${game.court_id ? `<span class="muted" style="margin-left:8px">• Court ${escapeHtml(String(game.court_id)).slice(0,8)}</span>`:''}
+            ${courtName ? `<span class="muted" style="margin-left:8px">• ${courtName}</span>`:''}
           </div>
-          <div>${isLive?'<span class="pulse">AO VIVO</span>':'Pré-jogo'}</div>
+          <div>${matchOver? 'Final' : (superTB || normalTB ? '<span class="pulse">AO VIVO</span>' : ( (g1+g2+p1+p2+tb1+tb2)>0 ? '<span class="pulse">AO VIVO</span>' : 'Pré-jogo'))}</div>
         </div>
 
-        <div class="teams">
-          <div class="pair right"><div class="names">${pair1}</div></div>
-          <div class="scoreBox">
-            <div class="games">${games1}\u00A0<span class="muted">–</span>\u00A0${games2}</div>
-            <div class="points">${pointsStr}</div>
-            <div class="sets">${setHtml || ''}</div>
-          </div>
-          <div class="pair"><div class="names">${pair2}</div></div>
-        </div>
-      `;
-
-      return wrap;
-    }
-
-    function escapeHtml(s=''){return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));}
-
-    async function fetchGames(){
-      if (!ids.length) return [];
-      const { data, error } = await supabase
-        .from(TABLE)
-        .select(SELECT)
-        .in('id', ids)
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      // score é JSON; supabase-js já decodifica para objeto
-      return data || [];
-    }
-
-    // bootstrap
-    let current = [];
-    try { current = await fetchGames(); render(current); touch('Ligado', true); }
-    catch(e){ console.error(e); touch('Erro de leitura', false); }
-
-    // realtime por UUIDs
-    if (ids.length){
-      const filter = `id=in.(${ids.join(',')})`;
-      const channel = supabase.channel('games-live')
-        .on('postgres_changes', { event: '*', schema: 'public', table: TABLE, filter }, (payload) => {
-          const row = payload.new;
-          const idx = current.findIndex(g => g.id === row.id);
-          if (idx >= 0) current[idx] = { ...current[idx], ...row };
-          else current.push(row);
-          render(current);
-          touch('Atualizado', true);
-        })
-        .subscribe((status) => {
-          touch(status === 'SUBSCRIBED' ? 'Ligado' : 'Offline', status === 'SUBSCRIBED');
-        });
-
-      // polling de segurança (15s)
-      setInterval(async () => {
-        try {
-          const fresh = await fetchGames();
-          if (JSON.stringify(fresh) !== JSON.stringify(current)){
-            current = fresh; render(current); touch('Sincronizado', true);
-          }
-        } catch {}
-      }, 15000);
-
-      window.addEventListener('beforeunload', () => supabase.removeChannel(channel));
-    }
-
-    function touch(text, ok){
-      statusEl.innerHTML = `<span class="${ok?'status-ok':'status-bad'}">●</span> ${text} • ${fmtTime(new Date())}`;
-    }
-  </script>
+        <div class="teams" style="margin-top:8px">
+          <div class="pair righ
 </body>
 </html>
