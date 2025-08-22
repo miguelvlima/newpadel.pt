@@ -1,29 +1,47 @@
-// public/js/scoreboard.js (versão responsiva)
+// public/js/scoreboard.js (corrigido + responsivo)
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 (async () => {
+  // ----- DOM & Config -----
   const grid = document.getElementById('grid');
   const statusEl = document.getElementById('status');
+
   const SUPABASE_URL  = grid?.dataset?.sbUrl || '';
   const SUPABASE_ANON = grid?.dataset?.sbAnon || '';
-  if (!SUPABASE_URL || !SUPABASE_ANON) console.error('Faltam SUPABASE_URL / SUPABASE_ANON nos data-attributes.');
+  if (!SUPABASE_URL || !SUPABASE_ANON) {
+    console.error('Faltam SUPABASE_URL / SUPABASE_ANON nos data-attributes.');
+  }
 
   document.getElementById('fs')?.addEventListener('click', () => {
     if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
     else document.exitFullscreen?.();
   });
 
+  // ----- Query params -----
   const params = new URLSearchParams(location.search);
   const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  const ids = (params.get('ids') || '').split(',').map(s => s.trim()).filter(x => uuidRe.test(x)).slice(0, 4);
+  const ids = (params.get('ids') || '')
+    .split(',').map(s => s.trim()).filter(x => uuidRe.test(x)).slice(0, 4);
   const kiosk = params.get('kiosk') === '1';
   if (kiosk) document.body.classList.add('hide-cursor');
 
+  // ----- Supabase -----
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON, { realtime: { params: { eventsPerSecond: 5 }}});
 
+  // ===== Helpers =====
   function fmtTime(d){ return d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
-  function escapeHtml(s=''){return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
-  function touch(text, ok){ if (statusEl) statusEl.innerHTML = `<span class="${ok?'status-ok':'status-bad'}">●</span> ${text} • ${fmtTime(new Date())}`; }
+  function escapeHtml(s=''){
+    return s.replace(/[&<>\"']/g, m => ({
+      '&':'&amp;',
+      '<':'&lt;',
+      '>':'&gt;',
+      '"':'&quot;',
+      "'":'&#39;'
+    }[m]));
+  }
+  function touch(text, ok){
+    if (statusEl) statusEl.innerHTML = `<span class="${ok?'status-ok':'status-bad'}">●</span> ${text} • ${fmtTime(new Date())}`;
+  }
 
   function parseFormat(fmt){
     const f = (fmt || 'best_of_3').toLowerCase();
@@ -55,8 +73,17 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     return [w1,w2];
   }
   function tennisPoint(n, gp){ const map=[0,15,30,40,'AD']; if(!Number.isFinite(n)||n<0) return '—'; return gp?map[Math.min(n,3)]:map[Math.min(n,4)]; }
-  function isNormalTBActive(current, cfg){ if (cfg.isProset) return false; const g1=Number(current?.games_team1||0), g2=Number(current?.games_team2||0); return g1===cfg.gamesToWinSet && g2===cfg.gamesToWinSet; }
-  function superTBActive(sets, cfg, matchOver){ if (!cfg.isSuper) return false; const [w1,w2]=countWonSets(sets, cfg); if (matchOver) return false; return (w1===1 && w2===1); }
+  function isNormalTBActive(current, cfg){
+    if (cfg.isProset) return false;
+    const g1 = Number(current?.games_team1||0), g2 = Number(current?.games_team2||0);
+    return g1===cfg.gamesToWinSet && g2===cfg.gamesToWinSet; // 6–6
+  }
+  function superTBActive(sets, cfg, matchOver){
+    if (!cfg.isSuper) return false;
+    const [w1,w2] = countWonSets(sets, cfg);
+    if (matchOver) return false;
+    return (w1===1 && w2===1);
+  }
 
   // ===== Layout responsivo sem scroll =====
   function computeGrid(n){
@@ -65,7 +92,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       if (n===1) return [1,1];
       if (n===2) return [1,2];
       if (n===3) return [1,3];
-      return [1,4]; // 4 empilhados
+      return [1,4];
     } else {
       if (n===1) return [1,1];
       if (n===2) return [2,1];
@@ -112,7 +139,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     const tb1 = Number(cur.tb_team1||0), tb2 = Number(cur.tb_team2||0);
     const p1 = Number(cur.points_team1||0), p2 = Number(cur.points_team2||0);
 
-    let mainLine='', subLine='';
+    let mainLine = '', subLine = '';
     if (superTB){ mainLine = `Super TB ${tb1}–${tb2}`; subLine = `Jogos ${g1}–${g2}`; }
     else if (normalTB){ mainLine = `TB ${tb1}–${tb2}`; subLine = `Jogos ${g1}–${g2}`; }
     else { mainLine = `${tennisPoint(p1, cfg.isGP)}–${tennisPoint(p2, cfg.isGP)}`; subLine = `Jogos ${g1}–${g2}`; }
@@ -133,13 +160,21 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
         }
       }
       if (concluded || showCurrent){
-        boxes.push(`<div class="set ${showCurrent ? 'current' : ''}"><strong>${top}</strong><small>${bot}</small>${label?'<small>'+label+'</small>':''}</div>`);
+        boxes.push(
+          `<div class="set ${showCurrent ? 'current' : ''}">
+             <strong>${top}</strong>
+             <small>${bot}</small>
+             ${label ? '<small>'+label+'</small>' : ''}
+           </div>`
+        );
       }
     }
 
     const wrap = document.createElement('div');
     wrap.className = 'tile';
-    const courtName = game.court_name ? `Campo ${escapeHtml(game.court_name)}` : (game.court_id ? `Campo ${escapeHtml(String(game.court_id)).slice(0,8)}` : '');
+    const courtName = game.court_name
+      ? `Campo ${escapeHtml(game.court_name)}`
+      : (game.court_id ? `Campo ${escapeHtml(String(game.court_id)).slice(0,8)}` : '');
 
     wrap.innerHTML = `
       <div class="row">
@@ -147,7 +182,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           <span class="badge">${escapeHtml(game.format || 'best_of_3')}</span>
           ${courtName ? `<span class="muted" style="margin-left:8px">• ${courtName}</span>` : ''}
         </div>
-        <div>${matchOver ? 'Final' : ((superTB || normalTB || (g1+g2+p1+p2+tb1+tb2) > 0) ? '<span class="pulse">AO VIVO</span>' : 'Pré-jogo')}</div>
+        <div>${matchOver ? 'Final' :
+          ((superTB || normalTB || (g1+g2+p1+p2+tb1+tb2) > 0) ? '<span class="pulse">AO VIVO</span>' : 'Pré-jogo')}</div>
       </div>
       <div class="teams" style="margin-top:8px">
         <div class="pair right"><div class="names">${pair1}</div></div>
@@ -157,22 +193,32 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           <div class="sets">${boxes.join('')}</div>
         </div>
         <div class="pair"><div class="names">${pair2}</div></div>
-      </div>`;
+      </div>
+    `;
     return wrap;
   }
 
+  // ===== Data =====
   const TABLE = 'games';
   const SELECT_COLUMNS = 'id,player1,player2,player3,player4,format,score,court_id,created_at';
 
   async function fetchGames(){
     if (!ids.length) return [];
-    const { data, error } = await supabase.from(TABLE).select(SELECT_COLUMNS).in('id', ids).order('created_at', { ascending: false });
+    const { data, error } = await supabase
+      .from(TABLE)
+      .select(SELECT_COLUMNS)
+      .in('id', ids)
+      .order('created_at', { ascending: false });
     if (error) throw error;
     const games = data || [];
 
+    // Courts (nome) – query separada para evitar bloqueios de RLS no JOIN
     const courtIds = [...new Set(games.map(g=>g.court_id).filter(Boolean))];
     if (courtIds.length){
-      const { data: courts, error: courtErr } = await supabase.from('courts').select('id,name').in('id', courtIds);
+      const { data: courts, error: courtErr } = await supabase
+        .from('courts')
+        .select('id,name')
+        .in('id', courtIds);
       if (!courtErr && Array.isArray(courts)){
         const map = new Map(courts.map(c => [c.id, c.name]));
         for (const g of games){ if (g.court_id && map.has(g.court_id)) g.court_name = map.get(g.court_id); }
@@ -183,10 +229,18 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     return games;
   }
 
+  // ===== Bootstrap =====
   let current = [];
-  try { current = await fetchGames(); render(current); touch('Ligado', true); }
-  catch (e){ console.error('Supabase error:', e); touch('Erro de leitura', false); }
+  try {
+    current = await fetchGames();
+    render(current);
+    touch('Ligado', true);
+  } catch (e) {
+    console.error('Supabase error:', e);
+    touch('Erro de leitura', false);
+  }
 
+  // ===== Realtime =====
   if (ids.length){
     const filter = `id=in.(${ids.join(',')})`;
     const channel = supabase.channel('games-live')
@@ -195,20 +249,31 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
         const idx = current.findIndex(g => g.id === row.id);
         if (idx >= 0) current[idx] = { ...current[idx], ...row };
         else current.push(row);
-        render(current); touch('Atualizado', true);
+        render(current);
+        touch('Atualizado', true);
       })
-      .subscribe((status) => touch(status === 'SUBSCRIBED' ? 'Ligado' : 'Offline', status === 'SUBSCRIBED'));
+      .subscribe((status) => {
+        touch(status === 'SUBSCRIBED' ? 'Ligado' : 'Offline', status === 'SUBSCRIBED');
+      });
 
+    // Polling de segurança
     setInterval(async () => {
-      try { const fresh = await fetchGames(); if (JSON.stringify(fresh) !== JSON.stringify(current)){ current = fresh; render(current); touch('Sincronizado', true);} }
-      catch {}
+      try {
+        const fresh = await fetchGames();
+        if (JSON.stringify(fresh) !== JSON.stringify(current)){
+          current = fresh;
+          render(current);
+          touch('Sincronizado', true);
+        }
+      } catch { /* silêncio */ }
     }, 15000);
 
     window.addEventListener('beforeunload', () => supabase.removeChannel(channel));
   }
 
-  // Re-render em resize/orientação (debounced)
-  let rAF; function onResize(){ cancelAnimationFrame(rAF); rAF = requestAnimationFrame(() => render(current)); }
+  // Re-render em resize/orientação (debounced via rAF)
+  let rAF;
+  function onResize(){ cancelAnimationFrame(rAF); rAF = requestAnimationFrame(() => render(current)); }
   window.addEventListener('resize', onResize);
   window.addEventListener('orientationchange', onResize);
 })();
