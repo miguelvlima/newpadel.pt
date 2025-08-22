@@ -23,3 +23,7 @@ Route::get('/', function () {
 Route::get('/ementa', function () {
     return view('ementa');
 });
+
+Route::get('/scoreboard', function () {
+    return view('scoreboard');
+});
