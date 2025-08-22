@@ -79,6 +79,6 @@
   </main>
 
   <!-- JS externo (module), para não “partir” a página -->
-  <script type="module" src="../js/scoreboard.js"></script>
+  <script type="module" src="/js/filament/scoreboard.js"></script>
 </body>
 </html>
