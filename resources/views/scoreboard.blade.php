@@ -10,7 +10,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>New Padel Scoreboard</title>
+  <title>Scoreboard – Padel (ao vivo)</title>
   <style>
     :root { --bg:#000; --fg:#fff; --muted:#b8b8b8; --glass:rgba(255,255,255,.08); }
     *{box-sizing:border-box}
@@ -48,7 +48,7 @@
 </head>
 <body>
   <header>
-    <div class="brand"><strong>New Padel Scoreboard</strong></div>
+    <div class="brand"><span>🎾</span><strong>Scoreboard Padel</strong><span class="muted">ao vivo (Supabase)</span></div>
     <div class="muted" id="status">—</div>
     <div><button id="fs">Ecrã inteiro</button></div>
   </header>
