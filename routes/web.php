@@ -9,6 +9,7 @@ Route::get('/', function () {
         "M3" => "https://www.tiepadel.com/Rankings/dc32d083-b423-4df2-bc5e-08057dc171d7",
         "M4" => "https://www.tiepadel.com/Rankings/79981824-7532-494e-b236-3fb378c0990d",
         "M5" => "https://www.tiepadel.com/Rankings/8f366b80-88bd-48fc-8de0-a36c653e8b2b",
+        "F3" => "https://www.tiepadel.com/Rankings/b6fb781a-060c-4cc9-9219-f8b2697c085d",
         "F4" => "https://www.tiepadel.com/Rankings/6f7b7f5e-f68b-4ae7-9562-d25ccf9634c3",
         "F5" => "https://www.tiepadel.com/Rankings/6518768b-b43c-40cf-8b11-ab6b24b108fb",
         "MX3" => "https://www.tiepadel.com/Rankings/282d8a4e-31ec-466e-b8e4-d18426ecee42",
