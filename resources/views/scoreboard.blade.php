@@ -11,13 +11,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Scoreboard</title>
   <style>
-    :root { --bg:#000; --fg:#fff; --muted:#b8b8b8; }
-    *{box-sizing:border-box}
-    html,body{height:100%; overflow:hidden}
-    body{
-      margin:0; background:var(--bg); color:var(--fg);
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;
-      display:flex; flex-direction:column;
+    :root {
+    --bg:#0c0a2a;              /* fundo página */
+    --tile:#151245;            /* tile */
+    --tile-grad:#1b1761;
+    --muted:#c8c8d8;
+    --set-bg:rgba(255,255,255,.06);
+    --set-br:rgba(255,255,255,.10);
+    --now-grad1:#ffd877;       /* coluna atual (amarelo) */
+    --now-grad2:#ffb52e;
+    --now-fg:#1c1c1c;
     }
     header, footer { padding:12px 16px; }
     header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.1)}
@@ -36,15 +39,16 @@
       place-items:stretch;
       overflow:hidden;
     }
+    /* tiles */
     .tile{
-      height:100%;
-      border-radius:18px;
-      border:1px solid rgba(255,255,255,.12);
-      background:linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
-      padding:14px; display:flex; flex-direction:column;
+    height:100%;
+    border-radius:14px;
+    border:1px solid rgba(255,255,255,.12);
+    background:linear-gradient(135deg,var(--tile),var(--tile-grad));
+    padding:12px; display:flex; flex-direction:column;
     }
     .row{display:flex;align-items:center;justify-content:space-between}
-    .badge{font-size:12px;letter-spacing:.12em;text-transform:uppercase;background:rgba(255,255,255,.1);padding:4px 8px;border-radius:6px}
+    .badge{font-size:12px;letter-spacing:.12em;text-transform:uppercase;background:rgba(255,255,255,.12);padding:4px 8px;border-radius:6px}
     .teams{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px}
     .pair{display:flex;align-items:center;gap:10px;max-width:45%}
     .pair.right{justify-content:flex-end;text-align:right}
@@ -78,48 +82,52 @@
       .games{font-size:clamp(20px, 11vmin, 56px)}
     }
 
-    /* --- Tabela estilo TV --- */
+    /* --- Tabela estilo TV (com header) --- */
     .scoretable{
-    width:100%; height:100%;
-    table-layout:fixed; border-collapse:separate; border-spacing:0;
+    width:100%; table-layout:fixed; border-collapse:separate; border-spacing:0;
+    margin-top:8px;
     }
+    .scoretable th,
     .scoretable td{
-    vertical-align:middle; padding:8px 10px;
+    padding:8px 10px; vertical-align:middle;
     border-bottom:1px solid rgba(255,255,255,.08);
-    font-size:clamp(14px,2.2vmin,22px);
     }
     .scoretable tr:last-child td{ border-bottom:0; }
+
+    .scoretable thead th{
+    font-size:12px; text-transform:uppercase; letter-spacing:.08em;
+    color:var(--muted); font-weight:700; text-align:center;
+    }
+    .scoretable thead th.names{ text-align:left; }
 
     .scoretable td.names{
     width:56%; font-weight:800; line-height:1.05; text-transform:uppercase;
     }
-    .scoretable td.names .line{
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    }
+    .scoretable td.names .line{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
     .scoretable td.set{
     width:8.5%; text-align:center; font-weight:900;
     font-size:clamp(16px,2.2vmin,24px);
-    background:rgba(255,255,255,.06);
-    border-left:1px solid rgba(255,255,255,.10);
-    border-right:1px solid rgba(255,255,255,.10);
+    background:var(--set-bg);
+    border-left:1px solid var(--set-br);
+    border-right:1px solid var(--set-br);
     }
 
     .scoretable td.now{
     width:19%; text-align:center;
     font-weight:900; letter-spacing:.02em;
     font-size:clamp(20px,3.2vmin,32px);
-    color:#1c1c1c;
-    background:linear-gradient(180deg,#ffd877,#ffb52e);
+    color:var(--now-fg);
+    background:linear-gradient(180deg,var(--now-grad1),var(--now-grad2));
     border-left:1px solid rgba(0,0,0,.15);
     border-right:1px solid rgba(0,0,0,.15);
     border-radius:10px;
     }
-    .scoretable .now small{display:block; font-weight:700; font-size:.8em; opacity:.85;}
+    .scoretable .now small{display:block; font-weight:700; font-size:.8em; opacity:.9;}
 
-    /* Ajustes mobile/tablet */
+    /* mobile/tablet */
     @media (max-width: 900px){
-    .scoretable td{ padding:6px 8px; }
+    .scoretable th, .scoretable td{ padding:6px 8px; }
     .scoretable td.names{ width:54%; }
     .scoretable td.now{ font-size:clamp(18px,4.5vmin,28px); }
     }
@@ -147,6 +155,6 @@
     <div class="muted">© New Padel Solutions 2025</div>
   </footer>
 
-  <script type="module" src="/js/filament/scoreboard.js?v=6"></script>
+  <script type="module" src="/js/filament/scoreboard.js?v=7"></script>
 </body>
 </html>
