@@ -1,8 +1,8 @@
 {{-- resources/views/scoreboard.blade.php --}}
 @php
-  // Puxa as credenciais do Supabase (podes trocar por strings fixas se quiseres)
   $sbUrl  = config('services.supabase.url');
   $sbAnon = config('services.supabase.anon');
+  $screen = $screen ?? 'default';
 @endphp
 <!doctype html>
 <html lang="pt">
@@ -14,34 +14,21 @@
     :root { --bg:#000; --fg:#fff; --muted:#b8b8b8; }
     *{box-sizing:border-box}
     html,body{height:100%; overflow:hidden}
-    body{
-      margin:0; background:var(--bg); color:var(--fg);
+    body{ margin:0; background:var(--bg); color:var(--fg);
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;
-      display:flex; flex-direction:column;
-    }
+      display:flex; flex-direction:column; }
     header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
     .brand{display:flex;align-items:center;gap:10px}
     .muted{color:var(--muted)}
     button{background:rgba(255,255,255,.1);color:#fff;border:0;border-radius:14px;padding:8px 12px;cursor:pointer}
     button:hover{background:rgba(255,255,255,.2)}
-
-    /* Ocupa SEMPRE 100% do ecrã, sem scroll */
-    main{
-      flex:1; height:100%;
-      padding:16px;
+    main{ flex:1; height:100%; padding:16px;
       display:grid; gap:16px;
-      grid-template-columns:repeat(2,1fr);
-      grid-template-rows:repeat(2,1fr);
-      place-items:stretch;
-      overflow:hidden;
-    }
-    .tile{
-      height:100%;
-      border-radius:18px;
-      border:1px solid rgba(255,255,255,.12);
+      grid-template-columns:repeat(2,1fr); grid-template-rows:repeat(2,1fr);
+      place-items:stretch; overflow:hidden; }
+    .tile{ height:100%; border-radius:18px; border:1px solid rgba(255,255,255,.12);
       background:linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
-      padding:14px; display:flex; flex-direction:column;
-    }
+      padding:14px; display:flex; flex-direction:column; }
     .row{display:flex;align-items:center;justify-content:space-between}
     .badge{font-size:12px;letter-spacing:.12em;text-transform:uppercase;background:rgba(255,255,255,.1);padding:4px 8px;border-radius:6px}
     .teams{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px}
@@ -62,8 +49,6 @@
     .pulse{animation:pulse 1s infinite}
     @keyframes pulse{0%{opacity:1}50%{opacity:.4}100%{opacity:1}}
     .hide-cursor *{cursor:none !important}
-
-    /* Responsivo: tablets/telemóveis */
     @media (max-width: 900px){
       header{padding:10px 12px}
       main{gap:12px; padding:12px}
@@ -85,14 +70,14 @@
     <div><button id="fs">Ecrã inteiro</button></div>
   </header>
 
-  <!-- Passamos as credenciais ao JS via data-attributes -->
+  <!-- Credenciais + screen key via data-* -->
   <main id="grid"
         data-sb-url="{{ $sbUrl }}"
-        data-sb-anon="{{ $sbAnon }}">
-    <div class="tile placeholder">Seleciona jogos com <code>?ids=&lt;uuid1&gt;,&lt;uuid2&gt;</code> (máx 4) • <code>&kiosk=1</code> para TV</div>
+        data-sb-anon="{{ $sbAnon }}"
+        data-screen="{{ $screen }}">
+    <div class="tile placeholder">Sem jogos configurados para este ecrã.</div>
   </main>
 
-  <!-- JS externo (module). Garante que existe em public/js/scoreboard.js -->
-  <script type="module" src="/js/filament/scoreboard.js?v=2"></script>
+  <script type="module" src="/js/scoreboard.js?v=3"></script>
 </body>
 </html>
