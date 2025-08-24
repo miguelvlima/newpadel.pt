@@ -93,14 +93,14 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     const currentIndex = setConcluded.filter(Boolean).length; // 0..2
     const [w1, w2] = countWonSets(sets, cfg);
     const matchOver = (w1 >= cfg.setsToWinMatch) || (w2 >= cfg.setsToWinMatch);
-    const normalTB  = isNormalTBActive(cur, cfg);          // TB (6–6)
-    const superTB   = superTBActive(sets, cfg, matchOver); // STB decisivo
+    const normalTB  = isNormalTBActive(cur, cfg);
+    const superTB   = superTBActive(sets, cfg, matchOver);
 
     // nomes
     const pair1a = escapeHtml(game.player1 || ''), pair1b = escapeHtml(game.player2 || '');
     const pair2a = escapeHtml(game.player3 || ''), pair2b = escapeHtml(game.player4 || '');
 
-    // coluna "agora" (só usada se !matchOver)
+    // “agora”
     const g1 = Number(cur.games_team1||0), g2 = Number(cur.games_team2||0);
     const tb1= Number(cur.tb_team1||0),    tb2= Number(cur.tb_team2||0);
     const p1 = Number(cur.points_team1||0),p2 = Number(cur.points_team2||0);
@@ -109,44 +109,52 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     else if (normalTB){ nowTop=String(tb1); nowBot=String(tb2); nowTitle='Tie-break'; }
     else { nowTop=String(tennisPoint(p1, cfg.isGP)); nowBot=String(tennisPoint(p2, cfg.isGP)); }
 
-    // colunas de set
+    // set regular a decorrer (nem TB normal nem STB)
+    const isRegularPlaying = !cfg.isProset && !normalTB && !superTB;
+
+    // === colunas ===
     const cols = [];
     const titles = [];
 
     if (cfg.isProset){
-        // Proset: 1 coluna única "Proset" apenas quando concluído
+        // Proset: só mostra a coluna “Proset” quando CONCLUÍDO
         if (setConcluded[0]) { cols.push(0); titles.push('Proset'); }
     } else {
-        // Set 1: concluído OU (TB normal em curso e set corrente é o 1º) → mostrar 6–6
-        if (setConcluded[0] || (normalTB && currentIndex === 0)) { cols.push(0); titles.push('1º Set'); }
-        // Set 2: só existe se set 1 concluído; idem TB
-        if (setConcluded[0] && (setConcluded[1] || (normalTB && currentIndex === 1))) { cols.push(1); titles.push('2º Set'); }
-        // 3º/ STB: apenas quando concluído (NUNCA durante STB em curso)
-        if (setConcluded[2]) { cols.push(2); titles.push(cfg.isSuper ? 'Super Tie-break' : '3º Set'); }
+        // 1º set: concluído OU É o set atual (mesmo 0–0)
+        if (setConcluded[0] || (isRegularPlaying && currentIndex === 0)) {
+        cols.push(0); titles.push('1º Set');
+        }
+        // 2º set: existe se 1º concluído; mostra se concluído OU É o set atual (mesmo 0–0)
+        if (setConcluded[0] && (setConcluded[1] || (isRegularPlaying && currentIndex === 1))) {
+        cols.push(1); titles.push('2º Set');
+        }
+        // 3º/ STB: só quando CONCLUÍDO (nunca durante STB)
+        if (setConcluded[2]) {
+        cols.push(2); titles.push(cfg.isSuper ? 'Super Tie-break' : '3º Set');
+        }
     }
 
     function setCellVal(i, team){
-        if (!cfg.isProset && normalTB && i === currentIndex) return '6'; // mostrar 6–6 no set do TB normal
+        // TB normal a decorrer → mostrar 6–6 no set corrente
+        if (!cfg.isProset && normalTB && i === currentIndex) return '6';
+        // Set regular a decorrer (mesmo 0–0) → mostrar jogos atuais g1–g2
+        if (!cfg.isProset && isRegularPlaying && i === currentIndex) {
+        return String(team === 1 ? g1 : g2);
+        }
         const ss = sets[i];
         if (!ss || !isSetConcluded(ss, cfg, i)) return '';
         return String(team === 1 ? (ss.team1 ?? '') : (ss.team2 ?? ''));
     }
 
-    // topo do tile (campo + estado)
+    // topo: campo + estado simples
     const courtName = game.court_name
         ? `Campo ${escapeHtml(game.court_name)}`
         : (game.court_id ? `Campo ${escapeHtml(String(game.court_id)).slice(0,8)}` : '');
-    // --- Estado simples: PRÉ-JOGO / AO VIVO / TERMINADO ---
-    const anySetFinished = [0,1,2].some(i => isSetConcluded(sets[i], cfg, i));
-    const anySetFilled   = sets.some(ss => (Number(ss?.team1 || 0) + Number(ss?.team2 || 0)) > 0);
-    const hasCurrent     = (g1 + g2 + p1 + p2 + tb1 + tb2) > 0;
-
-    // "começou" se houver set concluído, algum jogo/set com valores, ou pontos/jogos/tb a rolar
-    const started = anySetFinished || anySetFilled || hasCurrent;
-
-    const liveBadge = matchOver
-    ? 'Terminado'
-    : (started ? '<span class="pulse">AO VIVO</span>' : 'Pré-jogo');
+    const anySetFinished = setConcluded.some(Boolean);
+    const anySetFilled   = sets.some(ss => (Number(ss?.team1||0) + Number(ss?.team2||0)) > 0);
+    const hasCurrent     = (g1+g2+p1+p2+tb1+tb2) > 0;
+    const started        = anySetFinished || anySetFilled || hasCurrent;
+    const liveBadge      = matchOver ? 'Terminado' : (started ? '<span class="pulse">AO VIVO</span>' : 'Pré-jogo');
 
     // HTML
     const wrap = document.createElement('div');
@@ -156,7 +164,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     const rowTopSets  = cols.map(i => `<td class="set">${setCellVal(i,1)}</td>`).join('');
     const rowBotSets  = cols.map(i => `<td class="set">${setCellVal(i,2)}</td>`).join('');
 
-    // só mostra a coluna "agora" se o jogo ainda NÃO acabou
     const nowHeader = matchOver ? '' : `<th class="now">${nowTitle}</th>`;
     const nowTopTd  = matchOver ? '' : `<td class="now">${nowTop}</td>`;
     const nowBotTd  = matchOver ? '' : `<td class="now">${nowBot}</td>`;
@@ -197,6 +204,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     `;
     return wrap;
     }
+
 
 
 

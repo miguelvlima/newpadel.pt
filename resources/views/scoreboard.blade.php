@@ -152,6 +152,6 @@
   </footer>
 
   <!-- aponto para o teu JS real -->
-  <script type="module" src="/js/filament/scoreboard.js?v=15"></script>
+  <script type="module" src="/js/filament/scoreboard.js?v=17"></script>
 </body>
 </html>
