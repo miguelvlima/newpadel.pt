@@ -79,10 +79,9 @@
       margin-top:8px;
     }
     .scoretable th, .scoretable td{
-      padding:8px 10px; vertical-align:middle;
-      border-bottom:1px solid rgba(255,255,255,.08);
+    padding:8px 10px; vertical-align:middle;
+    border-bottom:0;          /* sem linhas entre as linhas */
     }
-    .scoretable tr:last-child td{ border-bottom:0; }
 
     .scoretable thead th{
       font-size:12px; text-transform:uppercase; letter-spacing:.08em;
