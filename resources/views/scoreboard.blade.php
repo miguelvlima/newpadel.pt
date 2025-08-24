@@ -77,6 +77,54 @@
       .pair .names{font-size:clamp(12px, 3.5vmin, 18px)}
       .games{font-size:clamp(20px, 11vmin, 56px)}
     }
+
+    /* --- Tabela estilo TV --- */
+    .scoretable{
+    width:100%; height:100%;
+    table-layout:fixed; border-collapse:separate; border-spacing:0;
+    }
+    .scoretable td{
+    vertical-align:middle; padding:8px 10px;
+    border-bottom:1px solid rgba(255,255,255,.08);
+    font-size:clamp(14px,2.2vmin,22px);
+    }
+    .scoretable tr:last-child td{ border-bottom:0; }
+
+    .scoretable td.names{
+    width:56%; font-weight:800; line-height:1.05; text-transform:uppercase;
+    }
+    .scoretable td.names .line{
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+
+    .scoretable td.set{
+    width:8.5%; text-align:center; font-weight:900;
+    font-size:clamp(16px,2.2vmin,24px);
+    background:rgba(255,255,255,.06);
+    border-left:1px solid rgba(255,255,255,.10);
+    border-right:1px solid rgba(255,255,255,.10);
+    }
+
+    .scoretable td.now{
+    width:19%; text-align:center;
+    font-weight:900; letter-spacing:.02em;
+    font-size:clamp(20px,3.2vmin,32px);
+    color:#1c1c1c;
+    background:linear-gradient(180deg,#ffd877,#ffb52e);
+    border-left:1px solid rgba(0,0,0,.15);
+    border-right:1px solid rgba(0,0,0,.15);
+    border-radius:10px;
+    }
+    .scoretable .now small{display:block; font-weight:700; font-size:.8em; opacity:.85;}
+
+    /* Ajustes mobile/tablet */
+    @media (max-width: 900px){
+    .scoretable td{ padding:6px 8px; }
+    .scoretable td.names{ width:54%; }
+    .scoretable td.now{ font-size:clamp(18px,4.5vmin,28px); }
+    }
+
+
   </style>
 </head>
 <body>
@@ -99,6 +147,6 @@
     <div class="muted">© New Padel Solutions 2025</div>
   </footer>
 
-  <script type="module" src="/js/filament/scoreboard.js?v=4"></script>
+  <script type="module" src="/js/filament/scoreboard.js?v=6"></script>
 </body>
 </html>

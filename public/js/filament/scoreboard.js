@@ -71,64 +71,102 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     const s = game.score || {};
     const sets = Array.isArray(s.sets) ? s.sets.slice(0,3) : [];
     const cur = s.current || {};
-    const [w1,w2] = countWonSets(sets, cfg);
-    const over = (w1>=cfg.setsToWinMatch) || (w2>=cfg.setsToWinMatch);
-    const normalTB = isNormalTBActive(cur, cfg);
-    const superTB = superTBActive(sets, cfg, over);
 
-    const pair1 = `${escapeHtml(game.player1)} & ${escapeHtml(game.player2)}`;
-    const pair2 = `${escapeHtml(game.player3)} & ${escapeHtml(game.player4)}`;
+    // estado do encontro
+    const set1Concluded = isSetConcluded(sets[0], cfg, 0);
+    const set2Concluded = isSetConcluded(sets[1], cfg, 1);
+    const set3Concluded = isSetConcluded(sets[2], cfg, 2);
+    const [w1, w2] = countWonSets(sets, cfg);
+    const matchOver = (w1 >= cfg.setsToWinMatch) || (w2 >= cfg.setsToWinMatch);
+    const normalTB  = isNormalTBActive(cur, cfg);
+    const superTB   = superTBActive(sets, cfg, matchOver);
+
+    // nomes (duas linhas por equipa)
+    const pair1a = escapeHtml(game.player1 || '');
+    const pair1b = escapeHtml(game.player2 || '');
+    const pair2a = escapeHtml(game.player3 || '');
+    const pair2b = escapeHtml(game.player4 || '');
+
+    // última coluna (resultado em curso)
     const g1 = Number(cur.games_team1||0), g2 = Number(cur.games_team2||0);
-    const tb1 = Number(cur.tb_team1||0), tb2 = Number(cur.tb_team2||0);
-    const p1 = Number(cur.points_team1||0), p2 = Number(cur.points_team2||0);
-    let mainLine='', subLine='';
-    if (superTB){ mainLine=`Super TB ${tb1}–${tb2}`; subLine=`Jogos ${g1}–${g2}`; }
-    else if (normalTB){ mainLine=`TB ${tb1}–${tb2}`; subLine=`Jogos ${g1}–${g2}`; }
-    else { mainLine=`${tennisPoint(p1,cfg.isGP)}–${tennisPoint(p2,cfg.isGP)}`; subLine=`Jogos ${g1}–${g2}`; }
+    const tb1 = Number(cur.tb_team1||0),   tb2 = Number(cur.tb_team2||0);
+    const p1 = Number(cur.points_team1||0),p2 = Number(cur.points_team2||0);
 
-    const maxSets = cfg.setsToWinMatch*2-1;
-    const boxes=[];
-    for (let i=0;i<Math.min(sets.length,maxSets);i++){
-      const set=sets[i]||{}; const concluded=isSetConcluded(set,cfg,i);
-      let showCurrent=false,label='',top=0,bot=0;
-      if (concluded){ top=Number(set.team1||0); bot=Number(set.team2||0); }
-      else {
-        const currentIndex = (()=>{ let c=0; for(let k=0;k<Math.min(sets.length,maxSets);k++){ if(isSetConcluded(sets[k],cfg,k)) c++; } return c; })();
-        if (i===currentIndex){
-          if (superTB){ const anyTB=(tb1+tb2)>0; if (anyTB){ top=tb1; bot=tb2; label='Super TB'; showCurrent=true; } }
-          else if (normalTB){ const anyTB=(tb1+tb2)>0; if (anyTB){ top=tb1; bot=tb2; label='TB'; showCurrent=true; } }
-          else { const anyGames=(g1+g2)>0; if (anyGames){ top=g1; bot=g2; showCurrent=true; } }
-        }
-      }
-      if (concluded || showCurrent){
-        boxes.push(`<div class="set ${showCurrent?'current':''}"><strong>${top}</strong><small>${bot}</small>${label?'<small>'+label+'</small>':''}</div>`);
-      }
+    let nowTop = '', nowBot = '', nowLabel = '';
+    if (superTB){ nowTop = String(tb1); nowBot = String(tb2); nowLabel = 'STB'; }
+    else if (normalTB){ nowTop = String(tb1); nowBot = String(tb2); nowLabel = 'TB'; }
+    else { nowTop = String(tennisPoint(p1, cfg.isGP)); nowBot = String(tennisPoint(p2, cfg.isGP)); nowLabel = ''; }
+
+    // que colunas de sets mostrar?
+    // - Set 1: mostra só quando CONCLUÍDO
+    // - Set 2: só existe se o Set 1 estiver concluído (valor aparece quando concluir)
+    // - Set 3: só se Set1 e Set2 concluídos e **ficou 1–1** (no formato super é o STB)
+    const cols = [];
+    if (set1Concluded) cols.push(0);
+    if (set1Concluded) cols.push(1);
+    if (set1Concluded && set2Concluded){
+        const s1 = sets[0] || {}, s2 = sets[1] || {};
+        const t1a = (Number(s1.team1||0) > Number(s1.team2||0)) ? 1 : (Number(s1.team2||0) > Number(s1.team1||0) ? 2 : 0);
+        const t2a = (Number(s2.team1||0) > Number(s2.team2||0)) ? 1 : (Number(s2.team2||0) > Number(s2.team1||0) ? 2 : 0);
+        if (t1a && t2a && t1a !== t2a) cols.push(2);
     }
 
-    const wrap=document.createElement('div'); wrap.className='tile';
-    const courtName = game.court_name ? `Campo ${escapeHtml(game.court_name)}` :
-                      (game.court_id ? `Campo ${escapeHtml(String(game.court_id)).slice(0,8)}` : '');
+    function setCellVal(setIndex, team){ // team: 1 ou 2
+        const ss = sets[setIndex];
+        if (!ss) return '';
+        if (!isSetConcluded(ss, cfg, setIndex)) return '';
+        return String(team === 1 ? (ss.team1 ?? '') : (ss.team2 ?? ''));
+    }
+
+    // topo do tile (formato + court + estado)
+    const courtName = game.court_name
+        ? `Campo ${escapeHtml(game.court_name)}`
+        : (game.court_id ? `Campo ${escapeHtml(String(game.court_id)).slice(0,8)}` : '');
+    const liveBadge = matchOver ? 'Final'
+        : ((superTB || normalTB || (g1+g2+p1+p2+tb1+tb2) > 0) ? '<span class="pulse">AO VIVO</span>' : 'Pré-jogo');
+
+    // construir HTML da tabela
+    const wrap = document.createElement('div');
+    wrap.className = 'tile';
+
+    const rowTopSets = cols.map(i => `<td class="set">${setCellVal(i,1)}</td>`).join('');
+    const rowBotSets = cols.map(i => `<td class="set">${setCellVal(i,2)}</td>`).join('');
 
     wrap.innerHTML = `
-      <div class="row">
+        <div class="row">
         <div>
-          <span class="badge">${escapeHtml(game.format || 'best_of_3')}</span>
-          ${courtName ? `<span class="muted" style="margin-left:8px">• ${courtName}</span>` : ''}
+            <span class="badge">${escapeHtml(game.format || 'best_of_3')}</span>
+            ${courtName ? `<span class="muted" style="margin-left:8px">• ${courtName}</span>` : ''}
         </div>
-        <div>${over ? 'Final' :
-          ((superTB || normalTB || (g1+g2+p1+p2+tb1+tb2)>0) ? '<span class="pulse">AO VIVO</span>' : 'Pré-jogo')}</div>
-      </div>
-      <div class="teams" style="margin-top:8px">
-        <div class="pair right"><div class="names">${pair1}</div></div>
-        <div class="scoreBox">
-          <div class="games">${mainLine}</div>
-          <div class="points">${subLine}</div>
-          <div class="sets">${boxes.join('')}</div>
+        <div>${liveBadge}</div>
         </div>
-        <div class="pair"><div class="names">${pair2}</div></div>
-      </div>`;
+
+        <table class="scoretable" aria-label="Scoreboard do jogo">
+        <tbody>
+            <tr>
+            <td class="names">
+                <div class="line">${pair1a}</div>
+                <div class="line">${pair1b}</div>
+            </td>
+            ${rowTopSets}
+            <td class="now">${nowLabel ? `<small>${nowLabel}</small>` : ''}${nowTop}</td>
+            </tr>
+            <tr>
+            <td class="names">
+                <div class="line">${pair2a}</div>
+                <div class="line">${pair2b}</div>
+            </td>
+            ${rowBotSets}
+            <td class="now">${nowLabel ? `<small>${nowLabel}</small>` : ''}${nowBot}</td>
+            </tr>
+        </tbody>
+        </table>
+    `;
+
     return wrap;
-  }
+    }
+
+
 
   // ========== DATA: screen -> selections -> games (+courts) ==========
   async function getScreenByKey(key){
