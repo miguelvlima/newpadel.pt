@@ -73,20 +73,23 @@
     .pulse{ animation:pulse 1s infinite; color:var(--live); font-weight:800; }
     @keyframes pulse{0%{opacity:1}50%{opacity:.55}100%{opacity:1}}
 
-    /* tabela estilo TV */
+    /* separação vertical entre as duas linhas (equipas) */
     .scoretable{
-      width:100%; table-layout:fixed; border-collapse:separate; border-spacing:0;
-      margin-top:8px;
-    }
-    .scoretable th, .scoretable td{
-    padding:8px 10px; vertical-align:middle;
-    border-bottom:0;          /* sem linhas entre as linhas */
+    border-collapse: separate;   /* já estava, mas reforço */
+    border-spacing: 0 10px;       /* <-- gap vertical de 8px */
     }
 
-    .scoretable thead th{
-      font-size:12px; text-transform:uppercase; letter-spacing:.08em;
-      color:var(--muted); font-weight:700; text-align:center;
+    /* removemos linhas divisórias e evitamos “sangrar” o fundo no gap */
+    .scoretable th,
+    .scoretable td{
+    border-bottom: 0 !important;
+    padding: 8px 10px;
+    vertical-align: middle;
+    background-clip: padding-box;  /* o fundo não invade o espaço entre linhas */
     }
+
+/* opcional: reduzir um bocadinho o espaço por baixo do header */
+.scoretable thead th{ padding-bottom: 4px; }
     .scoretable thead th.names{ text-align:left; }
 
     .scoretable td.names{
