@@ -136,12 +136,11 @@
   </style>
 </head>
 <body>
-  <header>
-    <!-- só o título do scoreboard (vindo da DB via JS) -->
+    <header>
     <strong id="screen-title">—</strong>
     <div class="muted" id="status">—</div>
     <div><button id="fs">Ecrã inteiro</button></div>
-  </header>
+    </header>
 
   <!-- Credenciais + screen key via data-* -->
   <main id="grid"
@@ -155,6 +154,6 @@
     <div class="muted">© New Padel Solutions 2025</div>
   </footer>
 
-  <script type="module" src="/js/filament/scoreboard.js?v=7"></script>
+  <script type="module" src="/js/filament/scoreboard.js?v=9"></script>
 </body>
 </html>

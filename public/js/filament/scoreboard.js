@@ -8,6 +8,14 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   const SUPABASE_ANON = grid?.dataset?.sbAnon || '';
   const SCREEN_KEY    = grid?.dataset?.screen || 'default';
 
+  // --- título do ecrã ---
+    const titleEl = document.getElementById('screen-title');
+    function setScreenTitle(txt){
+    const t = (txt && String(txt).trim()) || SCREEN_KEY || 'Scoreboard';
+    if (titleEl) titleEl.textContent = t;
+    document.title = t;
+    }
+
   document.getElementById('fs')?.addEventListener('click', () => {
     if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
     else document.exitFullscreen?.();
@@ -181,10 +189,15 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
   // ========== DATA: screen -> selections -> games (+courts) ==========
   async function getScreenByKey(key){
-    const { data, error } = await supabase.from('scoreboards').select('id, layout, kiosk, title').eq('key', key).single();
+    const { data, error } = await supabase
+        .from('scoreboards')
+        .select('id, key, title, layout, kiosk')
+        .eq('key', key)
+        .maybeSingle();          // <— evita throw se não existir
     if (error) throw error;
-    return data;
-  }
+    return data || null;
+    }
+
 
   async function getSelections(screenId){
     const { data, error } = await supabase
@@ -214,20 +227,27 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   }
 
   // ===== Bootstrap
-  let currentGames = [];
-  let screen = null;
-  try {
+    let currentGames = [];
+    let screen = null;
+    try {
     screen = await getScreenByKey(SCREEN_KEY);
+
+    // <<< atualiza o cabeçalho e o <title>
+    setScreenTitle(screen?.title);
+    // <<<
+
     if (screen?.kiosk) document.body.classList.add('hide-cursor');
 
-    const ids = await getSelections(screen.id);
+    const ids = screen ? await getSelections(screen.id) : [];
     currentGames = await getGames(ids);
-    renderGrid(currentGames, screen.layout || 'auto');
+    renderGrid(currentGames, screen?.layout || 'auto');
     touch('Ligado', true);
-  } catch (e){
+    } catch (e) {
     console.error('Erro a carregar screen/selections:', e);
+    setScreenTitle(SCREEN_KEY);           // fallback para não ficar “—”
     touch('Erro inicial', false);
-  }
+    }
+
 
   // ===== Realtime: reagir a mudanças de seleções e de jogos
   let gamesChannel = null;
@@ -270,6 +290,20 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     const ids = await getSelections(screenId);
     await resubscribe(ids);
   }
+
+  // Atualizar título/flags se o scoreboard mudar na DB
+    if (screen?.id){
+    supabase.channel('screen-meta-live')
+        .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'scoreboards',
+        filter: `id=eq.${screen.id}`
+        }, (payload) => {
+        const row = payload.new || payload.old;
+        if (row?.title) setScreenTitle(row.title);
+        if (row?.kiosk) document.body.classList.add('hide-cursor');
+        })
+        .subscribe();
+    }
 
   if (screen?.id){
     setupSelectionSubscription(screen.id);
