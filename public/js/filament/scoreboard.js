@@ -272,7 +272,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     setScreenTitle(screen?.title);
     // <<<
 
-    if (screen?.kiosk) document.body.classList.add('hide-cursor');
+    if (screen?.kiosk) document.body.classList.add('hide-cursor','no-scroll');
+    else document.body.classList.remove('no-scroll');
+
 
     const ids = screen ? await getSelections(screen.id) : [];
     currentGames = await getGames(ids);
@@ -374,4 +376,10 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   let rAF; const onResize=()=>{ cancelAnimationFrame(rAF); rAF=requestAnimationFrame(()=> renderGrid(currentGames, screen?.layout || 'auto')); };
   window.addEventListener('resize', onResize);
   window.addEventListener('orientationchange', onResize);
+
+  document.addEventListener('fullscreenchange', () => {
+    if (document.fullscreenElement) document.body.classList.add('no-scroll');
+    else if (!screen?.kiosk) document.body.classList.remove('no-scroll');
+    });
+
 })();

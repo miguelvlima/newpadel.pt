@@ -25,7 +25,8 @@
     }
 
     *{box-sizing:border-box}
-    html,body{height:100%; overflow:hidden}
+    html,body{height:100%;}
+    body{overflow:auto;}
     body{
       margin:0; background:var(--bg); color:var(--fg);
       -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
@@ -48,14 +49,22 @@
     }
     button:hover{background:rgba(255,255,255,.16)}
 
-    /* grid de jogos (sem scroll) */
     main{
-      flex:1; height:100%;
-      padding:16px; display:grid; gap:16px;
-      grid-template-columns:repeat(2,1fr);
-      grid-template-rows:repeat(2,1fr);
-      place-items:stretch; overflow:hidden;
+    flex:1;
+    /* height:100%;  ← remove */
+    min-height:100svh;                /* ← cobre viewport móvel */
+    /* fallback para browsers antigos */
+    min-height:100vh;
+    padding:16px;
+    display:grid; gap:16px;
+    grid-template-columns:repeat(2,1fr);
+    grid-template-rows:repeat(2,1fr);
+    place-items:stretch;
+    /* overflow:hidden; ← remove */
     }
+
+    /* quando quisermos bloquear scroll (kiosk/fullscreen) */
+    .no-scroll{ overflow:hidden; }
 
     /* tile escuro */
     .tile{
@@ -157,6 +166,6 @@
     <div class="muted">© New Padel Solutions 2025</div>
   </footer>
 
-  <script type="module" src="/js/filament/scoreboard.js?v=23"></script>
+  <script type="module" src="/js/filament/scoreboard.js?v=24"></script>
 </body>
 </html>
