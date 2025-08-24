@@ -170,12 +170,12 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     wrap.className = 'tile';
 
     const headerSetTh = titles.map(t => `<th class="set">${t}</th>`).join('');
-    const rowTopSets  = cols.map(i => `<td class="set">${setCellVal(i,1)}</td>`).join('');
-    const rowBotSets  = cols.map(i => `<td class="set">${setCellVal(i,2)}</td>`).join('');
+    const rowTopSets  = cols.map(i => `<td class="set"><div class="cell">${setCellVal(i,1)}</div></td>`).join('');
+    const rowBotSets  = cols.map(i => `<td class="set"><div class="cell">${setCellVal(i,2)}</div></td>`).join('');
 
     const nowHeader = matchOver ? '' : `<th class="now">${nowTitle}</th>`;
-    const nowTopTd  = matchOver ? '' : `<td class="now">${nowTop}</td>`;
-    const nowBotTd  = matchOver ? '' : `<td class="now">${nowBot}</td>`;
+    const nowTopTd  = matchOver ? '' : `<td class="now"><div class="cell-now">${nowTop}</div></td>`;
+    const nowBotTd  = matchOver ? '' : `<td class="now"><div class="cell-now">${nowBot}</div></td>`;
 
     wrap.innerHTML = `
         <div class="row">
