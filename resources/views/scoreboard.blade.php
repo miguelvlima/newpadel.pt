@@ -107,6 +107,13 @@
       .scoretable td.names{ width:54%; }
       .scoretable td.now{ font-size:clamp(18px,4.5vmin,28px); }
     }
+
+    /* --- overrides anti-reset: tema escuro forçado --- */
+    :root { color-scheme: dark; }
+    html, body { background:#000 !important; color:#fff !important; }
+    main { background:transparent !important; }
+    .tile { background:linear-gradient(135deg,#0b0b0b,#141414) !important; border-color:rgba(255,255,255,.10) !important; }
+
   </style>
 </head>
 <body>
@@ -129,6 +136,6 @@
   </footer>
 
   <!-- aponto para o teu JS real -->
-  <script type="module" src="/js/filament/scoreboard.js?v=19"></script>
+  <script type="module" src="/js/filament/scoreboard.js?v=20"></script>
 </body>
 </html>
