@@ -11,17 +11,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Scoreboard</title>
   <style>
-    /* === Tema escuro sólido === */
+    /* defaults (serão substituídos via JS por tile) */
     :root{
-      --bg:#000;            /* fundo geral */
-      --fg:#fff;            /* texto geral */
-      --muted:#b7b7b7;      /* texto secundário */
-      --tile:#0b0b0b;       /* cartão/tile */
-      --tile-grad:#141414;
-      --set-bg:rgba(255,255,255,.06);
-      --set-br:rgba(255,255,255,.10);
-      --live:#ff4d4d;       /* AO VIVO */
-      --now-fg:#e7ffee;     /* texto AGORA */
+    --fs-name: 22px;   /* nomes (duas linhas) */
+    --fs-set:  26px;   /* números dos sets */
+    --fs-now:  36px;   /* “AGORA” bem grande */
+    --fs-head: 12px;   /* cabeçalhos das colunas */
     }
     *{box-sizing:border-box}
     html,body{height:100%; overflow:hidden}
@@ -73,51 +68,31 @@
     .pulse{ animation:pulse 1s infinite; color:var(--live); font-weight:800; }
     @keyframes pulse{0%{opacity:1}50%{opacity:.55}100%{opacity:1}}
 
-    /* separação vertical entre as duas linhas (equipas) */
+    /* mantém o espaçamento vertical entre as duas filas (equipas) */
     .scoretable{
-    border-collapse: separate;   /* já estava, mas reforço */
-    border-spacing: 0 10px;       /* <-- gap vertical de 8px */
+    border-collapse: separate;
+    border-spacing: 0 8px;
     }
-
-    /* removemos linhas divisórias e evitamos “sangrar” o fundo no gap */
     .scoretable th,
     .scoretable td{
-    border-bottom: 0 !important;
-    padding: 8px 10px;
-    vertical-align: middle;
-    background-clip: padding-box;  /* o fundo não invade o espaço entre linhas */
+    border-bottom:0 !important;
+    padding:8px 10px;
+    vertical-align:middle;
+    background-clip: padding-box;
     }
 
-/* opcional: reduzir um bocadinho o espaço por baixo do header */
-.scoretable thead th{ padding-bottom: 4px; }
+    .scoretable thead th{ font-size: var(--fs-head); }
     .scoretable thead th.names{ text-align:left; }
 
-    .scoretable td.names{
-      width:56%; font-weight:800; line-height:1.05; text-transform:uppercase;
-    }
+    .scoretable td.names{ font-size: var(--fs-name); line-height:1.07; }
     .scoretable td.names .line{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
     /* colunas de sets (discretas) */
-    .scoretable td.set{
-      width:8.5%; text-align:center; font-weight:900;
-      font-size:clamp(16px,2.2vmin,24px);
-      background:var(--set-bg);
-      border-left:1px solid var(--set-br);
-      border-right:1px solid var(--set-br);
-      border-radius:8px;
-    }
+    .scoretable td.set{   font-size: var(--fs-set);  font-weight:900; }
 
     /* coluna AGORA com realce verde */
-    .scoretable th.now{ text-align:center; color:var(--now-fg); }
-    .scoretable td.now{
-      text-align:center; font-weight:900; letter-spacing:.02em;
-      font-size:clamp(20px,3.2vmin,32px);
-      color:var(--now-fg);
-      background:linear-gradient(180deg, rgba(0,255,163,.18), rgba(0,180,120,.14));
-      border:1px solid rgba(0,255,163,.45);
-      border-radius:12px;
-      box-shadow: 0 0 0 2px rgba(0,255,163,.20) inset, 0 0 24px rgba(0,255,163,.15);
-    }
+    .scoretable th.now,
+    .scoretable td.now{   font-size: var(--fs-now); }
 
     /* placeholder e cursores */
     .placeholder{display:grid;place-items:center;color:#9b9b9b;font-size:18px}
@@ -154,6 +129,6 @@
   </footer>
 
   <!-- aponto para o teu JS real -->
-  <script type="module" src="/js/filament/scoreboard.js?v=18"></script>
+  <script type="module" src="/js/filament/scoreboard.js?v=19"></script>
 </body>
 </html>

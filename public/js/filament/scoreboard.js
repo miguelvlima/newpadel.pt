@@ -75,7 +75,13 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       grid.appendChild(ph);
       return;
     }
-    games.forEach(g => grid.appendChild(tile(g)));
+
+    games.forEach(g => {
+    const el = tile(g);
+    grid.appendChild(el);
+    tileSizer.observe(el);     // <-- dimensiona automaticamente
+    });
+
     const target = cols*rows;
     for (let i=n; i<target; i++){
       const ph=document.createElement('div'); ph.className='tile placeholder'; grid.appendChild(ph);
@@ -267,6 +273,28 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
     const ids = screen ? await getSelections(screen.id) : [];
     currentGames = await getGames(ids);
+
+    // === dimensionamento automático por tile ===
+    const tileSizer = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+        const el = entry.target;
+        const { width: w, height: h } = entry.contentRect || el.getBoundingClientRect();
+        const base = Math.min(w, h);                   // referência ao menor lado do tile
+
+        // Tamanhos “arredondados” para ficarem sempre bons em TV e mobile
+        const fsName = Math.max(14, Math.min(46, base * 0.075));  // nomes
+        const fsSet  = Math.max(16, Math.min(56, base * 0.095));  // sets
+        const fsNow  = Math.max(22, Math.min(72, base * 0.125));  // AGORA grande
+        const fsHead = Math.max(10, Math.min(18, fsSet * 0.45));  // cabeçalhos
+
+        el.style.setProperty('--fs-name', `${fsName}px`);
+        el.style.setProperty('--fs-set',  `${fsSet}px`);
+        el.style.setProperty('--fs-now',  `${fsNow}px`);
+        el.style.setProperty('--fs-head', `${fsHead}px`);
+    }
+    });
+
+
     renderGrid(currentGames, screen?.layout || 'auto');
     touch('Ligado', true);
     } catch (e) {
