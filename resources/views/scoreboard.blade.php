@@ -10,6 +10,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Scoreboard</title>
+  <!-- Google Fonts: Bebas Neue -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
   <style>
     /* Paleta + tamanhos base (JS ajusta via ResizeObserver) */
     :root{
@@ -25,13 +29,20 @@
     }
 
     *{box-sizing:border-box}
-    html,body{height:100%;}
-    body{overflow:auto;}
+
+    /* altura real do viewport (mobile-safe) + sem scroll da página */
+    html,body{
+      height: calc(var(--vh, 1vh) * 100);
+      overflow: hidden;
+    }
+
     body{
       margin:0; background:var(--bg); color:var(--fg);
       -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;
+      font-family:'Bebas Neue', system-ui,-apple-system,'Segoe UI',Roboto,Ubuntu,Cantarell,'Noto Sans',sans-serif;
+      letter-spacing:.02em;
       display:flex; flex-direction:column;
+      text-transform:uppercase;
     }
 
     header, footer { padding:12px 16px; }
@@ -45,26 +56,26 @@
     .status-bad{color:#ff8a8a}
     button{
       background:rgba(255,255,255,.08); color:#fff; border:0; border-radius:14px;
-      padding:8px 12px; cursor:pointer
+      padding:8px 12px; cursor:pointer;
+      font-family:inherit;
     }
     button:hover{background:rgba(255,255,255,.16)}
 
+    /* conteúdo ocupa o espaço entre header e footer, SEM rebentar */
     main{
-    flex:1;
-    /* height:100%;  ← remove */
-    min-height:100svh;                /* ← cobre viewport móvel */
-    /* fallback para browsers antigos */
-    min-height:100vh;
-    padding:16px;
-    display:grid; gap:16px;
-    grid-template-columns:repeat(2,1fr);
-    grid-template-rows:repeat(2,1fr);
-    place-items:stretch;
-    /* overflow:hidden; ← remove */
+      flex: 1 1 auto;
+      min-height: 0;
+      padding:16px; display:grid; gap:16px;
+      grid-template-columns:repeat(2,1fr);
+      grid-template-rows:repeat(2,1fr);
+      place-items:stretch;
+      overflow:hidden;
     }
 
-    /* quando quisermos bloquear scroll (kiosk/fullscreen) */
-    .no-scroll{ overflow:hidden; }
+    /* fallback/upgrade para navegadores com 100svh */
+    @supports (height: 100svh){
+      html,body{ height: 100svh; }
+    }
 
     /* tile escuro */
     .tile{
@@ -78,7 +89,7 @@
     /* topo do tile */
     .row{display:flex;align-items:center;justify-content:space-between}
     .badge{
-      font-size:12px; letter-spacing:.12em; text-transform:uppercase;
+      font-size:12px; letter-spacing:.12em;
       padding:4px 10px; border-radius:999px;
       border:1px solid rgba(255,255,255,.18);
       background:rgba(255,255,255,.06);
@@ -86,30 +97,29 @@
     .pulse{ animation:pulse 1s infinite; color:var(--live); font-weight:800; }
     @keyframes pulse{0%{opacity:1}50%{opacity:.55}100%{opacity:1}}
 
-    /* tabela estilo TV */
+    /* tabela estilo TV (sem linhas, com gap entre as duas equipas) */
     .scoretable{
       width:100%; table-layout:fixed;
-      border-collapse:separate; border-spacing:0 10px; /* gap vertical entre equipas */
+      border-collapse:separate; border-spacing:0 10px;
       margin-top:8px;
     }
     .scoretable thead th{
-      font-size:var(--fs-head); text-transform:uppercase; letter-spacing:.08em;
+      font-size:var(--fs-head); letter-spacing:.08em;
       color:var(--muted); font-weight:700; text-align:center; padding-bottom:4px;
     }
     .scoretable thead th.names{ text-align:left; }
 
     .scoretable th, .scoretable td{
       border-bottom:0; padding:8px 10px; vertical-align:middle;
-      background-clip:padding-box;   /* evita o fundo “sangrar” no gap */
+      background-clip:padding-box;
     }
 
     .scoretable td.names{
       font-size:var(--fs-name); line-height:1.07;
-      text-transform:uppercase;
     }
     .scoretable td.names .line{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-    /* centragem perfeita + caixas arredondadas nas células de sets/AGORA */
+    /* centragem + caixas arredondadas nas células de sets/AGORA */
     .scoretable td.set, .scoretable td.now{ padding:0 !important; }
 
     .scoretable td.set > .cell{
@@ -117,6 +127,7 @@
       padding:10px 12px; min-height:2.4em;
       background:var(--set-bg); border:1px solid var(--set-br); border-radius:12px;
       font-weight:900; font-size:var(--fs-set); line-height:1; color:#fff;
+      font-variant-numeric: tabular-nums;
     }
 
     .scoretable td.now > .cell-now{
@@ -127,6 +138,7 @@
       border:1px solid rgba(0,255,163,.45); border-radius:12px;
       box-shadow: 0 0 0 2px rgba(0,255,163,.20) inset, 0 0 24px rgba(0,255,163,.15);
       font-weight:900; font-size:var(--fs-now); line-height:1;
+      font-variant-numeric: tabular-nums;
     }
 
     /* placeholder e cursores */
@@ -166,6 +178,6 @@
     <div class="muted">© New Padel Solutions 2025</div>
   </footer>
 
-  <script type="module" src="/js/filament/scoreboard.js?v=24"></script>
+  <script type="module" src="/js/filament/scoreboard.js?v=26"></script>
 </body>
 </html>
