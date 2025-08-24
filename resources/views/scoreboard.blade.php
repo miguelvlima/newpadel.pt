@@ -9,26 +9,40 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Scoreboard – Padel (ao vivo)</title>
+  <title>Scoreboard</title>
   <style>
     :root { --bg:#000; --fg:#fff; --muted:#b8b8b8; }
     *{box-sizing:border-box}
     html,body{height:100%; overflow:hidden}
-    body{ margin:0; background:var(--bg); color:var(--fg);
+    body{
+      margin:0; background:var(--bg); color:var(--fg);
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;
-      display:flex; flex-direction:column; }
-    header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
-    .brand{display:flex;align-items:center;gap:10px}
+      display:flex; flex-direction:column;
+    }
+    header, footer { padding:12px 16px; }
+    header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.1)}
+    footer{border-top:1px solid rgba(255,255,255,.1); text-align:center}
     .muted{color:var(--muted)}
     button{background:rgba(255,255,255,.1);color:#fff;border:0;border-radius:14px;padding:8px 12px;cursor:pointer}
     button:hover{background:rgba(255,255,255,.2)}
-    main{ flex:1; height:100%; padding:16px;
+
+    /* Ocupa SEMPRE 100% do ecrã, sem scroll */
+    main{
+      flex:1; height:100%;
+      padding:16px;
       display:grid; gap:16px;
-      grid-template-columns:repeat(2,1fr); grid-template-rows:repeat(2,1fr);
-      place-items:stretch; overflow:hidden; }
-    .tile{ height:100%; border-radius:18px; border:1px solid rgba(255,255,255,.12);
+      grid-template-columns:repeat(2,1fr);
+      grid-template-rows:repeat(2,1fr);
+      place-items:stretch;
+      overflow:hidden;
+    }
+    .tile{
+      height:100%;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.12);
       background:linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
-      padding:14px; display:flex; flex-direction:column; }
+      padding:14px; display:flex; flex-direction:column;
+    }
     .row{display:flex;align-items:center;justify-content:space-between}
     .badge{font-size:12px;letter-spacing:.12em;text-transform:uppercase;background:rgba(255,255,255,.1);padding:4px 8px;border-radius:6px}
     .teams{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px}
@@ -49,8 +63,10 @@
     .pulse{animation:pulse 1s infinite}
     @keyframes pulse{0%{opacity:1}50%{opacity:.4}100%{opacity:1}}
     .hide-cursor *{cursor:none !important}
+
+    /* Responsivo */
     @media (max-width: 900px){
-      header{padding:10px 12px}
+      header,footer{padding:10px 12px}
       main{gap:12px; padding:12px}
       .tile{padding:10px; border-radius:16px}
       .pair .names{font-size:clamp(12px, 3vmin, 20px)}
@@ -65,7 +81,8 @@
 </head>
 <body>
   <header>
-    <div class="brand"><span>🎾</span><strong>Scoreboard Padel</strong><span class="muted">ao vivo (Supabase)</span></div>
+    <!-- só o título do scoreboard (vindo da DB via JS) -->
+    <strong id="screen-title">—</strong>
     <div class="muted" id="status">—</div>
     <div><button id="fs">Ecrã inteiro</button></div>
   </header>
@@ -78,6 +95,10 @@
     <div class="tile placeholder">Sem jogos configurados para este ecrã.</div>
   </main>
 
-  <script type="module" src="/js/scoreboard.js?v=3"></script>
+  <footer>
+    <div class="muted">© New Padel Solutions 2025</div>
+  </footer>
+
+  <script type="module" src="/js/filament/scoreboard.js?v=4"></script>
 </body>
 </html>
