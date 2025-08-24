@@ -8,6 +8,14 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   const SUPABASE_ANON = grid?.dataset?.sbAnon || '';
   const SCREEN_KEY    = grid?.dataset?.screen || 'default';
 
+    // Sinaliza config inválida logo aqui
+  if (!/^https:\/\/.+\.supabase\.co/i.test(SUPABASE_URL)) {
+    console.error('SUPABASE_URL inválida/vazia:', SUPABASE_URL);
+    if (statusEl) statusEl.textContent = 'Configuração Supabase inválida (URL).';
+    return; // evita fazer chamadas ao teu domínio e levar 415
+  }
+
+
   // --- título do ecrã ---
     const titleEl = document.getElementById('screen-title');
     function setScreenTitle(txt){
