@@ -11,84 +11,67 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Scoreboard</title>
   <style>
-    :root {
-    --bg:#0c0a2a;              /* fundo página */
-    --tile:#151245;            /* tile */
-    --tile-grad:#1b1761;
-    --muted:#c8c8d8;
+    /* === Tema escuro === */
+    :root{
+    --bg:#000;           /* fundo geral */
+    --fg:#fff;           /* texto geral */
+    --muted:#b7b7b7;     /* texto secundário */
+    --tile:#0b0b0b;      /* cartão/tile */
+    --tile-grad:#141414;
     --set-bg:rgba(255,255,255,.06);
     --set-br:rgba(255,255,255,.10);
-    --now-grad1:#ffd877;       /* coluna atual (amarelo) */
-    --now-grad2:#ffb52e;
-    --now-fg:#1c1c1c;
+    --live:#ff4d4d;      /* AO VIVO */
+    --now-accent:#00ffa3;/* realce coluna AGORA */
+    }
+    /* estrutura geral (mantém sem scroll) */
+    html,body{height:100%; overflow:hidden}
+    body{
+    margin:0; background:var(--bg); color:var(--fg);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;
+    display:flex; flex-direction:column;
     }
     header, footer { padding:12px 16px; }
-    header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.1)}
-    footer{border-top:1px solid rgba(255,255,255,.1); text-align:center}
+    header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.12)}
+    footer{border-top:1px solid rgba(255,255,255,.12); text-align:center}
     .muted{color:var(--muted)}
-    button{background:rgba(255,255,255,.1);color:#fff;border:0;border-radius:14px;padding:8px 12px;cursor:pointer}
-    button:hover{background:rgba(255,255,255,.2)}
+    button{background:rgba(255,255,255,.08);color:#fff;border:0;border-radius:14px;padding:8px 12px;cursor:pointer}
+    button:hover{background:rgba(255,255,255,.16)}
 
-    /* Ocupa SEMPRE 100% do ecrã, sem scroll */
+    /* grid de jogos (sem scroll) */
     main{
-      flex:1; height:100%;
-      padding:16px;
-      display:grid; gap:16px;
-      grid-template-columns:repeat(2,1fr);
-      grid-template-rows:repeat(2,1fr);
-      place-items:stretch;
-      overflow:hidden;
+    flex:1;height:100%;
+    padding:16px; display:grid; gap:16px;
+    grid-template-columns:repeat(2,1fr);
+    grid-template-rows:repeat(2,1fr);
+    place-items:stretch; overflow:hidden;
     }
-    /* tiles */
+
+    /* tile escuro */
     .tile{
     height:100%;
     border-radius:14px;
-    border:1px solid rgba(255,255,255,.12);
+    border:1px solid rgba(255,255,255,.10);
     background:linear-gradient(135deg,var(--tile),var(--tile-grad));
     padding:12px; display:flex; flex-direction:column;
     }
+
+    /* topo do tile */
     .row{display:flex;align-items:center;justify-content:space-between}
-    .badge{font-size:12px;letter-spacing:.12em;text-transform:uppercase;background:rgba(255,255,255,.12);padding:4px 8px;border-radius:6px}
-    .teams{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px}
-    .pair{display:flex;align-items:center;gap:10px;max-width:45%}
-    .pair.right{justify-content:flex-end;text-align:right}
-    .pair .names{font-weight:700;font-size:clamp(14px,2.2vmin,22px);line-height:1.15}
-    .scoreBox{display:flex;flex-direction:column;align-items:center;min-width:40%}
-    .games{font-weight:900;font-size:clamp(24px,9vmin,72px);line-height:1}
-    .points{margin-top:4px;color:#eaeaea}
-    .sets{margin-top:10px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
-    .set{min-width:34px;padding:6px 8px;border-radius:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);text-align:center}
-    .set strong{font-size:16px}
-    .set small{display:block;color:#ddd;font-size:11px}
-    .set.current{outline:2px solid #fff;}
-    .status-ok{color:#5ee87b}
-    .status-bad{color:#ff8a8a}
-    .placeholder{display:grid;place-items:center;color:#aaa;font-size:18px}
-    .pulse{animation:pulse 1s infinite}
-    @keyframes pulse{0%{opacity:1}50%{opacity:.4}100%{opacity:1}}
-    .hide-cursor *{cursor:none !important}
-
-    /* Responsivo */
-    @media (max-width: 900px){
-      header,footer{padding:10px 12px}
-      main{gap:12px; padding:12px}
-      .tile{padding:10px; border-radius:16px}
-      .pair .names{font-size:clamp(12px, 3vmin, 20px)}
-      .games{font-size:clamp(22px, 10vmin, 64px)}
-      .set{min-width:30px; padding:5px 6px}
+    .badge{
+    font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+    padding:4px 10px;border-radius:999px;
+    border:1px solid rgba(255,255,255,.18);
+    background:rgba(255,255,255,.06);
     }
-    @media (max-width: 600px){
-      .pair .names{font-size:clamp(12px, 3.5vmin, 18px)}
-      .games{font-size:clamp(20px, 11vmin, 56px)}
-    }
+    .pulse{ animation:pulse 1s infinite; color:var(--live); font-weight:800; }
+    @keyframes pulse{0%{opacity:1}50%{opacity:.55}100%{opacity:1}}
 
-    /* --- Tabela estilo TV (com header) --- */
+    /* tabela estilo TV */
     .scoretable{
     width:100%; table-layout:fixed; border-collapse:separate; border-spacing:0;
     margin-top:8px;
     }
-    .scoretable th,
-    .scoretable td{
+    .scoretable th, .scoretable td{
     padding:8px 10px; vertical-align:middle;
     border-bottom:1px solid rgba(255,255,255,.08);
     }
@@ -105,28 +88,41 @@
     }
     .scoretable td.names .line{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
+    /* colunas de sets (discretas, escuras) */
     .scoretable td.set{
     width:8.5%; text-align:center; font-weight:900;
     font-size:clamp(16px,2.2vmin,24px);
     background:var(--set-bg);
     border-left:1px solid var(--set-br);
     border-right:1px solid var(--set-br);
+    border-radius:8px;
     }
 
+    /* coluna AGORA: destaque sem “branco” */
+    .scoretable th.now{
+    text-align:center; color:#e7ffee;
+    }
     .scoretable td.now{
-    width:19%; text-align:center;
-    font-weight:900; letter-spacing:.02em;
+    text-align:center; font-weight:900; letter-spacing:.02em;
     font-size:clamp(20px,3.2vmin,32px);
-    color:var(--now-fg);
-    background:linear-gradient(180deg,var(--now-grad1),var(--now-grad2));
-    border-left:1px solid rgba(0,0,0,.15);
-    border-right:1px solid rgba(0,0,0,.15);
-    border-radius:10px;
+    color:#e7ffee;
+    background:linear-gradient(180deg, rgba(0,255,163,.18), rgba(0,180,120,.14));
+    border:1px solid rgba(0,255,163,.45);
+    border-radius:12px;
+    box-shadow:
+        0 0 0 2px rgba(0,255,163,.20) inset,
+        0 0 24px rgba(0,255,163,.15);
     }
-    .scoretable .now small{display:block; font-weight:700; font-size:.8em; opacity:.9;}
 
-    /* mobile/tablet */
+    /* placeholder e cursores */
+    .placeholder{display:grid;place-items:center;color:#9b9b9b;font-size:18px}
+    .hide-cursor *{cursor:none !important}
+
+    /* responsivo */
     @media (max-width: 900px){
+    header,footer{padding:10px 12px}
+    main{gap:12px; padding:12px}
+    .tile{padding:10px}
     .scoretable th, .scoretable td{ padding:6px 8px; }
     .scoretable td.names{ width:54%; }
     .scoretable td.now{ font-size:clamp(18px,4.5vmin,28px); }
@@ -154,6 +150,6 @@
     <div class="muted">© New Padel Solutions 2025</div>
   </footer>
 
-  <script type="module" src="/js/filament/scoreboard.js?v=9"></script>
+  <script type="module" src="/js/filament/scoreboard.js?v=15"></script>
 </body>
 </html>
