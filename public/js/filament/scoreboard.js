@@ -120,15 +120,15 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
         // Proset: só mostra a coluna “Proset” quando CONCLUÍDO
         if (setConcluded[0]) { cols.push(0); titles.push('Proset'); }
     } else {
-        // 1º set: concluído OU É o set atual (mesmo 0–0)
-        if (setConcluded[0] || (isRegularPlaying && currentIndex === 0)) {
+        // 1º set: concluído OU é o set atual (mesmo 0–0) OU TB normal no set 1
+        if (setConcluded[0] || (isRegularPlaying && currentIndex === 0) || (normalTB && currentIndex === 0)) {
         cols.push(0); titles.push('1º Set');
         }
-        // 2º set: existe se 1º concluído; mostra se concluído OU É o set atual (mesmo 0–0)
-        if (setConcluded[0] && (setConcluded[1] || (isRegularPlaying && currentIndex === 1))) {
+        // 2º set: existe se 1º concluído; mostrar se concluído OU é o set atual (mesmo 0–0) OU TB normal no set 2
+        if (setConcluded[0] && (setConcluded[1] || (isRegularPlaying && currentIndex === 1) || (normalTB && currentIndex === 1))) {
         cols.push(1); titles.push('2º Set');
         }
-        // 3º/ STB: só quando CONCLUÍDO (nunca durante STB)
+        // 3º/ STB: só quando CONCLUÍDO (nunca durante STB a decorrer)
         if (setConcluded[2]) {
         cols.push(2); titles.push(cfg.isSuper ? 'Super Tie-break' : '3º Set');
         }
@@ -204,6 +204,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     `;
     return wrap;
     }
+
 
 
 
