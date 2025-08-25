@@ -1,4 +1,4 @@
-// public/js/filament/scoreboard.js (v41 - aggressive fit)
+// public/js/filament/scoreboard.js (v44 - NOW same size as sets)
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 (async () => {
@@ -18,6 +18,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   const SCREEN_KEY    = grid?.dataset?.screen || 'default';
 
   const setVar = (el, name, val) => el.style.setProperty(name, val);
+  const getVar = (el, name) => parseFloat(getComputedStyle(el).getPropertyValue(name)) || 0;
 
   function setScreenTitle(txt){
     const t = (txt && String(txt).trim()) || SCREEN_KEY || 'Scoreboard';
@@ -105,8 +106,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
           const fsName = Math.max(18, Math.min(72, base * 0.12));
           const fsSet  = Math.max(24, Math.min(96, base * 0.145));
-          const fsNow  = Math.max(32, Math.min(128, base * 0.22));
           const fsHead = Math.max(12, Math.min(26, fsSet * 0.50));
+          const fsNow  = fsSet; // NOW == SET
 
           const fsBadge   = Math.max(12, Math.min(32, base * 0.075));
           const badgePadY = Math.max(4,  Math.min(18, base * 0.038));
@@ -115,10 +116,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           const gapV = Math.max(6, Math.min(24, base * 0.03));
           const padY = Math.max(8, Math.min(22, base * 0.05));
           const padX = Math.max(10, Math.min(28, base * 0.07));
-
-          const gridGap = Math.max(10, Math.min(24, base * 0.035));
-          const gridPad = Math.max(10, Math.min(20, base * 0.03));
-          const tilePad = Math.max(8,  Math.min(18, base * 0.03));
 
           setVar(el, '--fs-name',  `${fsName}px`);
           setVar(el, '--fs-set',   `${fsSet}px`);
@@ -131,10 +128,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           setVar(el, '--pad-cell-y', `${padY}px`);
           setVar(el, '--pad-cell-x', `${padX}px`);
 
-          document.documentElement.style.setProperty('--grid-gap', `${gridGap}px`);
-          document.documentElement.style.setProperty('--grid-pad', `${gridPad}px`);
-          setVar(el, '--tile-pad', `${tilePad}px`);
-
           requestAnimationFrame(() => {
             fitNames(el);
             fitBadges(el);
@@ -145,10 +138,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     : { observe: () => {} };
 
   function fitNames(el){
-    let fs = parseFloat(getComputedStyle(el).getPropertyValue('--fs-name')) || 22;
+    let fs = getVar(el, '--fs-name') || 22;
     const min = 12; let tries = 0;
-    const tooWide = () => [...el.querySelectorAll('td.names .line')]
-                        .some(d => d.scrollWidth > d.clientWidth);
+    const tooWide = () => [...el.querySelectorAll('td.names .line')].some(d => d.scrollWidth > d.clientWidth);
     while (tooWide() && fs > min && tries < 24){
       fs -= 1; setVar(el, '--fs-name', `${fs}px`); tries++;
     }
@@ -158,60 +150,56 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     const left = row.querySelector('.left'); const right = row.querySelector('.right');
     const court = row.querySelector('.badge.court'); const status = row.querySelector('.badge.status');
     if (!left || !right) return;
-    let fs = parseFloat(getComputedStyle(el).getPropertyValue('--fs-badge')) || 14;
-    let tries = 0;
+    let fs = getVar(el, '--fs-badge') || 14; let tries = 0;
     const over = () => (court && court.scrollWidth > left.clientWidth) || (status && status.scrollWidth > right.clientWidth);
     while (over() && fs > 10 && tries < 20){
       fs -= 1; setVar(el, '--fs-badge', `${fs}px`); tries++;
     }
   }
+
   function shrinkVars(el, factor = 0.93){
-    const cs = getComputedStyle(el);
-    const get = name => parseFloat(cs.getPropertyValue(name)) || 0;
     const clamp = (v,min,max) => Math.max(min, Math.min(max, v));
+    const fsName = clamp(getVar(el,'--fs-name')*factor, 12, 100);
+    const fsSet  = clamp(getVar(el,'--fs-set') *factor, 16, 120);
+    const fsNow  = clamp(getVar(el,'--fs-now') *factor, 16, 120);
+    const fsHead = clamp(getVar(el,'--fs-head')*factor, 10, 30);
+    const gapV   = clamp(getVar(el,'--gap-v')   *factor, 6, 28);
+    const padY   = clamp(getVar(el,'--pad-cell-y')*factor, 6, 26);
+    const padX   = clamp(getVar(el,'--pad-cell-x')*factor, 8, 30);
+    const fsBadge   = clamp(getVar(el,'--fs-badge')*factor, 10, 34);
+    const badgePadY = clamp(getVar(el,'--badge-pad-y')*factor, 4, 18);
+    const badgePadX = clamp(getVar(el,'--badge-pad-x')*factor, 6, 30);
 
-    const fsName = clamp(get('--fs-name') * factor, 12, 100);
-    const fsSet  = clamp(get('--fs-set')  * factor, 16, 120);
-    const fsNow  = clamp(get('--fs-now')  * factor, 20, 160);
-    const fsHead = clamp(get('--fs-head') * factor, 10, 30);
-    const gapV   = clamp(get('--gap-v') * factor, 6, 28);
-    const padY   = clamp(get('--pad-cell-y') * factor, 6, 26);
-    const padX   = clamp(get('--pad-cell-x') * factor, 8, 30);
-    const fsBadge   = clamp(get('--fs-badge') * factor,   10, 34);
-    const badgePadY = clamp(get('--badge-pad-y') * factor, 4, 18);
-    const badgePadX = clamp(get('--badge-pad-x') * factor, 6, 30);
-
-    setVar(el, '--fs-name', `${fsName}px`);
-    setVar(el, '--fs-set',  `${fsSet}px`);
-    setVar(el, '--fs-now',  `${fsNow}px`);
-    setVar(el, '--fs-head', `${fsHead}px`);
-    setVar(el, '--gap-v', `${gapV}px`);
-    setVar(el, '--pad-cell-y', `${padY}px`);
-    setVar(el, '--pad-cell-x', `${padX}px`);
-    setVar(el, '--fs-badge', `${fsBadge}px`);
-    setVar(el, '--badge-pad-y', `${badgePadY}px`);
-    setVar(el, '--badge-pad-x', `${badgePadX}px`);
+    setVar(el,'--fs-name',`${fsName}px`);
+    setVar(el,'--fs-set', `${fsSet}px`);
+    setVar(el,'--fs-now', `${fsNow}px`);
+    setVar(el,'--fs-head',`${fsHead}px`);
+    setVar(el,'--gap-v', `${gapV}px`);
+    setVar(el,'--pad-cell-y',`${padY}px`);
+    setVar(el,'--pad-cell-x',`${padX}px`);
+    setVar(el,'--fs-badge',`${fsBadge}px`);
+    setVar(el,'--badge-pad-y',`${badgePadY}px`);
+    setVar(el,'--badge-pad-x',`${badgePadX}px`);
   }
+
   function fitTileVertically(el){
     let safety = 16;
-    const tryFit = () => {
+    const step = () => {
       if (el.scrollHeight <= el.clientHeight || safety-- <= 0) return;
-      shrinkVars(el, 0.94);
-      requestAnimationFrame(tryFit);
+      // reduzir espaçamentos primeiro
+      const gap = getVar(el,'--gap-v');
+      const py  = getVar(el,'--pad-cell-y');
+      const px  = getVar(el,'--pad-cell-x');
+      if (gap > 8 || py > 10 || px > 12){
+        setVar(el,'--gap-v', `${Math.max(6, gap*0.95)}px`);
+        setVar(el,'--pad-cell-y', `${Math.max(6, py*0.95)}px`);
+        setVar(el,'--pad-cell-x', `${Math.max(8, px*0.95)}px`);
+        return requestAnimationFrame(step);
+      }
+      shrinkVars(el, 0.95);
+      requestAnimationFrame(step);
     };
-    requestAnimationFrame(tryFit);
-  }
-  function fitMainVertically(){
-    let tries = 12;
-    const tiles = [...grid.querySelectorAll('.tile')];
-    const need = () => grid.scrollHeight > grid.clientHeight;
-    const allShrink = () => tiles.forEach(t => shrinkVars(t, 0.96));
-    const loop = () => {
-      if (!need() || tries-- <= 0) return;
-      allShrink();
-      requestAnimationFrame(loop);
-    };
-    requestAnimationFrame(loop);
+    requestAnimationFrame(step);
   }
 
   function renderGrid(games, layout='auto'){
@@ -252,7 +240,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
         try { fitBadges(el); } catch {}
         try { fitTileVertically(el); } catch {}
       });
-      fitMainVertically();
     };
     requestAnimationFrame(doFit);
     if (document.fonts?.ready){
@@ -424,7 +411,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     const ids = screen ? await getSelections(screen.id) : [];
     currentGames = await getGames(ids);
     renderGrid(currentGames, screen?.layout || 'auto');
-    touch('Atualizado', true);
+    touch('Ligado', true);
   } catch (e) {
     console.error('Erro a carregar screen/selections:', e);
     setScreenTitle(SCREEN_KEY);
