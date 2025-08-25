@@ -62,7 +62,7 @@
       height:100%;
       border-radius:14px; border:1px solid rgba(255,255,255,.10);
       background:linear-gradient(135deg,var(--tile),var(--tile-grad));
-      padding:var(--tile-pad); display:flex; flex-direction:column; min-height:0;
+      padding:var(--tile-pad); display:flex; flex-direction:column; min-height:0; overflow:hidden;
     }
 
     .row{ display:grid; grid-template-columns: 1fr auto; align-items:center; }

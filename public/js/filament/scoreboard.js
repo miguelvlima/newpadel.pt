@@ -149,6 +149,24 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       fs -= 1; setVar(el, '--fs-badge', `${fs}px`); tries++;
     }
   }
+
+  function calibrateTile(el){
+    // 1º passe imediato
+    fitNames(el); fitBadges(el); fitTileVertically(el);
+
+    // 2º passe quando as fontes estiverem prontas (Bebas Neue)
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(() => {
+        fitNames(el); fitBadges(el); fitTileVertically(el);
+        });
+    }
+
+    // 3º passe de segurança após um tick
+    setTimeout(() => {
+        fitNames(el); fitBadges(el); fitTileVertically(el);
+    }, 120);
+    }
+
   function shrinkVars(el, factor = 0.93){
     const clamp = (v,min,max) => Math.max(min, Math.min(max, v));
     const fsName = clamp(getVar(el,'--fs-name')*factor, 12, 100);
@@ -373,6 +391,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       copyVars(el, replacement);
       el.replaceWith(replacement);
       try { tileSizer.observe(replacement); } catch {}
+      calibrateTile(el);
       return replacement;
     }
 
@@ -536,6 +555,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
         const el = item ? buildTile(item) : emptyTile();
         grid.appendChild(el);
         try { tileSizer.observe(el); } catch {}
+        calibrateTile(el);
         return el;
       });
       return;
@@ -552,6 +572,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           copyVars(el, rep);
           el.replaceWith(rep);
           try { tileSizer.observe(rep); } catch {}
+          calibrateTile(el);
           tileEls[i] = rep;
         }
         continue;
@@ -562,6 +583,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
         if (el) copyVars(el, rep);
         if (el && el.parentNode) el.replaceWith(rep); else grid.appendChild(rep);
         try { tileSizer.observe(rep); } catch {}
+        calibrateTile(el);
         tileEls[i] = rep;
       } else {
         // mesmo jogo → só atualizar texto
