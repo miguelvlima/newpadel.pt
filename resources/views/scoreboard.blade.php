@@ -78,15 +78,17 @@
     .pulse{ animation:pulse 1s infinite; color:var(--live); font-weight:800 }
     @keyframes pulse{0%{opacity:1}50%{opacity:.55}100%{opacity:1}}
 
-    .scoretable{ width:100%; table-layout:fixed; border-collapse:separate; border-spacing:0 var(--gap-v); margin-top:8px; }
+    .scoretable{ width:100%; table-layout:auto; border-collapse:separate; border-spacing:0 var(--gap-v); margin-top:8px; }
     .scoretable thead th{ font-size:var(--fs-head); letter-spacing:.08em; color:var(--muted); font-weight:700; text-align:center; padding-bottom:4px; }
     .scoretable thead th.names{ text-align:left; }
     .scoretable th, .scoretable td{ border-bottom:0; padding:8px 10px; vertical-align:middle; background-clip:padding-box }
     .scoretable td.names{ font-size:var(--fs-name); line-height:1.07; padding-left: var(--names-pad-l); }
     .scoretable td.names .line{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
 
-    .scoretable td.set, .scoretable td.now{ padding:0 !important; }
+    /* coluna flex que ocupa o espaço restante à esquerda dos resultados */
+    .scoretable th.flexfill, .scoretable td.flexfill{ width:100%; padding:0; }
 
+    .scoretable td.set, .scoretable td.now{ padding:0 !important; }
     .scoretable td.set > .cell{
       display:flex; align-items:center; justify-content:center;
       padding:var(--pad-cell-y) var(--pad-cell-x); min-height:2.6em;
@@ -94,7 +96,6 @@
       font-weight:900; font-size:var(--fs-set); line-height:1; color:#fff;
       font-variant-numeric: tabular-nums;
     }
-
     .scoretable td.now > .cell-now{
       display:flex; align-items:center; justify-content:center;
       padding:var(--pad-cell-y) var(--pad-cell-x); min-height:2.6em;
@@ -104,25 +105,8 @@
       box-shadow: 0 0 0 2px rgba(0,255,163,.20) inset, 0 0 24px rgba(0,255,163,.15);
       font-weight:900; font-size:var(--fs-set); line-height:1;
       font-variant-numeric: tabular-nums;
+      transition: opacity .2s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
     }
-
-    /* Transições para a coluna AGORA (sem reflow) */
-    .scoretable th.now,
-    .scoretable td.now { transition: opacity .25s ease; }
-
-    .scoretable .now .cell-now {
-    transition: opacity .25s ease, box-shadow .25s ease, background .25s ease, border-color .25s ease;
-    }
-
-    /* Quando não queremos mostrar “AGORA”, só escondemos visualmente (sem tirar do layout) */
-    .scoretable .now.is-hidden     { opacity: 0; }
-    .scoretable .now.is-hidden .cell-now {
-    opacity: 0;
-    box-shadow: none;
-    border-color: transparent;
-    background: transparent;
-    }
-
 
     .placeholder{display:grid;place-items:center;color:#9b9b9b;font-size:18px}
     .hide-cursor *{cursor:none !important}
@@ -153,6 +137,6 @@
     <div class="muted">© New Padel Solutions 2025</div>
   </footer>
 
-  <script type="module" src="/js/filament/scoreboard.js?v=50"></script>
+  <script type="module" src="/js/filament/scoreboard.js?v=52"></script>
 </body>
 </html>
