@@ -26,6 +26,8 @@
 
       --fs-name: 22px;  --fs-set: 26px;  --fs-now: 26px;  --fs-head: 12px;
       --fs-badge: 14px;
+      --set-minw: 110px;
+      --spacer-w: 18px;
 
       --gap-v: 10px; --pad-cell-y: 10px; --pad-cell-x: 12px;
       --badge-pad-y: 6px; --badge-pad-x: 12px; --badge-radius: 999px;
@@ -78,20 +80,21 @@
     .pulse{ animation:pulse 1s infinite; color:var(--live); font-weight:800 }
     @keyframes pulse{0%{opacity:1}50%{opacity:.55}100%{opacity:1}}
 
-    /* Alinhamento à direita: coluna flexível antes dos sets */
+    /* Right-aligned results block with small spacer */
     .scoretable{ width:100%; table-layout:auto; border-collapse:separate; border-spacing:0 var(--gap-v); margin-top:8px; }
     .scoretable thead th{ font-size:var(--fs-head); letter-spacing:.08em; color:var(--muted); font-weight:700; text-align:center; padding-bottom:4px; }
     .scoretable thead th.names{ text-align:left; }
     .scoretable th, .scoretable td{ border-bottom:0; padding:8px 10px; vertical-align:middle; background-clip:padding-box }
     .scoretable td.names{ font-size:var(--fs-name); line-height:1.07; padding-left: var(--names-pad-l); }
     .scoretable td.names .line{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
-    .scoretable th.flexfill, .scoretable td.flexfill{ width:100%; padding:0; }
+    .scoretable th.flexfill, .scoretable td.flexfill{ width: var(--spacer-w); padding:0; }
 
     .scoretable td.set, .scoretable td.now{ padding:0 !important; }
 
     .scoretable td.set > .cell{
       display:flex; align-items:center; justify-content:center;
       padding:var(--pad-cell-y) var(--pad-cell-x); min-height:2.6em;
+      min-width: var(--set-minw);
       background:var(--set-bg); border:1px solid var(--set-br); border-radius:12px;
       font-weight:900; font-size:var(--fs-set); line-height:1; color:#fff;
       font-variant-numeric: tabular-nums;
@@ -100,6 +103,7 @@
     .scoretable td.now > .cell-now{
       display:flex; align-items:center; justify-content:center;
       padding:var(--pad-cell-y) var(--pad-cell-x); min-height:2.6em;
+      min-width: var(--set-minw);
       color:var(--now-fg);
       background:linear-gradient(180deg, rgba(0,255,163,.18), rgba(0,180,120,.14));
       border:1px solid rgba(0,255,163,.45); border-radius:12px;
@@ -137,6 +141,6 @@
     <div class="muted">© New Padel Solutions 2025</div>
   </footer>
 
-  <script type="module" src="/js/filament/scoreboard.js?v=51"></script>
+  <script type="module" src="/js/filament/scoreboard.js?v=52"></script>
 </body>
 </html>

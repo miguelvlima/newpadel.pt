@@ -1,14 +1,12 @@
-// public/js/filament/scoreboard.js (v51)
-// Changes:
-// - Keep original large sizing (bigger multipliers)
-// - Glow ONLY when game is LIVE (NOW column). When finished, NOW column disappears.
-// - On finished match, last concluded set becomes the rightmost set column (no glow).
-// - Results block aligned to the right (flexfill); names stay left.
-// - Proset badges use same size as other set badges.
+// public/js/filament/scoreboard.js (v52)
+// Focus: bigger fonts & wider badges; results block right-aligned without wasting space.
+// - Larger multipliers (names & sets)
+// - Min-width for set cells (CSS var --set-minw)
+// - Small controlled spacer (CSS var --spacer-w) instead of big flex fill
+// - Glow only when LIVE (NOW column); finished -> last set stays at right, no glow
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 (async () => {
-  /* ---------- viewport height fix (mobile 100vh) ---------- */
   const setAppHeight = () => {
     document.documentElement.style.setProperty('--app-h', `${window.innerHeight}px`);
   };
@@ -53,7 +51,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     realtime: { params: { eventsPerSecond: 5 } }
   });
 
-  /* ---------- regras padel ---------- */
+  /* ---------- Regras ---------- */
   const parseFormat = (fmt) => {
     const f=(fmt||'best_of_3').toLowerCase();
     const isGP=f.endsWith('_gp');
@@ -86,15 +84,14 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   const isNormalTBActive = (cur,cfg) => { if(cfg.isProset) return false; const g1=Number(cur?.games_team1||0), g2=Number(cur?.games_team2||0); return g1===cfg.gamesToWinSet && g2===cfg.gamesToWinSet; };
   const superTBActive = (sets,cfg,over) => { if(!cfg.isSuper) return false; const [w1,w2]=countWonSets(sets,cfg); if(over) return false; return (w1===1 && w2===1); };
 
-  /* ---------- grid a partir de positions ---------- */
   function computeGridFromPositions(n){
     const portrait = window.innerHeight >= window.innerWidth;
     if (n<=1) return [1,1];
     if (n===2) return portrait ? [1,2] : [2,1];
-    return [2,2]; // 3 ou 4 -> 2x2
+    return [2,2];
   }
 
-  /* ---------- autosize: revert to larger multipliers ---------- */
+  /* ---------- Autosize (GROW) ---------- */
   const tileSizer = (typeof ResizeObserver !== 'undefined')
     ? new ResizeObserver((entries) => {
         for (const entry of entries) {
@@ -103,19 +100,24 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           const w = rect?.width || 0, h = rect?.height || 0;
           const base = Math.max(0, Math.min(w, h));
 
-          // Bigger, closer to previous look
-          const fsName = Math.max(20, Math.min(84, base * 0.15));
-          const fsSet  = Math.max(28, Math.min(110, base * 0.20));
-          const fsHead = Math.max(12, Math.min(30, fsSet * 0.60));
-          const fsNow  = fsSet; // NOW same size as sets
+          // MUCH bigger
+          const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
+          const fsName = clamp(base * 0.24, 22, 140);   // names really big
+          const fsSet  = clamp(base * 0.24, 28, 150);   // set numbers larger
+          const fsHead = clamp(fsSet * 0.55, 12, 34);
+          const fsNow  = fsSet;
 
-          const fsBadge   = Math.max(12, Math.min(36, base * 0.10));
-          const badgePadY = Math.max(4,  Math.min(20, base * 0.042));
-          const badgePadX = Math.max(8,  Math.min(36, base * 0.075));
+          const fsBadge   = clamp(base * 0.11, 12, 40);
+          const badgePadY = clamp(base * 0.045, 4, 22);
+          const badgePadX = clamp(base * 0.085, 10, 40);
 
-          const gapV = Math.max(8, Math.min(28, base * 0.035));
-          const padY = Math.max(10, Math.min(28, base * 0.055));
-          const padX = Math.max(12, Math.min(34, base * 0.08));
+          const gapV = clamp(base * 0.03, 8, 28);
+          const padY = clamp(base * 0.06, 10, 30);
+          const padX = clamp(base * 0.085, 12, 38);
+
+          // new: widths
+          const setMinW = clamp(w * 0.16, 90, 240); // each badge wider
+          const spacerW = clamp(w * 0.03, 12, 40);  // small spacer only
 
           setVar(el, '--fs-name',  `${fsName}px`);
           setVar(el, '--fs-set',   `${fsSet}px`);
@@ -127,6 +129,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           setVar(el, '--gap-v', `${gapV}px`);
           setVar(el, '--pad-cell-y', `${padY}px`);
           setVar(el, '--pad-cell-x', `${padX}px`);
+          setVar(el, '--set-minw', `${setMinW}px`);
+          setVar(el, '--spacer-w', `${spacerW}px`);
 
           requestAnimationFrame(() => {
             fitNames(el);
@@ -139,9 +143,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
   function fitNames(el){
     let fs = getVar(el, '--fs-name') || 22;
-    const min = 12; let tries = 0;
+    const min = 16; let tries = 0;
     const tooWide = () => [...el.querySelectorAll('td.names .line')].some(d => d.scrollWidth > d.clientWidth);
-    while (tooWide() && fs > min && tries < 28){
+    while (tooWide() && fs > min && tries < 30){
       fs -= 1; setVar(el, '--fs-name', `${fs}px`); tries++;
     }
   }
@@ -165,18 +169,19 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     setTimeout(() => { fitNames(el); fitBadges(el); fitTileVertically(el); }, 120);
   }
 
-  function shrinkVars(el, factor = 0.93){
+  function shrinkVars(el, factor = 0.94){
     const clamp = (v,min,max) => Math.max(min, Math.min(max, v));
-    const fsName = clamp(getVar(el,'--fs-name')*factor, 12, 120);
-    const fsSet  = clamp(getVar(el,'--fs-set') *factor, 16, 140);
-    const fsNow  = clamp(getVar(el,'--fs-now') *factor, 16, 140);
+    const fsName = clamp(getVar(el,'--fs-name')*factor, 16, 160);
+    const fsSet  = clamp(getVar(el,'--fs-set') *factor, 22, 170);
+    const fsNow  = clamp(getVar(el,'--fs-now') *factor, 22, 170);
     const fsHead = clamp(getVar(el,'--fs-head')*factor, 10, 36);
-    const gapV   = clamp(getVar(el,'--gap-v')   *factor, 6, 32);
-    const padY   = clamp(getVar(el,'--pad-cell-y')*factor, 6, 32);
-    const padX   = clamp(getVar(el,'--pad-cell-x')*factor, 8, 36);
-    const fsBadge   = clamp(getVar(el,'--fs-badge')*factor, 10, 40);
-    const badgePadY = clamp(getVar(el,'--badge-pad-y')*factor, 4, 22);
-    const badgePadX = clamp(getVar(el,'--badge-pad-x')*factor, 6, 40);
+    const gapV   = clamp(getVar(el,'--gap-v')   *factor, 6, 30);
+    const padY   = clamp(getVar(el,'--pad-cell-y')*factor, 8, 32);
+    const padX   = clamp(getVar(el,'--pad-cell-x')*factor, 10, 40);
+    const fsBadge   = clamp(getVar(el,'--fs-badge')*factor, 10, 42);
+    const badgePadY = clamp(getVar(el,'--badge-pad-y')*factor, 4, 24);
+    const badgePadX = clamp(getVar(el,'--badge-pad-x')*factor, 8, 42);
+    const setMinW   = clamp(getVar(el,'--set-minw')*factor, 80, 260);
 
     setVar(el,'--fs-name',`${fsName}px`);
     setVar(el,'--fs-set', `${fsSet}px`);
@@ -188,6 +193,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     setVar(el,'--fs-badge',`${fsBadge}px`);
     setVar(el,'--badge-pad-y',`${badgePadY}px`);
     setVar(el,'--badge-pad-x',`${badgePadX}px`);
+    setVar(el,'--set-minw',`${setMinW}px`);
   }
   function fitTileVertically(el){
     let safety = 18;
@@ -197,18 +203,19 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       const py  = getVar(el,'--pad-cell-y');
       const px  = getVar(el,'--pad-cell-x');
       if (gap > 8 || py > 10 || px > 12){
-        setVar(el,'--gap-v', `${Math.max(6, gap*0.95)}px`);
-        setVar(el,'--pad-cell-y', `${Math.max(6, py*0.95)}px`);
-        setVar(el,'--pad-cell-x', `${Math.max(8, px*0.95)}px`);
+        setVar(el,'--gap-v', `${Math.max(6, gap*0.96)}px`);
+        setVar(el,'--pad-cell-y', `${Math.max(8, py*0.96)}px`);
+        setVar(el,'--pad-cell-x', `${Math.max(10, px*0.96)}px`);
         return requestAnimationFrame(step);
       }
-      shrinkVars(el, 0.95);
+      shrinkVars(el, 0.96);
       requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
   }
 
   /* ---------- shape/key ---------- */
+  const isSetDone = isSetConcluded;
   function computeShape(game){
     const cfg = parseFormat(game.format);
     const s   = game.score || {};
@@ -223,16 +230,13 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     const superTB   = superTBActive(sets, cfg, matchOver);
     const isRegularPlaying = !cfg.isProset && !normalTB && !superTB;
 
-    // determine last concluded set
     let lastConcludedIndex = -1;
     for (let i=2;i>=0;i--){ if (setConcluded[i]) { lastConcludedIndex = i; break; } }
     if (cfg.isProset && setConcluded[0]) lastConcludedIndex = 0;
 
-    // Build set columns (left -> right) and later we'll push last to right if finished
     let cols = [];
     let titles = [];
     if (cfg.isProset){
-      // Show Proset column when concluded OR (optional) when playing — we'll keep it for concluded only to avoid confusion
       if (setConcluded[0]) { cols.push(0); titles.push('Proset'); }
     } else {
       if (setConcluded[0] || (isRegularPlaying && currentIndex === 0) || (normalTB && currentIndex === 0)){
@@ -250,7 +254,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       }
     }
 
-    // Reorder so the LAST concluded set is the rightmost when match is over
     if (matchOver && lastConcludedIndex >= 0){
       const outCols = []; const outTitles = [];
       for (let k=0;k<cols.length;k++){
@@ -265,43 +268,29 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       cols = outCols; titles = outTitles;
     }
 
-    // SHOW NOW only if NOT finished
     const showNow = !matchOver;
     const nowTitle = superTB ? 'Super Tie-break' : (normalTB ? 'Tie-break' : 'Jogo');
 
-    const shapeKey = [
-      cfg.isProset ? 'P' : 'N',
-      titles.join('|') || '-',
-      `NOW=${showNow?1:0}` // include NOW visibility to force rebuild when match finishes/starts
-    ].join('#');
+    const shapeKey = [cfg.isProset?'P':'N', titles.join('|')||'-', `NOW=${showNow?1:0}`].join('#');
 
-    return {
-      cfg, sets, cur,
-      setConcluded, currentIndex, w1, w2, matchOver, normalTB, superTB, isRegularPlaying,
-      cols, titles, nowTitle, showNow,
-      lastConcludedIndex
-    };
+    return { cfg, sets, cur, setConcluded, currentIndex, w1, w2, matchOver, normalTB, superTB, isRegularPlaying, cols, titles, nowTitle, showNow, lastConcludedIndex, shapeKey };
   }
 
-  const CSS_VARS = ['--fs-name','--fs-set','--fs-now','--fs-head','--fs-badge','--badge-pad-y','--badge-pad-x','--gap-v','--pad-cell-y','--pad-cell-x'];
+  const CSS_VARS = ['--fs-name','--fs-set','--fs-now','--fs-head','--fs-badge','--badge-pad-y','--badge-pad-x','--gap-v','--pad-cell-y','--pad-cell-x','--set-minw','--spacer-w'];
   function copyVars(src, dst){
     const cs = getComputedStyle(src);
     CSS_VARS.forEach(v => dst.style.setProperty(v, cs.getPropertyValue(v)));
   }
 
-  /* ---------- construir/atualizar tile ---------- */
+  /* ---------- construir/atualizar ---------- */
   function buildTile(game){
     const meta = computeShape(game);
-
     const pair1a = escapeHtml(game.player1 || ''), pair1b = escapeHtml(game.player2 || '');
     const pair2a = escapeHtml(game.player3 || ''), pair2b = escapeHtml(game.player4 || '');
 
-    const courtName = game.court_name
-      ? `${escapeHtml(game.court_name)}`
-      : (game.court_id ? `CAMPO ${escapeHtml(String(game.court_id)).slice(0,8)}` : '');
+    const courtName = game.court_name ? `${escapeHtml(game.court_name)}` : (game.court_id ? `CAMPO ${escapeHtml(String(game.court_id)).slice(0,8)}` : '');
 
     const { cfg, sets, cur } = meta;
-
     const g1 = Number(cur.games_team1||0), g2 = Number(cur.games_team2||0);
     const tb1= Number(cur.tb_team1||0),    tb2= Number(cur.tb_team2||0);
     const p1 = Number(cur.points_team1||0),p2 = Number(cur.points_team2||0);
@@ -348,7 +337,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     const maybeNowTopTd  = meta.showNow ? `<td class="now"><div class="cell-now">${nowTop}</div></td>` : '';
     const maybeNowBotTd  = meta.showNow ? `<td class="now"><div class="cell-now">${nowBot}</div></td>` : '';
 
-    // flexfill column to push set block to the right
     wrap.innerHTML = `
       <div class="row">
         <div class="left">${courtName ? `<span class="badge court">${courtName}</span>` : `<span class="badge court">—</span>`}</div>
@@ -392,29 +380,21 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
   function updateTile(el, game){
     const meta = computeShape(game);
-
-    // if shape changed (including NOW visibility), rebuild
-    const oldKey = el.dataset.shapeKey;
-    if (oldKey !== meta.shapeKey){
-      const replacement = buildTile(game);
-      copyVars(el, replacement);
-      el.replaceWith(replacement);
-      try { tileSizer.observe(replacement); } catch {}
-      calibrateTile(replacement);
-      return replacement;
+    if (el.dataset.shapeKey !== meta.shapeKey){
+      const rep = buildTile(game);
+      copyVars(el, rep);
+      el.replaceWith(rep);
+      try { tileSizer.observe(rep); } catch {}
+      return rep;
     }
 
     el.dataset.gameId = game.id;
-
     const row = el.querySelector('.row');
     const courtBadge = row?.querySelector('.badge.court');
     const statusBadge = row?.querySelector('.badge.status');
-    const courtName = game.court_name
-      ? `${escapeHtml(game.court_name)}`
-      : (game.court_id ? `CAMPO ${escapeHtml(String(game.court_id)).slice(0,8)}` : '');
+    const courtName = game.court_name ? `${escapeHtml(game.court_name)}` : (game.court_id ? `CAMPO ${escapeHtml(String(game.court_id)).slice(0,8)}` : '');
     if (courtBadge) courtBadge.textContent = courtName || '—';
 
-    // status
     const anySetFinished = meta.setConcluded.some(Boolean);
     const anySetFilled   = meta.sets.some(ss => (Number(ss?.team1||0) + Number(ss?.team2||0)) > 0);
     const g1 = Number(meta.cur.games_team1||0), g2 = Number(meta.cur.games_team2||0);
@@ -427,17 +407,13 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       statusBadge.innerHTML = (started && !meta.matchOver) ? '<span class="pulse">AO VIVO</span>' : statusText;
     }
 
-    // names
-    const [n1a,n1b,n2a,n2b] = [
-      game.player1||'', game.player2||'', game.player3||'', game.player4||''
-    ].map(escapeHtml);
+    const [n1a,n1b,n2a,n2b] = [game.player1||'', game.player2||'', game.player3||'', game.player4||''].map(escapeHtml);
     const nameLines = el.querySelectorAll('td.names .line');
     if (nameLines[0]) nameLines[0].textContent = n1a;
     if (nameLines[1]) nameLines[1].textContent = n1b;
     if (nameLines[2]) nameLines[2].textContent = n2a;
     if (nameLines[3]) nameLines[3].textContent = n2b;
 
-    // NOW values (only relevant if NOW column exists; but we're in in-place path, so it exists)
     const nowCells = el.querySelectorAll('td.now .cell-now');
     if (nowCells.length){
       let nowTop='', nowBot='';
@@ -458,7 +434,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       if (thNow) thNow.textContent = meta.superTB ? 'Super Tie-break' : (meta.normalTB ? 'Tie-break' : 'Jogo');
     }
 
-    // set cells
     const setCells = el.querySelectorAll('td.set .cell');
     function setCellVal(i, team){
       if (!meta.cfg.isProset && meta.normalTB && i === meta.currentIndex) return '6';
@@ -481,7 +456,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     return el;
   }
 
-  /* ---------- placeholder por posição ---------- */
   function emptyTile(){
     const wrap = document.createElement('div');
     wrap.className = 'tile';
@@ -496,7 +470,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     return wrap;
   }
 
-  /* ---------- data / slots ---------- */
   async function getScreenByKey(key){
     const { data, error } = await supabase
       .from('scoreboards')
@@ -506,7 +479,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     if (error) throw error;
     return data || null;
   }
-
   async function getSelectionRows(screenId){
     const { data, error } = await supabase
       .from('scoreboard_selections')
@@ -516,7 +488,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     if (error) throw error;
     return data || [];
   }
-
   async function getGames(ids){
     if (!ids.length) return [];
     const { data, error } = await supabase
@@ -549,7 +520,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     return { slots, positions, ids };
   }
 
-  /* ---------- render persistente ---------- */
   let tileEls = [];
   function renderGridSlots(slots, positions){
     const [cols, rows] = computeGridFromPositions(positions);
@@ -563,7 +533,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
         const el = item ? buildTile(item) : emptyTile();
         grid.appendChild(el);
         try { tileSizer.observe(el); } catch {}
-        calibrateTile(el);
         return el;
       });
       return;
@@ -578,7 +547,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           copyVars(el, rep);
           el.replaceWith(rep);
           try { tileSizer.observe(rep); } catch {}
-          calibrateTile(rep);
           tileEls[i] = rep;
         }
         continue;
@@ -588,7 +556,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
         if (el) copyVars(el, rep);
         if (el && el.parentNode) el.replaceWith(rep); else grid.appendChild(rep);
         try { tileSizer.observe(rep); } catch {}
-        calibrateTile(rep);
         tileEls[i] = rep;
       } else {
         tileEls[i] = updateTile(el, item);
@@ -596,7 +563,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     }
   }
 
-  /* ---------- bootstrap & realtime ---------- */
   let currentSlots = [];
   let currentIds = [];
   let screen = null;
