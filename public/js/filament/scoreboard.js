@@ -127,10 +127,49 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           el.style.setProperty('--fs-head', `${fsHead}px`);
 
           requestAnimationFrame(() => fitNamesAndBadge(el));
+          requestAnimationFrame(() => fitTileVertically(el));
 
         }
       })
     : { observe: () => {} };
+
+// --- shrink progressivo por tile (fontes + gaps + paddings) ---
+    function shrinkVars(el, factor = 0.93){
+        const cs = getComputedStyle(el);
+        const get = name => parseFloat(cs.getPropertyValue(name)) || 0;
+        const clamp = (v,min,max) => Math.max(min, Math.min(max, v));
+
+        const fsName = clamp(get('--fs-name') * factor, 12, 80);
+        const fsSet  = clamp(get('--fs-set')  * factor, 14, 90);
+        const fsNow  = clamp(get('--fs-now')  * factor, 18, 110);
+        const fsHead = clamp(get('--fs-head') * factor, 10, 24);
+
+        const gapV   = clamp(parseFloat(cs.getPropertyValue('--gap-v'))     * factor, 4, 20);
+        const padY   = clamp(parseFloat(cs.getPropertyValue('--pad-cell-y'))* factor, 4, 20);
+        const padX   = clamp(parseFloat(cs.getPropertyValue('--pad-cell-x'))* factor, 6, 24);
+
+        el.style.setProperty('--fs-name', `${fsName}px`);
+        el.style.setProperty('--fs-set',  `${fsSet}px`);
+        el.style.setProperty('--fs-now',  `${fsNow}px`);
+        el.style.setProperty('--fs-head', `${fsHead}px`);
+
+        el.style.setProperty('--gap-v', `${gapV}px`);
+        el.style.setProperty('--pad-cell-y', `${padY}px`);
+        el.style.setProperty('--pad-cell-x', `${padX}px`);
+    }
+
+    function fitTileVertically(el){
+        // encolhe até caber dentro do tile (sem mexer no layout global)
+        let safety = 10;
+        // mede depois de pintar
+        const tryFit = () => {
+            if (el.scrollHeight <= el.clientHeight || safety-- <= 0) return;
+            shrinkVars(el, 0.93);
+            requestAnimationFrame(tryFit);
+        };
+        requestAnimationFrame(tryFit);
+    }
+
 
   function renderGrid(games, layout='auto'){
     grid.innerHTML = '';
@@ -153,6 +192,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
         try { tileSizer.observe(el); } catch {}
         fitNamesAndBadge(el);
+        fitTileVertically(el);
 
     });
 
@@ -191,6 +231,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     const s = game.score || {};
     const sets = Array.isArray(s.sets) ? s.sets.slice(0,3) : [];
     const cur  = s.current || {};
+    const statusLabel = matchOver ? 'Terminado' : (started ? 'Ao vivo' : 'Pré-jogo');
 
     // estados
     const setConcluded = [0,1,2].map(i => isSetConcluded(sets[i], cfg, i));
@@ -269,10 +310,14 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     const nowBotTd  = matchOver ? '' : `<td class="now"><div class="cell-now">${nowBot}</div></td>`;
 
     wrap.innerHTML = `
-      <div class="row">
-        <div>${courtName ? `<span class="badge">${courtName}</span>` : ''}</div>
-        <div>${liveBadge}</div>
-      </div>
+    <div class="row">
+    <div>${courtName ? `<span class="badge court">${courtName}</span>` : ''}</div>
+    <div>
+        <span class="badge status">
+        ${ started ? '<span class="pulse">AO VIVO</span>' : statusLabel }
+        </span>
+    </div>
+    </div>
 
       <table class="scoretable" aria-label="Scoreboard do jogo">
         <thead>

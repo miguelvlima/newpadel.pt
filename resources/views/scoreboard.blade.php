@@ -27,6 +27,10 @@
       --fs-now:  36px;  /* “AGORA” */
       --fs-head: 12px;  /* cabeçalhos */
       --fs-badge: 16px; /* novo: tamanho da badge Campo */
+        --names-pad-l: var(--pad-cell-x);    /* alinhamento horizontal com os nomes */
+      --gap-v: 10px;          /* espaço vertical entre as 2 linhas */
+      --pad-cell-y: 10px;     /* padding vertical dentro das células */
+      --pad-cell-x: 12px;     /* padding horizontal dentro das células */
     }
 
     *{box-sizing:border-box}
@@ -90,17 +94,30 @@
     /* topo do tile */
     .row{display:flex;align-items:center;justify-content:space-between}
     .badge{
-        font-size: var(--fs-badge);     /* ← em vez de 12px fixos */
-        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        max-width: 50%;
+        display:inline-flex; align-items:center; justify-content:center;
+        font-size: var(--fs-badge);
+        letter-spacing:.12em;
+        padding:4px 10px;
+        border-radius:999px;
+        border:1px solid rgba(255,255,255,.18);
+        background:rgba(255,255,255,.06);
+        white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+        max-width:50%;
     }
+
+    /* alinhar a badge do CAMPO com o início dos nomes */
+    .row .badge.court{ margin-left: var(--names-pad-l); }
+
+    /* opcional: ligeiro destaque diferente para o estado */
+    .row .badge.status{ border-color: rgba(255,255,255,.22); }
+
     .pulse{ animation:pulse 1s infinite; color:var(--live); font-weight:800; }
     @keyframes pulse{0%{opacity:1}50%{opacity:.55}100%{opacity:1}}
 
     /* tabela estilo TV (sem linhas, com gap entre as duas equipas) */
     .scoretable{
       width:100%; table-layout:fixed;
-      border-collapse:separate; border-spacing:0 10px;
+      border-collapse:separate; order-spacing: 0 var(--gap-v);
       margin-top:8px;
     }
     .scoretable thead th{
@@ -115,7 +132,9 @@
     }
 
     .scoretable td.names{
-      font-size:var(--fs-name); line-height:1.07;
+        font-size: var(--fs-name);
+        line-height:1.07;
+        padding-left: var(--names-pad-l);    /* <— alinha referência */
     }
     .scoretable td.names .line{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
@@ -124,7 +143,7 @@
 
     .scoretable td.set > .cell{
       display:flex; align-items:center; justify-content:center;
-      padding:10px 12px; min-height:2.4em;
+      padding: var(--pad-cell-y) var(--pad-cell-x); min-height:2.4em;
       background:var(--set-bg); border:1px solid var(--set-br); border-radius:12px;
       font-weight:900; font-size:var(--fs-set); line-height:1; color:#fff;
       font-variant-numeric: tabular-nums;
@@ -132,7 +151,7 @@
 
     .scoretable td.now > .cell-now{
       display:flex; align-items:center; justify-content:center;
-      padding:10px 12px; min-height:2.6em;
+      padding: var(--pad-cell-y) var(--pad-cell-x); min-height:2.6em;
       color:var(--now-fg);
       background:linear-gradient(180deg, rgba(0,255,163,.18), rgba(0,180,120,.14));
       border:1px solid rgba(0,255,163,.45); border-radius:12px;
@@ -178,6 +197,6 @@
     <div class="muted">© New Padel Solutions 2025</div>
   </footer>
 
-  <script type="module" src="/js/filament/scoreboard.js?v=26"></script>
+  <script type="module" src="/js/filament/scoreboard.js?v=27"></script>
 </body>
 </html>
