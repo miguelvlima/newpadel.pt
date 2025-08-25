@@ -1,4 +1,4 @@
-// public/js/filament/scoreboard.js
+// public/js/filament/scoreboard.js (v41 - aggressive fit)
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 (async () => {
@@ -17,6 +17,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   const SUPABASE_ANON = grid?.dataset?.sbAnon || '';
   const SCREEN_KEY    = grid?.dataset?.screen || 'default';
 
+  const setVar = (el, name, val) => el.style.setProperty(name, val);
+
   function setScreenTitle(txt){
     const t = (txt && String(txt).trim()) || SCREEN_KEY || 'Scoreboard';
     if (titleEl) titleEl.textContent = t;
@@ -28,9 +30,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     else document.exitFullscreen?.();
   });
 
-  function fmtTime(d){ return d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
-  function escapeHtml(s=''){return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-  function touch(text, ok){ if (statusEl) statusEl.innerHTML = `<span class="${ok?'status-ok':'status-bad'}">●</span> ${text} • ${fmtTime(new Date())}`; }
+  const fmtTime = d => d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const escapeHtml = (s='') => s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const touch = (text, ok) => { if (statusEl) statusEl.innerHTML = `<span class="${ok?'status-ok':'status-bad'}">●</span> ${text} • ${fmtTime(new Date())}`; };
 
   if (!/^https:\/\/.+\.supabase\.co/i.test(SUPABASE_URL)) {
     console.error('SUPABASE_URL inválida/vazia:', SUPABASE_URL);
@@ -43,7 +45,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     realtime: { params: { eventsPerSecond: 5 } }
   });
 
-  function parseFormat(fmt){
+  const parseFormat = (fmt) => {
     const f=(fmt||'best_of_3').toLowerCase();
     const isGP=f.endsWith('_gp');
     const isProset=f.startsWith?.('proset') || f.indexOf('proset')===0;
@@ -51,8 +53,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     const gamesToWinSet=isProset?9:6;
     const setsToWinMatch=isProset?1:2;
     return {f,isGP,isProset,isSuper,gamesToWinSet,setsToWinMatch};
-  }
-  function isSetConcluded(s,cfg,i){
+  };
+  const isSetConcluded = (s,cfg,i) => {
     if(!s) return false;
     const t1=Number.isFinite(s.team1)?s.team1:0, t2=Number.isFinite(s.team2)?s.team2:0;
     const maxV=Math.max(t1,t2), minV=Math.min(t1,t2), diff=Math.abs(t1-t2);
@@ -60,8 +62,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     if(cfg.isProset) return (maxV>=9)&&(diff>=2);
     if(maxV===7&&(minV===5||minV===6)) return true;
     return (maxV>=cfg.gamesToWinSet)&&(diff>=2);
-  }
-  function countWonSets(sets,cfg){
+  };
+  const countWonSets = (sets,cfg) => {
     let w1=0,w2=0;
     for(let i=0;i<Math.min(sets.length,3);i++){
       if(isSetConcluded(sets[i],cfg,i)){
@@ -70,21 +72,12 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       }
     }
     return [w1,w2];
-  }
-  function tennisPoint(n,gp){ const map=[0,15,30,40,'AD']; if(!Number.isFinite(n)||n<0) return '—'; return gp?map[Math.min(n,3)]:map[Math.min(n,4)]; }
-  function isNormalTBActive(cur,cfg){
-    if(cfg.isProset) return false;
-    const g1=Number(cur?.games_team1||0), g2=Number(cur?.games_team2||0);
-    return g1===cfg.gamesToWinSet && g2===cfg.gamesToWinSet;
-  }
-  function superTBActive(sets,cfg,over){
-    if(!cfg.isSuper) return false;
-    const [w1,w2]=countWonSets(sets,cfg);
-    if(over) return false;
-    return (w1===1 && w2===1);
-  }
+  };
+  const tennisPoint = (n,gp) => { const map=[0,15,30,40,'AD']; if(!Number.isFinite(n)||n<0) return '—'; return gp?map[Math.min(n,3)]:map[Math.min(n,4)]; };
+  const isNormalTBActive = (cur,cfg) => { if(cfg.isProset) return false; const g1=Number(cur?.games_team1||0), g2=Number(cur?.games_team2||0); return g1===cfg.gamesToWinSet && g2===cfg.gamesToWinSet; };
+  const superTBActive = (sets,cfg,over) => { if(!cfg.isSuper) return false; const [w1,w2]=countWonSets(sets,cfg); if(over) return false; return (w1===1 && w2===1); };
 
-  function computeGrid(n, layout='auto'){
+  const computeGrid = (n, layout='auto') => {
     if (layout && layout !== 'auto'){
       const [c,r] = layout.split('x').map(Number);
       if (Number.isFinite(c) && Number.isFinite(r)) return [c,r];
@@ -100,7 +93,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       if (n===2) return [2,1];
       return [2,2];
     }
-  }
+  };
 
   const tileSizer = (typeof ResizeObserver !== 'undefined')
     ? new ResizeObserver((entries) => {
@@ -110,22 +103,37 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           const w = rect?.width || 0, h = rect?.height || 0;
           const base = Math.max(0, Math.min(w, h));
 
-          const fsName = Math.max(16, Math.min(48, base * 0.095));
-          const fsSet  = Math.max(18, Math.min(60, base * 0.105));
-          const fsNow  = Math.max(26, Math.min(82, base * 0.15));
-          const fsHead = Math.max(12, Math.min(18, fsSet * 0.45));
+          const fsName = Math.max(18, Math.min(72, base * 0.12));
+          const fsSet  = Math.max(24, Math.min(96, base * 0.145));
+          const fsNow  = Math.max(32, Math.min(128, base * 0.22));
+          const fsHead = Math.max(12, Math.min(26, fsSet * 0.50));
 
-          const fsBadge   = Math.max(12, Math.min(26, base * 0.065));
-          const badgePadY = Math.max(4,  Math.min(14, base * 0.034));
-          const badgePadX = Math.max(8,  Math.min(24, base * 0.055));
+          const fsBadge   = Math.max(12, Math.min(32, base * 0.075));
+          const badgePadY = Math.max(4,  Math.min(18, base * 0.038));
+          const badgePadX = Math.max(8,  Math.min(28, base * 0.065));
 
-          el.style.setProperty('--fs-name',  `${fsName}px`);
-          el.style.setProperty('--fs-set',   `${fsSet}px`);
-          el.style.setProperty('--fs-now',   `${fsNow}px`);
-          el.style.setProperty('--fs-head',  `${fsHead}px`);
-          el.style.setProperty('--fs-badge', `${fsBadge}px`);
-          el.style.setProperty('--badge-pad-y', `${badgePadY}px`);
-          el.style.setProperty('--badge-pad-x', `${badgePadX}px`);
+          const gapV = Math.max(6, Math.min(24, base * 0.03));
+          const padY = Math.max(8, Math.min(22, base * 0.05));
+          const padX = Math.max(10, Math.min(28, base * 0.07));
+
+          const gridGap = Math.max(10, Math.min(24, base * 0.035));
+          const gridPad = Math.max(10, Math.min(20, base * 0.03));
+          const tilePad = Math.max(8,  Math.min(18, base * 0.03));
+
+          setVar(el, '--fs-name',  `${fsName}px`);
+          setVar(el, '--fs-set',   `${fsSet}px`);
+          setVar(el, '--fs-now',   `${fsNow}px`);
+          setVar(el, '--fs-head',  `${fsHead}px`);
+          setVar(el, '--fs-badge', `${fsBadge}px`);
+          setVar(el, '--badge-pad-y', `${badgePadY}px`);
+          setVar(el, '--badge-pad-x', `${badgePadX}px`);
+          setVar(el, '--gap-v', `${gapV}px`);
+          setVar(el, '--pad-cell-y', `${padY}px`);
+          setVar(el, '--pad-cell-x', `${padX}px`);
+
+          document.documentElement.style.setProperty('--grid-gap', `${gridGap}px`);
+          document.documentElement.style.setProperty('--grid-pad', `${gridPad}px`);
+          setVar(el, '--tile-pad', `${tilePad}px`);
 
           requestAnimationFrame(() => {
             fitNames(el);
@@ -141,11 +149,10 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     const min = 12; let tries = 0;
     const tooWide = () => [...el.querySelectorAll('td.names .line')]
                         .some(d => d.scrollWidth > d.clientWidth);
-    while (tooWide() && fs > min && tries < 18){
-      fs -= 1; el.style.setProperty('--fs-name', `${fs}px`); tries++;
+    while (tooWide() && fs > min && tries < 24){
+      fs -= 1; setVar(el, '--fs-name', `${fs}px`); tries++;
     }
   }
-
   function fitBadges(el){
     const row = el.querySelector('.row'); if (!row) return;
     const left = row.querySelector('.left'); const right = row.querySelector('.right');
@@ -154,58 +161,51 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     let fs = parseFloat(getComputedStyle(el).getPropertyValue('--fs-badge')) || 14;
     let tries = 0;
     const over = () => (court && court.scrollWidth > left.clientWidth) || (status && status.scrollWidth > right.clientWidth);
-    while (over() && fs > 10 && tries < 16){
-      fs -= 1; el.style.setProperty('--fs-badge', `${fs}px`); tries++;
+    while (over() && fs > 10 && tries < 20){
+      fs -= 1; setVar(el, '--fs-badge', `${fs}px`); tries++;
     }
   }
-
   function shrinkVars(el, factor = 0.93){
     const cs = getComputedStyle(el);
     const get = name => parseFloat(cs.getPropertyValue(name)) || 0;
     const clamp = (v,min,max) => Math.max(min, Math.min(max, v));
 
-    const fsName = clamp(get('--fs-name') * factor, 12, 80);
-    const fsSet  = clamp(get('--fs-set')  * factor, 14, 90);
-    const fsNow  = clamp(get('--fs-now')  * factor, 18, 110);
-    const fsHead = clamp(get('--fs-head') * factor, 10, 24);
+    const fsName = clamp(get('--fs-name') * factor, 12, 100);
+    const fsSet  = clamp(get('--fs-set')  * factor, 16, 120);
+    const fsNow  = clamp(get('--fs-now')  * factor, 20, 160);
+    const fsHead = clamp(get('--fs-head') * factor, 10, 30);
+    const gapV   = clamp(get('--gap-v') * factor, 6, 28);
+    const padY   = clamp(get('--pad-cell-y') * factor, 6, 26);
+    const padX   = clamp(get('--pad-cell-x') * factor, 8, 30);
+    const fsBadge   = clamp(get('--fs-badge') * factor,   10, 34);
+    const badgePadY = clamp(get('--badge-pad-y') * factor, 4, 18);
+    const badgePadX = clamp(get('--badge-pad-x') * factor, 6, 30);
 
-    const gapV   = clamp(get('--gap-v') * factor,      4, 20);
-    const padY   = clamp(get('--pad-cell-y') * factor, 4, 20);
-    const padX   = clamp(get('--pad-cell-x') * factor, 6, 24);
-
-    const fsBadge   = clamp(get('--fs-badge') * factor,   10, 30);
-    const badgePadY = clamp(get('--badge-pad-y') * factor, 4, 16);
-    const badgePadX = clamp(get('--badge-pad-x') * factor, 6, 28);
-
-    el.style.setProperty('--fs-name', `${fsName}px`);
-    el.style.setProperty('--fs-set',  `${fsSet}px`);
-    el.style.setProperty('--fs-now',  `${fsNow}px`);
-    el.style.setProperty('--fs-head', `${fsHead}px`);
-
-    el.style.setProperty('--gap-v', `${gapV}px`);
-    el.style.setProperty('--pad-cell-y', `${padY}px`);
-    el.style.setProperty('--pad-cell-x', `${padX}px`);
-
-    el.style.setProperty('--fs-badge', `${fsBadge}px`);
-    el.style.setProperty('--badge-pad-y', `${badgePadY}px`);
-    el.style.setProperty('--badge-pad-x', `${badgePadX}px`);
+    setVar(el, '--fs-name', `${fsName}px`);
+    setVar(el, '--fs-set',  `${fsSet}px`);
+    setVar(el, '--fs-now',  `${fsNow}px`);
+    setVar(el, '--fs-head', `${fsHead}px`);
+    setVar(el, '--gap-v', `${gapV}px`);
+    setVar(el, '--pad-cell-y', `${padY}px`);
+    setVar(el, '--pad-cell-x', `${padX}px`);
+    setVar(el, '--fs-badge', `${fsBadge}px`);
+    setVar(el, '--badge-pad-y', `${badgePadY}px`);
+    setVar(el, '--badge-pad-x', `${badgePadX}px`);
   }
-
   function fitTileVertically(el){
-    let safety = 12;
+    let safety = 16;
     const tryFit = () => {
       if (el.scrollHeight <= el.clientHeight || safety-- <= 0) return;
-      shrinkVars(el, 0.93);
+      shrinkVars(el, 0.94);
       requestAnimationFrame(tryFit);
     };
     requestAnimationFrame(tryFit);
   }
-
   function fitMainVertically(){
-    let tries = 10;
+    let tries = 12;
     const tiles = [...grid.querySelectorAll('.tile')];
     const need = () => grid.scrollHeight > grid.clientHeight;
-    const allShrink = () => tiles.forEach(t => shrinkVars(t, 0.95));
+    const allShrink = () => tiles.forEach(t => shrinkVars(t, 0.96));
     const loop = () => {
       if (!need() || tries-- <= 0) return;
       allShrink();
@@ -320,7 +320,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     }
 
     const courtName = game.court_name
-      ? `CAMPO ${escapeHtml(game.court_name)}`
+      ? `${escapeHtml(game.court_name)}`
       : (game.court_id ? `CAMPO ${escapeHtml(String(game.court_id)).slice(0,8)}` : '');
 
     const anySetFinished = setConcluded.some(Boolean);
@@ -388,7 +388,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     if (error) throw error;
     return data || null;
   }
-
   async function getSelections(screenId){
     const { data, error } = await supabase
       .from('scoreboard_selections')
@@ -398,7 +397,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     if (error) throw error;
     return (data || []).map(r => r.game_id).filter(Boolean).slice(0,4);
   }
-
   async function getGames(ids){
     if (!ids.length) return [];
     const { data, error } = await supabase
@@ -406,7 +404,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       .select('id,player1,player2,player3,player4,format,score,court_id,created_at')
       .in('id', ids);
     if (error) throw error;
-
     const games = (data || []).sort((a,b)=> ids.indexOf(a.id)-ids.indexOf(b.id));
     const courtIds = [...new Set(games.map(g=>g.court_id).filter(Boolean))];
     if (courtIds.length){
@@ -427,7 +424,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     const ids = screen ? await getSelections(screen.id) : [];
     currentGames = await getGames(ids);
     renderGrid(currentGames, screen?.layout || 'auto');
-    touch('Ligado', true);
+    touch('Atualizado', true);
   } catch (e) {
     console.error('Erro a carregar screen/selections:', e);
     setScreenTitle(SCREEN_KEY);
@@ -436,7 +433,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
   let gamesChannel = null;
   let selChannel = null;
-
   async function resubscribe(ids){
     if (gamesChannel) { supabase.removeChannel(gamesChannel); gamesChannel = null; }
     if (!ids.length) return;
@@ -451,7 +447,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       })
       .subscribe();
   }
-
   async function setupSelectionSubscription(screenId){
     if (selChannel) { supabase.removeChannel(selChannel); selChannel = null; }
     selChannel = supabase.channel('selections-live')
@@ -468,7 +463,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     const ids = await getSelections(screenId);
     await resubscribe(ids);
   }
-
   if (screen?.id){
     supabase.channel('screen-meta-live')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'scoreboards', filter: `id=eq.${screen.id}` },

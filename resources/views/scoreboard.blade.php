@@ -22,12 +22,24 @@
       --tile:#0b0b0b; --tile-grad:#141414;
       --set-bg:rgba(255,255,255,.08); --set-br:rgba(255,255,255,.16);
       --live:#ff4d4d; --now-fg:#e7ffee;
+
       --app-h: 100vh;
+
       --fs-name: 22px;  --fs-set: 26px;  --fs-now: 36px;  --fs-head: 12px;
       --fs-badge: 14px;
-      --gap-v: 10px; --pad-cell-y: 10px; --pad-cell-x: 12px;
-      --badge-pad-y: 6px; --badge-pad-x: 12px; --badge-radius: 999px;
+
+      --gap-v: 10px;
+      --pad-cell-y: 10px;
+      --pad-cell-x: 12px;
+
+      --badge-pad-y: 6px;
+      --badge-pad-x: 12px;
+      --badge-radius: 999px;
       --names-pad-l: var(--pad-cell-x);
+
+      --grid-pad: 16px;
+      --grid-gap: 16px;
+      --tile-pad: 12px;
     }
 
     *{box-sizing:border-box}
@@ -51,7 +63,7 @@
 
     main{
       flex:1 1 auto; min-height:0;
-      padding:16px; display:grid; gap:16px;
+      padding:var(--grid-pad); display:grid; gap:var(--grid-gap);
       grid-template-columns:repeat(2,1fr); grid-template-rows:repeat(2,1fr);
       place-items:stretch; overflow:hidden;
     }
@@ -60,7 +72,7 @@
       height:100%;
       border-radius:14px; border:1px solid rgba(255,255,255,.10);
       background:linear-gradient(135deg,var(--tile),var(--tile-grad));
-      padding:12px; display:flex; flex-direction:column; min-height:0;
+      padding:var(--tile-pad); display:flex; flex-direction:column; min-height:0;
     }
 
     .row{ display:grid; grid-template-columns: 1fr auto; align-items:center; }
@@ -95,7 +107,7 @@
 
     .scoretable td.set > .cell{
       display:flex; align-items:center; justify-content:center;
-      padding:var(--pad-cell-y) var(--pad-cell-x); min-height:2.4em;
+      padding:var(--pad-cell-y) var(--pad-cell-x); min-height:2.6em;
       background:var(--set-bg); border:1px solid var(--set-br); border-radius:12px;
       font-weight:900; font-size:var(--fs-set); line-height:1; color:#fff;
       font-variant-numeric: tabular-nums;
@@ -103,7 +115,7 @@
 
     .scoretable td.now > .cell-now{
       display:flex; align-items:center; justify-content:center;
-      padding:var(--pad-cell-y) var(--pad-cell-x); min-height:2.6em;
+      padding:var(--pad-cell-y) var(--pad-cell-x); min-height:2.8em;
       color:var(--now-fg);
       background:linear-gradient(180deg, rgba(0,255,163,.18), rgba(0,180,120,.14));
       border:1px solid rgba(0,255,163,.45); border-radius:12px;
@@ -141,6 +153,6 @@
     <div class="muted">© New Padel Solutions 2025</div>
   </footer>
 
-  <script type="module" src="/js/filament/scoreboard.js?v=40"></script>
+  <script type="module" src="/js/filament/scoreboard.js?v=41"></script>
 </body>
 </html>
