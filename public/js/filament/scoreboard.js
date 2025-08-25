@@ -105,6 +105,22 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     }
   }
 
+  function fitBadge(el){
+    const badgeCourt = el.querySelector('.badge.court');
+    const badgeStatus = el.querySelector('.badge.status');
+    [badgeCourt, badgeStatus].forEach(badge => {
+        if (!badge) return;
+        let fs = parseFloat(getComputedStyle(el).getPropertyValue('--fs-badge')) || 14;
+        let tries = 0;
+        while (badge.scrollWidth > badge.clientWidth && fs > 10 && tries < 10){
+        fs -= 1;
+        el.style.setProperty('--fs-badge', `${fs}px`);
+        tries++;
+        }
+    });
+    }
+
+
   // === dimensionamento automático por tile (com fallback seguro) ===
   const tileSizer = (typeof ResizeObserver !== 'undefined')
     ? new ResizeObserver((entries) => {
@@ -128,6 +144,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
           requestAnimationFrame(() => fitNamesAndBadge(el));
           requestAnimationFrame(() => fitTileVertically(el));
+          requestAnimationFrame(() => fitBadge(el));
 
         }
       })
@@ -143,6 +160,10 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
         const fsSet  = clamp(get('--fs-set')  * factor, 14, 90);
         const fsNow  = clamp(get('--fs-now')  * factor, 18, 110);
         const fsHead = clamp(get('--fs-head') * factor, 10, 24);
+        const fsBadge = Math.max(12, Math.min(24, base * 0.06));
+        const badgePadY = Math.max(4, Math.min(14, base * 0.032));
+        const badgePadX = Math.max(8, Math.min(22, base * 0.05));
+        const badgeRadius = Math.max(12, Math.min(22, base * 0.12));
 
         const gapV   = clamp(parseFloat(cs.getPropertyValue('--gap-v'))     * factor, 4, 20);
         const padY   = clamp(parseFloat(cs.getPropertyValue('--pad-cell-y'))* factor, 4, 20);
@@ -152,6 +173,10 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
         el.style.setProperty('--fs-set',  `${fsSet}px`);
         el.style.setProperty('--fs-now',  `${fsNow}px`);
         el.style.setProperty('--fs-head', `${fsHead}px`);
+        el.style.setProperty('--fs-badge', `${fsBadge}px`);
+        el.style.setProperty('--badge-pad-y', `${badgePadY}px`);
+        el.style.setProperty('--badge-pad-x', `${badgePadX}px`);
+        el.style.setProperty('--badge-radius', `${badgeRadius}px`);
 
         el.style.setProperty('--gap-v', `${gapV}px`);
         el.style.setProperty('--pad-cell-y', `${padY}px`);
@@ -193,6 +218,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
         try { tileSizer.observe(el); } catch {}
         fitNamesAndBadge(el);
         fitTileVertically(el);
+        fitBadge(el);
 
     });
 

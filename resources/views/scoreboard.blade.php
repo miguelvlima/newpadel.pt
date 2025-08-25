@@ -27,6 +27,9 @@
       --fs-now:  36px;  /* “AGORA” */
       --fs-head: 12px;  /* cabeçalhos */
       --fs-badge: 16px; /* novo: tamanho da badge Campo */
+        --badge-pad-y: 6px;      /* padding vertical da badge */
+        --badge-pad-x: 12px;     /* padding horizontal da badge */
+        --badge-radius: 999px;   /* raio (pill) */
         --names-pad-l: var(--pad-cell-x);    /* alinhamento horizontal com os nomes */
       --gap-v: 10px;          /* espaço vertical entre as 2 linhas */
       --pad-cell-y: 10px;     /* padding vertical dentro das células */
@@ -97,19 +100,21 @@
         display:inline-flex; align-items:center; justify-content:center;
         font-size: var(--fs-badge);
         letter-spacing:.12em;
-        padding:4px 10px;
-        border-radius:999px;
+        padding: var(--badge-pad-y) var(--badge-pad-x);
+        border-radius: var(--badge-radius);
         border:1px solid rgba(255,255,255,.18);
         background:rgba(255,255,255,.06);
+        line-height:1;
         white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-        max-width:50%;
+        max-width: 48%;              /* cresce até metade; ajusta se precisares */
     }
 
     /* alinhar a badge do CAMPO com o início dos nomes */
     .row .badge.court{ margin-left: var(--names-pad-l); }
 
-    /* opcional: ligeiro destaque diferente para o estado */
+    /* mesma “pill” para o estado */
     .row .badge.status{ border-color: rgba(255,255,255,.22); }
+
 
     .pulse{ animation:pulse 1s infinite; color:var(--live); font-weight:800; }
     @keyframes pulse{0%{opacity:1}50%{opacity:.55}100%{opacity:1}}
