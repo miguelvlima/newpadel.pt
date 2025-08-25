@@ -1,4 +1,10 @@
-// public/js/filament/scoreboard.js (v50: finished-last-set-to-right, right-align block, proset same size)
+// public/js/filament/scoreboard.js (v51)
+// Changes:
+// - Keep original large sizing (bigger multipliers)
+// - Glow ONLY when game is LIVE (NOW column). When finished, NOW column disappears.
+// - On finished match, last concluded set becomes the rightmost set column (no glow).
+// - Results block aligned to the right (flexfill); names stay left.
+// - Proset badges use same size as other set badges.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 (async () => {
@@ -88,7 +94,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     return [2,2]; // 3 ou 4 -> 2x2
   }
 
-  /* ---------- autosize (NOW = SET) ---------- */
+  /* ---------- autosize: revert to larger multipliers ---------- */
   const tileSizer = (typeof ResizeObserver !== 'undefined')
     ? new ResizeObserver((entries) => {
         for (const entry of entries) {
@@ -97,18 +103,19 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           const w = rect?.width || 0, h = rect?.height || 0;
           const base = Math.max(0, Math.min(w, h));
 
-          const fsName = Math.max(18, Math.min(72, base * 0.12));
-          const fsSet  = Math.max(24, Math.min(96, base * 0.145));
-          const fsHead = Math.max(12, Math.min(26, fsSet * 0.50));
-          const fsNow  = fsSet;
+          // Bigger, closer to previous look
+          const fsName = Math.max(20, Math.min(84, base * 0.15));
+          const fsSet  = Math.max(28, Math.min(110, base * 0.20));
+          const fsHead = Math.max(12, Math.min(30, fsSet * 0.60));
+          const fsNow  = fsSet; // NOW same size as sets
 
-          const fsBadge   = Math.max(12, Math.min(32, base * 0.075));
-          const badgePadY = Math.max(4,  Math.min(18, base * 0.038));
-          const badgePadX = Math.max(8,  Math.min(28, base * 0.065));
+          const fsBadge   = Math.max(12, Math.min(36, base * 0.10));
+          const badgePadY = Math.max(4,  Math.min(20, base * 0.042));
+          const badgePadX = Math.max(8,  Math.min(36, base * 0.075));
 
-          const gapV = Math.max(6, Math.min(24, base * 0.03));
-          const padY = Math.max(8, Math.min(22, base * 0.05));
-          const padX = Math.max(10, Math.min(28, base * 0.07));
+          const gapV = Math.max(8, Math.min(28, base * 0.035));
+          const padY = Math.max(10, Math.min(28, base * 0.055));
+          const padX = Math.max(12, Math.min(34, base * 0.08));
 
           setVar(el, '--fs-name',  `${fsName}px`);
           setVar(el, '--fs-set',   `${fsSet}px`);
@@ -134,7 +141,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     let fs = getVar(el, '--fs-name') || 22;
     const min = 12; let tries = 0;
     const tooWide = () => [...el.querySelectorAll('td.names .line')].some(d => d.scrollWidth > d.clientWidth);
-    while (tooWide() && fs > min && tries < 24){
+    while (tooWide() && fs > min && tries < 28){
       fs -= 1; setVar(el, '--fs-name', `${fs}px`); tries++;
     }
   }
@@ -145,7 +152,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     if (!left || !right) return;
     let fs = getVar(el, '--fs-badge') || 14; let tries = 0;
     const over = () => (court && court.scrollWidth > left.clientWidth) || (status && status.scrollWidth > right.clientWidth);
-    while (over() && fs > 10 && tries < 20){
+    while (over() && fs > 10 && tries < 24){
       fs -= 1; setVar(el, '--fs-badge', `${fs}px`); tries++;
     }
   }
@@ -160,16 +167,16 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
   function shrinkVars(el, factor = 0.93){
     const clamp = (v,min,max) => Math.max(min, Math.min(max, v));
-    const fsName = clamp(getVar(el,'--fs-name')*factor, 12, 100);
-    const fsSet  = clamp(getVar(el,'--fs-set') *factor, 16, 120);
-    const fsNow  = clamp(getVar(el,'--fs-now') *factor, 16, 120);
-    const fsHead = clamp(getVar(el,'--fs-head')*factor, 10, 30);
-    const gapV   = clamp(getVar(el,'--gap-v')   *factor, 6, 28);
-    const padY   = clamp(getVar(el,'--pad-cell-y')*factor, 6, 26);
-    const padX   = clamp(getVar(el,'--pad-cell-x')*factor, 8, 30);
-    const fsBadge   = clamp(getVar(el,'--fs-badge')*factor, 10, 34);
-    const badgePadY = clamp(getVar(el,'--badge-pad-y')*factor, 4, 18);
-    const badgePadX = clamp(getVar(el,'--badge-pad-x')*factor, 6, 30);
+    const fsName = clamp(getVar(el,'--fs-name')*factor, 12, 120);
+    const fsSet  = clamp(getVar(el,'--fs-set') *factor, 16, 140);
+    const fsNow  = clamp(getVar(el,'--fs-now') *factor, 16, 140);
+    const fsHead = clamp(getVar(el,'--fs-head')*factor, 10, 36);
+    const gapV   = clamp(getVar(el,'--gap-v')   *factor, 6, 32);
+    const padY   = clamp(getVar(el,'--pad-cell-y')*factor, 6, 32);
+    const padX   = clamp(getVar(el,'--pad-cell-x')*factor, 8, 36);
+    const fsBadge   = clamp(getVar(el,'--fs-badge')*factor, 10, 40);
+    const badgePadY = clamp(getVar(el,'--badge-pad-y')*factor, 4, 22);
+    const badgePadX = clamp(getVar(el,'--badge-pad-x')*factor, 6, 40);
 
     setVar(el,'--fs-name',`${fsName}px`);
     setVar(el,'--fs-set', `${fsSet}px`);
@@ -183,7 +190,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     setVar(el,'--badge-pad-x',`${badgePadX}px`);
   }
   function fitTileVertically(el){
-    let safety = 16;
+    let safety = 18;
     const step = () => {
       if (el.scrollHeight <= el.clientHeight || safety-- <= 0) return;
       const gap = getVar(el,'--gap-v');
@@ -221,11 +228,12 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     for (let i=2;i>=0;i--){ if (setConcluded[i]) { lastConcludedIndex = i; break; } }
     if (cfg.isProset && setConcluded[0]) lastConcludedIndex = 0;
 
-    const cols = [];
-    const titles = [];
+    // Build set columns (left -> right) and later we'll push last to right if finished
+    let cols = [];
+    let titles = [];
     if (cfg.isProset){
-      // during play we don't show a set column; if finished we'll show in NOW
-      if (!matchOver && setConcluded[0]) { cols.push(0); titles.push('Proset'); }
+      // Show Proset column when concluded OR (optional) when playing — we'll keep it for concluded only to avoid confusion
+      if (setConcluded[0]) { cols.push(0); titles.push('Proset'); }
     } else {
       if (setConcluded[0] || (isRegularPlaying && currentIndex === 0) || (normalTB && currentIndex === 0)){
         cols.push(0); titles.push('1º Set');
@@ -242,46 +250,36 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       }
     }
 
-    // If match over: move the last concluded set to NOW column on the right
-    let useFinishedAsNow = false;
-    let finishedNowIndex = -1;
-    let finishedNowTitle = '';
+    // Reorder so the LAST concluded set is the rightmost when match is over
     if (matchOver && lastConcludedIndex >= 0){
-      useFinishedAsNow = true;
-      finishedNowIndex = lastConcludedIndex;
-      if (cfg.isProset) finishedNowTitle = 'Proset';
-      else if (finishedNowIndex === 0) finishedNowTitle = '1º Set';
-      else if (finishedNowIndex === 1) finishedNowTitle = '2º Set';
-      else finishedNowTitle = cfg.isSuper ? 'Super Tie-break' : '3º Set';
-
-      // remove that set from the regular set columns to avoid duplication
       const outCols = []; const outTitles = [];
       for (let k=0;k<cols.length;k++){
-        if (cols[k] === finishedNowIndex) continue;
+        if (cols[k] === lastConcludedIndex) continue;
         outCols.push(cols[k]); outTitles.push(titles[k]);
       }
-      while (cols.length) cols.pop();
-      while (titles.length) titles.pop();
-      outCols.forEach(v=>cols.push(v));
-      outTitles.forEach(v=>titles.push(v));
+      outCols.push(lastConcludedIndex);
+      if (cfg.isProset) outTitles.push('Proset');
+      else if (lastConcludedIndex === 0) outTitles.push('1º Set');
+      else if (lastConcludedIndex === 1) outTitles.push('2º Set');
+      else outTitles.push(cfg.isSuper ? 'Super Tie-break' : '3º Set');
+      cols = outCols; titles = outTitles;
     }
 
-    const nowTitle = useFinishedAsNow
-      ? finishedNowTitle
-      : (superTB ? 'Super Tie-break' : (normalTB ? 'Tie-break' : 'Jogo'));
-    const showNow  = useFinishedAsNow || !matchOver;
+    // SHOW NOW only if NOT finished
+    const showNow = !matchOver;
+    const nowTitle = superTB ? 'Super Tie-break' : (normalTB ? 'Tie-break' : 'Jogo');
 
     const shapeKey = [
       cfg.isProset ? 'P' : 'N',
       titles.join('|') || '-',
-      useFinishedAsNow ? `LAST=${finishedNowTitle}` : ''
+      `NOW=${showNow?1:0}` // include NOW visibility to force rebuild when match finishes/starts
     ].join('#');
 
     return {
       cfg, sets, cur,
       setConcluded, currentIndex, w1, w2, matchOver, normalTB, superTB, isRegularPlaying,
       cols, titles, nowTitle, showNow,
-      useFinishedAsNow, finishedNowIndex, finishedNowTitle
+      lastConcludedIndex
     };
   }
 
@@ -302,35 +300,31 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       ? `${escapeHtml(game.court_name)}`
       : (game.court_id ? `CAMPO ${escapeHtml(String(game.court_id)).slice(0,8)}` : '');
 
-    const { cfg, sets, cur, setConcluded, currentIndex, matchOver, normalTB, superTB, isRegularPlaying } = meta;
+    const { cfg, sets, cur } = meta;
 
     const g1 = Number(cur.games_team1||0), g2 = Number(cur.games_team2||0);
     const tb1= Number(cur.tb_team1||0),    tb2= Number(cur.tb_team2||0);
     const p1 = Number(cur.points_team1||0),p2 = Number(cur.points_team2||0);
 
     let nowTop='', nowBot='';
-    if (meta.useFinishedAsNow){
-      const ls = sets[meta.finishedNowIndex] || {};
-      nowTop = String(ls.team1 ?? '');
-      nowBot = String(ls.team2 ?? '');
-    } else if (superTB){
+    if (meta.superTB){
       const base1 = Number(sets?.[2]?.team1 || 0);
       const base2 = Number(sets?.[2]?.team2 || 0);
       nowTop = String(tb1 || base1);
       nowBot = String(tb2 || base2);
-    } else if (normalTB){
+    } else if (meta.normalTB){
       nowTop = String(tb1); nowBot = String(tb2);
     } else {
       nowTop = String(tennisPoint(p1, cfg.isGP));
       nowBot = String(tennisPoint(p2, cfg.isGP));
     }
 
-    const anySetFinished = setConcluded.some(Boolean);
+    const anySetFinished = meta.setConcluded.some(Boolean);
     const anySetFilled   = sets.some(ss => (Number(ss?.team1||0) + Number(ss?.team2||0)) > 0);
     const hasCurrent     = (g1+g2+p1+p2+tb1+tb2) > 0;
     const started        = anySetFinished || anySetFilled || hasCurrent;
-    const statusText  = matchOver ? 'TERMINADO' : (started ? 'AO VIVO' : 'PRÉ-JOGO');
-    const statusInner = (started && !matchOver) ? '<span class="pulse">AO VIVO</span>' : statusText;
+    const statusText  = meta.matchOver ? 'TERMINADO' : (started ? 'AO VIVO' : 'PRÉ-JOGO');
+    const statusInner = (started && !meta.matchOver) ? '<span class="pulse">AO VIVO</span>' : statusText;
 
     const wrap = document.createElement('div');
     wrap.className = 'tile';
@@ -350,9 +344,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     }
     const rowTopSets  = meta.cols.map(i => `<td class="set"><div class="cell">${setCellVal(i,1)}</div></td>`).join('');
     const rowBotSets  = meta.cols.map(i => `<td class="set"><div class="cell">${setCellVal(i,2)}</div></td>`).join('');
-    const nowHeader = `<th class="now">${meta.nowTitle}</th>`;
-    const nowTopTd  = `<td class="now"><div class="cell-now">${nowTop}</div></td>`;
-    const nowBotTd  = `<td class="now"><div class="cell-now">${nowBot}</div></td>`;
+    const maybeNowHeader = meta.showNow ? `<th class="now">${meta.nowTitle}</th>` : '';
+    const maybeNowTopTd  = meta.showNow ? `<td class="now"><div class="cell-now">${nowTop}</div></td>` : '';
+    const maybeNowBotTd  = meta.showNow ? `<td class="now"><div class="cell-now">${nowBot}</div></td>` : '';
 
     // flexfill column to push set block to the right
     wrap.innerHTML = `
@@ -367,7 +361,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
             <th class="names"></th>
             <th class="flexfill"></th>
             ${headerSetTh}
-            ${nowHeader}
+            ${maybeNowHeader}
           </tr>
         </thead>
         <tbody>
@@ -378,7 +372,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
             </td>
             <td class="flexfill"></td>
             ${rowTopSets}
-            ${nowTopTd}
+            ${maybeNowTopTd}
           </tr>
           <tr>
             <td class="names">
@@ -387,19 +381,11 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
             </td>
             <td class="flexfill"></td>
             ${rowBotSets}
-            ${nowBotTd}
+            ${maybeNowBotTd}
           </tr>
         </tbody>
       </table>
     `;
-
-    // Mostrar/ocultar “AGORA” visualmente (sem reflow)
-    const thNow = wrap.querySelector('th.now');
-    const tdNowEls = wrap.querySelectorAll('td.now');
-    if (!meta.showNow) {
-      thNow?.classList.add('is-hidden');
-      tdNowEls.forEach(n => n.classList.add('is-hidden'));
-    }
 
     return wrap;
   }
@@ -407,13 +393,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   function updateTile(el, game){
     const meta = computeShape(game);
 
-    const thNow = el.querySelector('th.now');
-    if (thNow) thNow.textContent = meta.nowTitle;
-
-    const tdNowEls = el.querySelectorAll('td.now');
-    tdNowEls.forEach(n => n.classList.toggle('is-hidden', !meta.showNow));
-    if (thNow) thNow.classList.toggle('is-hidden', !meta.showNow);
-
+    // if shape changed (including NOW visibility), rebuild
     const oldKey = el.dataset.shapeKey;
     if (oldKey !== meta.shapeKey){
       const replacement = buildTile(game);
@@ -434,14 +414,12 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       : (game.court_id ? `CAMPO ${escapeHtml(String(game.court_id)).slice(0,8)}` : '');
     if (courtBadge) courtBadge.textContent = courtName || '—';
 
-    const { cfg, sets, cur } = meta;
-    const g1 = Number(cur.games_team1||0), g2 = Number(cur.games_team2||0);
-    const tb1= Number(cur.tb_team1||0),    tb2= Number(cur.tb_team2||0);
-    const p1 = Number(cur.points_team1||0),p2 = Number(cur.points_team2||0);
-
-    // status text
+    // status
     const anySetFinished = meta.setConcluded.some(Boolean);
-    const anySetFilled   = sets.some(ss => (Number(ss?.team1||0) + Number(ss?.team2||0)) > 0);
+    const anySetFilled   = meta.sets.some(ss => (Number(ss?.team1||0) + Number(ss?.team2||0)) > 0);
+    const g1 = Number(meta.cur.games_team1||0), g2 = Number(meta.cur.games_team2||0);
+    const tb1= Number(meta.cur.tb_team1||0),    tb2= Number(meta.cur.tb_team2||0);
+    const p1 = Number(meta.cur.points_team1||0),p2 = Number(meta.cur.points_team2||0);
     const hasCurrent     = (g1+g2+p1+p2+tb1+tb2) > 0;
     const started        = anySetFinished || anySetFilled || hasCurrent;
     const statusText  = meta.matchOver ? 'TERMINADO' : (started ? 'AO VIVO' : 'PRÉ-JOGO');
@@ -459,37 +437,36 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     if (nameLines[2]) nameLines[2].textContent = n2a;
     if (nameLines[3]) nameLines[3].textContent = n2b;
 
-    // NOW values
-    let nowTop='', nowBot='';
-    if (meta.useFinishedAsNow){
-      const ls = sets[meta.finishedNowIndex] || {};
-      nowTop = String(ls.team1 ?? '');
-      nowBot = String(ls.team2 ?? '');
-    } else if (meta.superTB){
-      const base1 = Number(sets?.[2]?.team1 || 0);
-      const base2 = Number(sets?.[2]?.team2 || 0);
-      nowTop = String(tb1 || base1);
-      nowBot = String(tb2 || base2);
-    } else if (meta.normalTB){
-      nowTop = String(tb1); nowBot = String(tb2);
-    } else {
-      nowTop = String(tennisPoint(p1, cfg.isGP));
-      nowBot = String(tennisPoint(p2, cfg.isGP));
-    }
+    // NOW values (only relevant if NOW column exists; but we're in in-place path, so it exists)
     const nowCells = el.querySelectorAll('td.now .cell-now');
-    if (nowCells[0]) nowCells[0].textContent = nowTop;
-    if (nowCells[1]) nowCells[1].textContent = nowBot;
+    if (nowCells.length){
+      let nowTop='', nowBot='';
+      if (meta.superTB){
+        const base1 = Number(meta.sets?.[2]?.team1 || 0);
+        const base2 = Number(meta.sets?.[2]?.team2 || 0);
+        nowTop = String(tb1 || base1);
+        nowBot = String(tb2 || base2);
+      } else if (meta.normalTB){
+        nowTop = String(tb1); nowBot = String(tb2);
+      } else {
+        nowTop = String(tennisPoint(p1, meta.cfg.isGP));
+        nowBot = String(tennisPoint(p2, meta.cfg.isGP));
+      }
+      if (nowCells[0]) nowCells[0].textContent = nowTop;
+      if (nowCells[1]) nowCells[1].textContent = nowBot;
+      const thNow = el.querySelector('th.now');
+      if (thNow) thNow.textContent = meta.superTB ? 'Super Tie-break' : (meta.normalTB ? 'Tie-break' : 'Jogo');
+    }
 
     // set cells
     const setCells = el.querySelectorAll('td.set .cell');
     function setCellVal(i, team){
-      if (!cfg.isProset && meta.normalTB && i === meta.currentIndex) return '6';
-      if (!cfg.isProset && meta.isRegularPlaying && i === meta.currentIndex){
-          const g1 = Number(meta.cur.games_team1||0), g2 = Number(meta.cur.games_team2||0);
+      if (!meta.cfg.isProset && meta.normalTB && i === meta.currentIndex) return '6';
+      if (!meta.cfg.isProset && meta.isRegularPlaying && i === meta.currentIndex){
           return String(team === 1 ? g1 : g2);
       }
-      const ss = sets[i];
-      if (!ss || !isSetConcluded(ss, cfg, i)) return '';
+      const ss = meta.sets[i];
+      if (!ss || !isSetConcluded(ss, meta.cfg, i)) return '';
       return String(team === 1 ? (ss.team1 ?? '') : (ss.team2 ?? ''));
     }
     const n = meta.cols.length;

@@ -108,21 +108,6 @@
       font-variant-numeric: tabular-nums;
     }
 
-    .scoretable th.now,
-    .scoretable td.now { transition: opacity .25s ease; }
-
-    .scoretable .now .cell-now {
-      transition: opacity .25s ease, box-shadow .25s ease, background .25s ease, border-color .25s ease;
-    }
-
-    .scoretable .now.is-hidden     { opacity: 0; }
-    .scoretable .now.is-hidden .cell-now {
-      opacity: 0;
-      box-shadow: none;
-      border-color: transparent;
-      background: transparent;
-    }
-
     .placeholder{display:grid;place-items:center;color:#9b9b9b;font-size:18px}
     .hide-cursor *{cursor:none !important}
 
@@ -152,6 +137,6 @@
     <div class="muted">© New Padel Solutions 2025</div>
   </footer>
 
-  <script type="module" src="/js/filament/scoreboard.js?v=50"></script>
+  <script type="module" src="/js/filament/scoreboard.js?v=51"></script>
 </body>
 </html>
