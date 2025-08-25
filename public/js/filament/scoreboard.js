@@ -235,10 +235,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     const showNow  = !matchOver;
 
     const shapeKey = [
-      cfg.isProset?'P':'N',
-      titles.join('|') || '-',
-      showNow ? nowTitle : '-',
-      matchOver?'X':'O'
+    cfg.isProset ? 'P' : 'N',
+    titles.join('|') || '-'
+    // NOTA: não incluímos showNow nem nowTitle para evitar rebuild por causa do AGORA
     ].join('#');
 
     return { cfg, sets, cur, setConcluded, currentIndex, w1, w2, matchOver, normalTB, superTB, isRegularPlaying, cols, titles, nowTitle, showNow, shapeKey };
@@ -304,9 +303,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     }
     const rowTopSets  = meta.cols.map(i => `<td class="set"><div class="cell">${setCellVal(i,1)}</div></td>`).join('');
     const rowBotSets  = meta.cols.map(i => `<td class="set"><div class="cell">${setCellVal(i,2)}</div></td>`).join('');
-    const nowHeader = meta.showNow ? `<th class="now">${meta.nowTitle}</th>` : '';
-    const nowTopTd  = meta.showNow ? `<td class="now"><div class="cell-now">${nowTop}</div></td>` : '';
-    const nowBotTd  = meta.showNow ? `<td class="now"><div class="cell-now">${nowBot}</div></td>` : '';
+    const nowHeader = `<th class="now">${meta.nowTitle}</th>`;
+    const nowTopTd  = `<td class="now"><div class="cell-now">${nowTop}</div></td>`;
+    const nowBotTd  = `<td class="now"><div class="cell-now">${nowBot}</div></td>`;
 
     wrap.innerHTML = `
       <div class="row">
@@ -342,11 +341,31 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
         </tbody>
       </table>
     `;
+
+    // Esconder/mostrar AGORA sem tirar do layout
+    const thNow = wrap.querySelector('th.now');
+    const tdNowEls = wrap.querySelectorAll('td.now');
+    if (!meta.showNow) {
+    thNow?.classList.add('is-hidden');
+    tdNowEls.forEach(n => n.classList.add('is-hidden'));
+    }
+
     return wrap;
   }
 
   function updateTile(el, game){
     const meta = computeShape(game);
+
+    // Cabeçalho do AGORA (texto pode mudar: "Jogo" / "Tie-break" / "Super Tie-break")
+    const thNow = el.querySelector('th.now');
+    if (thNow) thNow.textContent = meta.nowTitle;
+
+    // Mostrar/esconder AGORA sem reflow
+    const tdNowEls = el.querySelectorAll('td.now');
+    tdNowEls.forEach(n => n.classList.toggle('is-hidden', !meta.showNow));
+    if (thNow) thNow.classList.toggle('is-hidden', !meta.showNow);
+
+
     const oldKey = el.dataset.shapeKey;
     if (oldKey !== meta.shapeKey){
       // Rebuild, mas preserva tamanhos (CSS vars) para não “saltar”
