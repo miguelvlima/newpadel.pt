@@ -26,6 +26,7 @@
       --fs-set:  26px;  /* números dos sets */
       --fs-now:  36px;  /* “AGORA” */
       --fs-head: 12px;  /* cabeçalhos */
+      --fs-badge: 16px; /* novo: tamanho da badge Campo */
     }
 
     *{box-sizing:border-box}
@@ -89,10 +90,9 @@
     /* topo do tile */
     .row{display:flex;align-items:center;justify-content:space-between}
     .badge{
-      font-size:12px; letter-spacing:.12em;
-      padding:4px 10px; border-radius:999px;
-      border:1px solid rgba(255,255,255,.18);
-      background:rgba(255,255,255,.06);
+        font-size: var(--fs-badge);     /* ← em vez de 12px fixos */
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        max-width: 50%;
     }
     .pulse{ animation:pulse 1s infinite; color:var(--live); font-weight:800; }
     @keyframes pulse{0%{opacity:1}50%{opacity:.55}100%{opacity:1}}

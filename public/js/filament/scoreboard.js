@@ -114,15 +114,20 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           const w = rect?.width || 0, h = rect?.height || 0;
           const base = Math.max(0, Math.min(w, h));
 
-          const fsName = Math.max(16, Math.min(50, base * 0.085)); // nomes
+          const fsName = Math.max(16, Math.min(50, base * 0.10)); // nomes
           const fsSet  = Math.max(18, Math.min(62, base * 0.105)); // sets
           const fsNow  = Math.max(26, Math.min(86, base * 0.15));  // AGORA
-          const fsHead = Math.max(10, Math.min(18, fsSet * 0.45)); // cabeçalhos
+          const fsHead = Math.max(14, Math.min(18, fsSet * 0.45)); // cabeçalhos
+          const fsBadge = Math.max(12, Math.min(22, base * 0.05)); // ajuste a gosto
 
+          el.style.setProperty('--fs-badge', `${fsBadge}px`);
           el.style.setProperty('--fs-name', `${fsName}px`);
           el.style.setProperty('--fs-set',  `${fsSet}px`);
           el.style.setProperty('--fs-now',  `${fsNow}px`);
           el.style.setProperty('--fs-head', `${fsHead}px`);
+
+          requestAnimationFrame(() => fitNamesAndBadge(el));
+
         }
       })
     : { observe: () => {} };
@@ -145,7 +150,10 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     games.forEach(g => {
       const el = tile(g);
       grid.appendChild(el);
-      try { tileSizer.observe(el); } catch {}
+
+        try { tileSizer.observe(el); } catch {}
+        fitNamesAndBadge(el);
+
     });
 
     const target = cols*rows;
@@ -154,6 +162,28 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       try { tileSizer.observe(ph); } catch {}
     }
   }
+
+  function fitNamesAndBadge(el){
+    // encolhe --fs-name se alguma linha dos nomes fizer overflow
+    let fs = parseFloat(getComputedStyle(el).getPropertyValue('--fs-name')) || 22;
+    const min = 12; let tries = 0;
+    const tooWide = () => [...el.querySelectorAll('td.names .line')]
+                            .some(d => d.scrollWidth > d.clientWidth);
+    while (tooWide() && fs > min && tries < 18){
+        fs -= 1; el.style.setProperty('--fs-name', `${fs}px`); tries++;
+    }
+    // badge (campo)
+    const badge = el.querySelector('.badge');
+    if (badge){
+        let fb = parseFloat(getComputedStyle(el).getPropertyValue('--fs-badge')) || 14;
+        let btries = 0;
+        const bWide = () => badge.scrollWidth > badge.clientWidth;
+        while (bWide() && fb > 10 && btries < 10){
+        fb -= 1; el.style.setProperty('--fs-badge', `${fb}px`); btries++;
+        }
+    }
+    }
+
 
   // ======== Render de um jogo ========
   function tile(game){
