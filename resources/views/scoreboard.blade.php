@@ -153,6 +153,6 @@
     <div class="muted">© New Padel Solutions 2025</div>
   </footer>
 
-  <script type="module" src="/js/filament/scoreboard.js?v=49"></script>
+  <script type="module" src="/js/filament/scoreboard.js?v=50"></script>
 </body>
 </html>
