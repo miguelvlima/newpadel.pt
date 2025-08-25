@@ -72,6 +72,6 @@
     <div class="tile placeholder">Sem jogos configurados para este ecrã.</div>
   </main>
   <footer><div class="muted">© New Padel Solutions 2025</div></footer>
-  <script type="module" src="/js/filament/scoreboard.js?v=44"></script>
+  <script type="module" src="/js/filament/scoreboard.js?v=45"></script>
 </body>
 </html>

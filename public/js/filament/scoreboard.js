@@ -1,7 +1,8 @@
-// public/js/filament/scoreboard.js (v44 - NOW same size as sets)
+// public/js/filament/scoreboard.js (v45 - positions & placeholders em slots, ordem row-major)
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 (async () => {
+  // altura 100vh real (mobile)
   const setAppHeight = () => {
     document.documentElement.style.setProperty('--app-h', `${window.innerHeight}px`);
   };
@@ -32,7 +33,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   });
 
   const fmtTime = d => d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  const escapeHtml = (s='') => s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const escapeHtml = (s='') => s.replace(/[&<>\"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   const touch = (text, ok) => { if (statusEl) statusEl.innerHTML = `<span class="${ok?'status-ok':'status-bad'}">●</span> ${text} • ${fmtTime(new Date())}`; };
 
   if (!/^https:\/\/.+\.supabase\.co/i.test(SUPABASE_URL)) {
@@ -46,6 +47,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     realtime: { params: { eventsPerSecond: 5 } }
   });
 
+  /* ======== regras ======== */
   const parseFormat = (fmt) => {
     const f=(fmt||'best_of_3').toLowerCase();
     const isGP=f.endsWith('_gp');
@@ -78,24 +80,15 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   const isNormalTBActive = (cur,cfg) => { if(cfg.isProset) return false; const g1=Number(cur?.games_team1||0), g2=Number(cur?.games_team2||0); return g1===cfg.gamesToWinSet && g2===cfg.gamesToWinSet; };
   const superTBActive = (sets,cfg,over) => { if(!cfg.isSuper) return false; const [w1,w2]=countWonSets(sets,cfg); if(over) return false; return (w1===1 && w2===1); };
 
-  const computeGrid = (n, layout='auto') => {
-    if (layout && layout !== 'auto'){
-      const [c,r] = layout.split('x').map(Number);
-      if (Number.isFinite(c) && Number.isFinite(r)) return [c,r];
-    }
+  /* ======== grid a partir de positions ======== */
+  function computeGridFromPositions(n){
     const portrait = window.innerHeight >= window.innerWidth;
-    if (portrait){
-      if (n===1) return [1,1];
-      if (n===2) return [1,2];
-      if (n===3) return [1,3];
-      return [1,4];
-    } else {
-      if (n===1) return [1,1];
-      if (n===2) return [2,1];
-      return [2,2];
-    }
-  };
+    if (n<=1) return [1,1];
+    if (n===2) return portrait ? [1,2] : [2,1];
+    return [2,2]; // 3 ou 4 -> 2x2 (row-major)
+  }
 
+  /* ======== autosize (idêntico ao que tinhas, AGORA = SET) ======== */
   const tileSizer = (typeof ResizeObserver !== 'undefined')
     ? new ResizeObserver((entries) => {
         for (const entry of entries) {
@@ -107,7 +100,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           const fsName = Math.max(18, Math.min(72, base * 0.12));
           const fsSet  = Math.max(24, Math.min(96, base * 0.145));
           const fsHead = Math.max(12, Math.min(26, fsSet * 0.50));
-          const fsNow  = fsSet; // NOW == SET
+          const fsNow  = fsSet; // NOW = SET
 
           const fsBadge   = Math.max(12, Math.min(32, base * 0.075));
           const badgePadY = Math.max(4,  Math.min(18, base * 0.038));
@@ -156,7 +149,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       fs -= 1; setVar(el, '--fs-badge', `${fs}px`); tries++;
     }
   }
-
   function shrinkVars(el, factor = 0.93){
     const clamp = (v,min,max) => Math.max(min, Math.min(max, v));
     const fsName = clamp(getVar(el,'--fs-name')*factor, 12, 100);
@@ -181,12 +173,10 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     setVar(el,'--badge-pad-y',`${badgePadY}px`);
     setVar(el,'--badge-pad-x',`${badgePadX}px`);
   }
-
   function fitTileVertically(el){
     let safety = 16;
     const step = () => {
       if (el.scrollHeight <= el.clientHeight || safety-- <= 0) return;
-      // reduzir espaçamentos primeiro
       const gap = getVar(el,'--gap-v');
       const py  = getVar(el,'--pad-cell-y');
       const px  = getVar(el,'--pad-cell-x');
@@ -202,51 +192,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     requestAnimationFrame(step);
   }
 
-  function renderGrid(games, layout='auto'){
-    grid.innerHTML = '';
-    const n = games.length;
-    const [cols, rows] = computeGrid(n || 1, layout);
-    grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-    grid.style.gridTemplateRows    = `repeat(${rows}, 1fr)`;
-
-    if (!n){
-      const ph = document.createElement('div');
-      ph.className='tile placeholder';
-      ph.textContent = 'Sem jogos para mostrar. Configura no backoffice.';
-      grid.appendChild(ph);
-      try { tileSizer.observe(ph); } catch {}
-      return;
-    }
-
-    const tiles = [];
-    games.forEach(g => {
-      const el = tile(g);
-      grid.appendChild(el);
-      tiles.push(el);
-      try { tileSizer.observe(el); } catch {}
-    });
-
-    const target = cols * rows;
-    for (let i=n; i<target; i++){
-      const ph=document.createElement('div');
-      ph.className='tile placeholder';
-      grid.appendChild(ph);
-      try { tileSizer.observe(ph); } catch {}
-    }
-
-    const doFit = () => {
-      tiles.forEach(el => {
-        try { fitNames(el); } catch {}
-        try { fitBadges(el); } catch {}
-        try { fitTileVertically(el); } catch {}
-      });
-    };
-    requestAnimationFrame(doFit);
-    if (document.fonts?.ready){
-      document.fonts.ready.then(() => requestAnimationFrame(doFit));
-    }
-  }
-
+  /* ======== tiles ======== */
   function tile(game){
     const cfg = parseFormat(game.format);
     const s   = game.score || {};
@@ -297,10 +243,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     }
 
     function setCellVal(i, team){
-      if (!cfg.isProset && normalTB && i === currentIndex) return '6';
-      if (!cfg.isProset && isRegularPlaying && i === currentIndex){
-        return String(team === 1 ? g1 : g2);
-      }
+      if (!cfg.isProset && normalTB && i === currentIndex) return '6';           // mostrar 6–6 no TB normal
+      if (!cfg.isProset && isRegularPlaying && i === currentIndex) return String(team === 1 ? g1 : g2); // jogos a decorrer
       const ss = sets[i];
       if (!ss || !isSetConcluded(ss, cfg, i)) return '';
       return String(team === 1 ? (ss.team1 ?? '') : (ss.team2 ?? ''));
@@ -331,7 +275,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
     wrap.innerHTML = `
       <div class="row">
-        <div class="left">${courtName ? `<span class="badge court">${courtName}</span>` : ''}</div>
+        <div class="left">${courtName ? `<span class="badge court">${courtName}</span>` : `<span class="badge court">—</span>`}</div>
         <div class="right"><span class="badge status">${statusInner}</span></div>
       </div>
 
@@ -366,24 +310,40 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     return wrap;
   }
 
+  function emptyTile(){
+    const wrap = document.createElement('div');
+    wrap.className = 'tile';
+    wrap.innerHTML = `
+      <div class="row">
+        <div class="left"><span class="badge court">—</span></div>
+        <div class="right"><span class="badge status">—</span></div>
+      </div>
+      <div class="placeholder">Sem jogo configurado</div>
+    `;
+    return wrap;
+  }
+
+  /* ======== DATA / SLOTS ======== */
   async function getScreenByKey(key){
     const { data, error } = await supabase
       .from('scoreboards')
-      .select('id, key, title, layout, kiosk')
+      .select('id, key, title, layout, kiosk, positions')
       .eq('key', key)
       .maybeSingle();
     if (error) throw error;
     return data || null;
   }
-  async function getSelections(screenId){
+
+  async function getSelectionRows(screenId){
     const { data, error } = await supabase
       .from('scoreboard_selections')
       .select('position, game_id')
       .eq('scoreboard_id', screenId)
       .order('position', { ascending: true });
     if (error) throw error;
-    return (data || []).map(r => r.game_id).filter(Boolean).slice(0,4);
+    return data || [];
   }
+
   async function getGames(ids){
     if (!ids.length) return [];
     const { data, error } = await supabase
@@ -391,7 +351,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       .select('id,player1,player2,player3,player4,format,score,court_id,created_at')
       .in('id', ids);
     if (error) throw error;
-    const games = (data || []).sort((a,b)=> ids.indexOf(a.id)-ids.indexOf(b.id));
+    const games = (data || []);
     const courtIds = [...new Set(games.map(g=>g.court_id).filter(Boolean))];
     if (courtIds.length){
       const { data: courts } = await supabase.from('courts').select('id,name').in('id', courtIds);
@@ -401,16 +361,52 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     return games;
   }
 
-  let currentGames = [];
+  async function buildSlots(screen){
+    const rows = await getSelectionRows(screen.id);
+    const rawPositions = Number(screen?.positions) || rows.length || 1;
+    const positions = Math.max(1, Math.min(4, rawPositions)); // 1..4
+    const ids = rows.map(r => r.game_id).filter(Boolean);
+    const games = await getGames(ids);
+    const gmap = new Map(games.map(g=>[g.id, g]));
+    // slots 1..positions, por ordem row-major
+    const slots = Array.from({length: positions}, (_, i) => {
+      const row = rows.find(r => Number(r.position) === i+1);
+      if (row && row.game_id && gmap.has(row.game_id)) return gmap.get(row.game_id);
+      return null; // placeholder
+    });
+    return { slots, positions, ids };
+  }
+
+  /* ======== RENDER ======== */
+  function renderGridSlots(slots, positions){
+    grid.innerHTML = '';
+    const [cols, rows] = computeGridFromPositions(positions);
+    grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    grid.style.gridTemplateRows    = `repeat(${rows}, 1fr)`;
+    slots.forEach(item => {
+      const el = item ? tile(item) : emptyTile();
+      grid.appendChild(el);
+      try { tileSizer.observe(el); } catch {}
+    });
+  }
+
+  /* ======== bootstrap + realtime ======== */
+  let currentSlots = [];
+  let currentIds = [];
   let screen = null;
+
+  async function reloadAll(){
+    const pack = await buildSlots(screen);
+    currentSlots = pack.slots;
+    currentIds   = pack.ids;
+    renderGridSlots(currentSlots, pack.positions);
+  }
+
   try {
     screen = await getScreenByKey(SCREEN_KEY);
     setScreenTitle(screen?.title);
     if (screen?.kiosk) document.body.classList.add('hide-cursor');
-
-    const ids = screen ? await getSelections(screen.id) : [];
-    currentGames = await getGames(ids);
-    renderGrid(currentGames, screen?.layout || 'auto');
+    await reloadAll();
     touch('Ligado', true);
   } catch (e) {
     console.error('Erro a carregar screen/selections:', e);
@@ -418,51 +414,56 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     touch('Erro inicial', false);
   }
 
-  let gamesChannel = null;
+  // seleções: trocar jogos/posições
   let selChannel = null;
+  async function setupSelectionSubscription(screenId){
+    if (selChannel) { supabase.removeChannel(selChannel); selChannel = null; }
+    selChannel = supabase.channel('selections-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'scoreboard_selections', filter: `scoreboard_id=eq.${screenId}` }, async () => {
+        try{ await reloadAll(); touch('Seleções atualizadas', true); await resubscribe(currentIds); }
+        catch(e){ console.error('Erro ao atualizar seleções:', e); touch('Erro seleções', false); }
+      })
+      .subscribe();
+  }
+
+  // jogos em tempo real
+  let gamesChannel = null;
   async function resubscribe(ids){
     if (gamesChannel) { supabase.removeChannel(gamesChannel); gamesChannel = null; }
     if (!ids.length) return;
     gamesChannel = supabase.channel('games-live')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'games', filter: `id=in.(${ids.join(',')})` }, async (payload) => {
         const row = payload.new;
-        const idx = currentGames.findIndex(g => g.id === row.id);
-        if (idx >= 0) { currentGames[idx] = { ...currentGames[idx], ...row }; }
-        else { currentGames = await getGames(ids); }
-        renderGrid(currentGames, screen?.layout || 'auto');
+        const idx = currentSlots.findIndex(g => g && g.id === row.id);
+        if (idx >= 0) currentSlots[idx] = { ...currentSlots[idx], ...row };
+        else await reloadAll();
+        renderGridSlots(currentSlots, (screen?.positions) || currentSlots.length || 1);
         touch('Atualizado', true);
       })
       .subscribe();
   }
-  async function setupSelectionSubscription(screenId){
-    if (selChannel) { supabase.removeChannel(selChannel); selChannel = null; }
-    selChannel = supabase.channel('selections-live')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'scoreboard_selections', filter: `scoreboard_id=eq.${screenId}` }, async () => {
-        try{
-          const ids = await getSelections(screenId);
-          currentGames = await getGames(ids);
-          renderGrid(currentGames, screen?.layout || 'auto');
-          touch('Seleções atualizadas', true);
-          await resubscribe(ids);
-        }catch(e){ console.error('Erro ao atualizar seleções:', e); touch('Erro seleções', false); }
-      })
-      .subscribe();
-    const ids = await getSelections(screenId);
-    await resubscribe(ids);
-  }
+
+  // meta do ecrã (título/positions/kiosk)
   if (screen?.id){
     supabase.channel('screen-meta-live')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'scoreboards', filter: `id=eq.${screen.id}` },
-        (payload) => {
+        async (payload) => {
           const row = payload.new || payload.old;
           if (row?.title) setScreenTitle(row.title);
+          if (row && typeof row.positions !== 'undefined') {
+            screen.positions = row.positions;
+            await reloadAll();
+          }
           if (row?.kiosk) document.body.classList.add('hide-cursor');
         })
       .subscribe();
     setupSelectionSubscription(screen.id);
+    const pack = await buildSlots(screen);
+    currentIds = pack.ids;
+    await resubscribe(currentIds);
   }
 
-  let rAF; const onResize=()=>{ cancelAnimationFrame(rAF); rAF=requestAnimationFrame(()=> renderGrid(currentGames, screen?.layout || 'auto')); };
+  let rAF; const onResize=()=>{ cancelAnimationFrame(rAF); rAF=requestAnimationFrame(()=> renderGridSlots(currentSlots, (screen?.positions)||currentSlots.length||1)); };
   window.addEventListener('resize', onResize);
   window.addEventListener('orientationchange', onResize);
 })();
