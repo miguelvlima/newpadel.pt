@@ -24,12 +24,11 @@
       --live:#ff4d4d; --now-fg:#e7ffee;
       --app-h: 100vh;
 
-      /* estes valores são o look "grande" anterior */
-      --fs-name: 24px;  --fs-set: 32px;  --fs-now: 32px;  --fs-head: 12px;
-      --fs-badge: 16px;
+      --fs-name: 22px;  --fs-set: 26px;  --fs-now: 26px;  --fs-head: 12px;
+      --fs-badge: 14px;
 
-      --gap-v: 12px; --pad-cell-y: 12px; --pad-cell-x: 14px;
-      --badge-pad-y: 8px; --badge-pad-x: 14px; --badge-radius: 999px;
+      --gap-v: 10px; --pad-cell-y: 10px; --pad-cell-x: 12px;
+      --badge-pad-y: 6px; --badge-pad-x: 12px; --badge-radius: 999px;
       --names-pad-l: var(--pad-cell-x);
       --grid-pad: 16px; --grid-gap: 16px; --tile-pad: 12px;
     }
@@ -79,34 +78,49 @@
     .pulse{ animation:pulse 1s infinite; color:var(--live); font-weight:800 }
     @keyframes pulse{0%{opacity:1}50%{opacity:.55}100%{opacity:1}}
 
+    /* Alinhamento à direita: coluna flexível antes dos sets */
     .scoretable{ width:100%; table-layout:auto; border-collapse:separate; border-spacing:0 var(--gap-v); margin-top:8px; }
     .scoretable thead th{ font-size:var(--fs-head); letter-spacing:.08em; color:var(--muted); font-weight:700; text-align:center; padding-bottom:4px; }
     .scoretable thead th.names{ text-align:left; }
     .scoretable th, .scoretable td{ border-bottom:0; padding:8px 10px; vertical-align:middle; background-clip:padding-box }
     .scoretable td.names{ font-size:var(--fs-name); line-height:1.07; padding-left: var(--names-pad-l); }
     .scoretable td.names .line{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
-
-    /* coluna flex que ocupa o espaço restante à esquerda dos resultados para empurrar tudo para a direita */
     .scoretable th.flexfill, .scoretable td.flexfill{ width:100%; padding:0; }
 
     .scoretable td.set, .scoretable td.now{ padding:0 !important; }
+
     .scoretable td.set > .cell{
       display:flex; align-items:center; justify-content:center;
-      padding:var(--pad-cell-y) var(--pad-cell-x); min-height:2.9em;
+      padding:var(--pad-cell-y) var(--pad-cell-x); min-height:2.6em;
       background:var(--set-bg); border:1px solid var(--set-br); border-radius:12px;
       font-weight:900; font-size:var(--fs-set); line-height:1; color:#fff;
       font-variant-numeric: tabular-nums;
     }
+
     .scoretable td.now > .cell-now{
       display:flex; align-items:center; justify-content:center;
-      padding:var(--pad-cell-y) var(--pad-cell-x); min-height:2.9em;
+      padding:var(--pad-cell-y) var(--pad-cell-x); min-height:2.6em;
       color:var(--now-fg);
       background:linear-gradient(180deg, rgba(0,255,163,.18), rgba(0,180,120,.14));
       border:1px solid rgba(0,255,163,.45); border-radius:12px;
       box-shadow: 0 0 0 2px rgba(0,255,163,.20) inset, 0 0 24px rgba(0,255,163,.15);
-      font-weight:900; font-size:var(--fs-now); line-height:1;
+      font-weight:900; font-size:var(--fs-set); line-height:1;
       font-variant-numeric: tabular-nums;
-      transition: opacity .2s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
+    }
+
+    .scoretable th.now,
+    .scoretable td.now { transition: opacity .25s ease; }
+
+    .scoretable .now .cell-now {
+      transition: opacity .25s ease, box-shadow .25s ease, background .25s ease, border-color .25s ease;
+    }
+
+    .scoretable .now.is-hidden     { opacity: 0; }
+    .scoretable .now.is-hidden .cell-now {
+      opacity: 0;
+      box-shadow: none;
+      border-color: transparent;
+      background: transparent;
     }
 
     .placeholder{display:grid;place-items:center;color:#9b9b9b;font-size:18px}
@@ -138,6 +152,6 @@
     <div class="muted">© New Padel Solutions 2025</div>
   </footer>
 
-  <script type="module" src="/js/filament/scoreboard.js?v=53"></script>
+  <script type="module" src="/js/filament/scoreboard.js?v=49"></script>
 </body>
 </html>
