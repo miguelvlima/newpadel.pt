@@ -1,7 +1,8 @@
-// public/js/filament/scoreboard.js (v52 - sets alinhados à direita por spacer; sem colunas fantasma)
+// public/js/filament/scoreboard.js (v53 - tamanhos revertidos; alinhamento à direita via spacer)
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 (async () => {
+  // altura exata do viewport (evita invadir o footer)
   const setAppHeight = () => {
     document.documentElement.style.setProperty('--app-h', `${window.innerHeight}px`);
   };
@@ -31,9 +32,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     else document.exitFullscreen?.();
   });
 
-  const fmtTime = d => d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  const escapeHtml = (s='') => s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  const touch = (text, ok) => { if (statusEl) statusEl.innerHTML = `<span class="${ok?'status-ok':'status-bad'}">●</span> ${text} • ${fmtTime(new Date())}`; };
+  const fmtTime   = d => d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const escapeHtml= (s='') => s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const touch     = (text, ok) => { if (statusEl) statusEl.innerHTML = `<span class="${ok?'status-ok':'status-bad'}">●</span> ${text} • ${fmtTime(new Date())}`; };
 
   if (!/^https:\/\/.+\.supabase\.co/i.test(SUPABASE_URL)) {
     console.error('SUPABASE_URL inválida/vazia:', SUPABASE_URL);
@@ -88,18 +89,19 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           const w = rect?.width || 0, h = rect?.height || 0;
           const base = Math.max(0, Math.min(w, h));
 
-          const fsName = Math.max(18, Math.min(72, base * 0.10));
-          const fsSet  = Math.max(24, Math.min(96, base * 0.135));
-          const fsHead = Math.max(12, Math.min(26, fsSet * 0.50));
+          /* coeficientes do look anterior (grande) */
+          const fsName = Math.max(18, Math.min(84, base * 0.12));
+          const fsSet  = Math.max(26, Math.min(110, base * 0.145));
+          const fsHead = Math.max(12, Math.min(28, fsSet * 0.50));
           const fsNow  = fsSet;
 
-          const fsBadge   = Math.max(12, Math.min(32, base * 0.065));
-          const badgePadY = Math.max(4,  Math.min(18, base * 0.038));
-          const badgePadX = Math.max(8,  Math.min(28, base * 0.065));
+          const fsBadge   = Math.max(12, Math.min(36, base * 0.075));
+          const badgePadY = Math.max(5,  Math.min(20, base * 0.045));
+          const badgePadX = Math.max(9,  Math.min(30, base * 0.075));
 
-          const gapV = Math.max(6, Math.min(24, base * 0.03));
-          const padY = Math.max(8, Math.min(22, base * 0.05));
-          const padX = Math.max(10, Math.min(28, base * 0.07));
+          const gapV = Math.max(8, Math.min(28, base * 0.035));
+          const padY = Math.max(10, Math.min(26, base * 0.055));
+          const padX = Math.max(12, Math.min(34, base * 0.080));
 
           setVar(el, '--fs-name',  `${fsName}px`);
           setVar(el, '--fs-set',   `${fsSet}px`);
@@ -142,16 +144,16 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   }
   function shrinkVars(el, factor = 0.93){
     const clamp = (v,min,max) => Math.max(min, Math.min(max, v));
-    const fsName = clamp(getVar(el,'--fs-name')*factor, 12, 100);
-    const fsSet  = clamp(getVar(el,'--fs-set') *factor, 16, 120);
-    const fsNow  = clamp(getVar(el,'--fs-now') *factor, 16, 120);
-    const fsHead = clamp(getVar(el,'--fs-head')*factor, 10, 30);
-    const gapV   = clamp(getVar(el,'--gap-v')   *factor, 6, 28);
-    const padY   = clamp(getVar(el,'--pad-cell-y')*factor, 6, 26);
-    const padX   = clamp(getVar(el,'--pad-cell-x')*factor, 8, 30);
-    const fsBadge   = clamp(getVar(el,'--fs-badge')*factor, 10, 34);
-    const badgePadY = clamp(getVar(el,'--badge-pad-y')*factor, 4, 18);
-    const badgePadX = clamp(getVar(el,'--badge-pad-x')*factor, 6, 30);
+    const fsName = clamp(getVar(el,'--fs-name')*factor, 12, 120);
+    const fsSet  = clamp(getVar(el,'--fs-set') *factor, 16, 140);
+    const fsNow  = clamp(getVar(el,'--fs-now') *factor, 16, 140);
+    const fsHead = clamp(getVar(el,'--fs-head')*factor, 10, 34);
+    const gapV   = clamp(getVar(el,'--gap-v')   *factor, 6, 32);
+    const padY   = clamp(getVar(el,'--pad-cell-y')*factor, 6, 30);
+    const padX   = clamp(getVar(el,'--pad-cell-x')*factor, 8, 36);
+    const fsBadge   = clamp(getVar(el,'--fs-badge')*factor, 10, 40);
+    const badgePadY = clamp(getVar(el,'--badge-pad-y')*factor, 4, 22);
+    const badgePadX = clamp(getVar(el,'--badge-pad-x')*factor, 6, 34);
 
     setVar(el,'--fs-name',`${fsName}px`);
     setVar(el,'--fs-set', `${fsSet}px`);
@@ -196,7 +198,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     return [2,2];
   }
 
-  /* ---------- shape ---------- */
+  /* ---------- shape (sem colunas fantasma; alinhamento via flexfill) ---------- */
   function computeShape(game){
     const cfg = parseFormat(game.format);
     const s   = game.score || {};
@@ -279,6 +281,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     wrap.dataset.gameId = game.id;
     wrap.dataset.shapeKey = meta.shapeKey;
 
+    // colunas: names | flexfill | sets... | [now]
     const headerTh = meta.titles.map(t => `<th class="set">${t}</th>`).join('');
     function setCellVal(i, team){
       if (!cfg.isProset && normalTB && i === currentIndex) return '6';
@@ -333,7 +336,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   function updateTile(el, game){
     const meta = computeShape(game);
 
-    // AGORA (texto/visibilidade)
+    // AGORA (texto/visibilidade) — se mudou presença, reconstruo
     const thNow = el.querySelector('th.now');
     if (thNow) thNow.textContent = meta.nowTitle;
     const hasNow = Boolean(thNow);
@@ -387,10 +390,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
     // NOW values
     if (thNow){
-      const tdNowEls = el.querySelectorAll('td.now');
-      tdNowEls.forEach(n => n.classList.toggle('is-hidden', !meta.showNow));
-      if (thNow) thNow.classList.toggle('is-hidden', !meta.showNow);
-
       let nowTop='', nowBot='';
       if (superTB){
         const base1 = Number(sets?.[2]?.team1 || 0);
@@ -436,7 +435,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     return el;
   }
 
-  /* ---------- placeholder por posição ---------- */
+  /* ---------- placeholders por posição ---------- */
   function emptyTile(){
     const wrap = document.createElement('div');
     wrap.className = 'tile';
