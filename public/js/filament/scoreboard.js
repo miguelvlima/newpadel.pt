@@ -1,8 +1,8 @@
-// public/js/filament/scoreboard.js (v45 - positions & placeholders em slots, ordem row-major)
+// public/js/filament/scoreboard.js (v47 - no flicker: in-place updates + positions)
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 (async () => {
-  // altura 100vh real (mobile)
+  /* ---------- viewport height fix (mobile 100vh) ---------- */
   const setAppHeight = () => {
     document.documentElement.style.setProperty('--app-h', `${window.innerHeight}px`);
   };
@@ -47,7 +47,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     realtime: { params: { eventsPerSecond: 5 } }
   });
 
-  /* ======== regras ======== */
+  /* ---------- regras padel ---------- */
   const parseFormat = (fmt) => {
     const f=(fmt||'best_of_3').toLowerCase();
     const isGP=f.endsWith('_gp');
@@ -80,15 +80,15 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   const isNormalTBActive = (cur,cfg) => { if(cfg.isProset) return false; const g1=Number(cur?.games_team1||0), g2=Number(cur?.games_team2||0); return g1===cfg.gamesToWinSet && g2===cfg.gamesToWinSet; };
   const superTBActive = (sets,cfg,over) => { if(!cfg.isSuper) return false; const [w1,w2]=countWonSets(sets,cfg); if(over) return false; return (w1===1 && w2===1); };
 
-  /* ======== grid a partir de positions ======== */
+  /* ---------- grid a partir de positions ---------- */
   function computeGridFromPositions(n){
     const portrait = window.innerHeight >= window.innerWidth;
     if (n<=1) return [1,1];
     if (n===2) return portrait ? [1,2] : [2,1];
-    return [2,2]; // 3 ou 4 -> 2x2 (row-major)
+    return [2,2]; // 3 ou 4 -> 2x2
   }
 
-  /* ======== autosize (idêntico ao que tinhas, AGORA = SET) ======== */
+  /* ---------- autosize (NOW = SET) ---------- */
   const tileSizer = (typeof ResizeObserver !== 'undefined')
     ? new ResizeObserver((entries) => {
         for (const entry of entries) {
@@ -100,7 +100,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           const fsName = Math.max(18, Math.min(72, base * 0.12));
           const fsSet  = Math.max(24, Math.min(96, base * 0.145));
           const fsHead = Math.max(12, Math.min(26, fsSet * 0.50));
-          const fsNow  = fsSet; // NOW = SET
+          const fsNow  = fsSet;
 
           const fsBadge   = Math.max(12, Math.min(32, base * 0.075));
           const badgePadY = Math.max(4,  Math.min(18, base * 0.038));
@@ -192,8 +192,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     requestAnimationFrame(step);
   }
 
-  /* ======== tiles ======== */
-  function tile(game){
+  /* ---------- shape/key para evitar rebuild ---------- */
+  function computeShape(game){
     const cfg = parseFormat(game.format);
     const s   = game.score || {};
     const sets = Array.isArray(s.sets) ? s.sets.slice(0,3) : [];
@@ -205,29 +205,10 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     const matchOver = (w1 >= cfg.setsToWinMatch) || (w2 >= cfg.setsToWinMatch);
     const normalTB  = isNormalTBActive(cur, cfg);
     const superTB   = superTBActive(sets, cfg, matchOver);
-
-    const pair1a = escapeHtml(game.player1 || ''), pair1b = escapeHtml(game.player2 || '');
-    const pair2a = escapeHtml(game.player3 || ''), pair2b = escapeHtml(game.player4 || '');
-
-    const g1 = Number(cur.games_team1||0), g2 = Number(cur.games_team2||0);
-    const tb1= Number(cur.tb_team1||0),    tb2= Number(cur.tb_team2||0);
-    const p1 = Number(cur.points_team1||0),p2 = Number(cur.points_team2||0);
-    let nowTop='', nowBot='', nowTitle='Jogo';
-    if (superTB){
-      const base1 = Number(sets?.[2]?.team1 || 0);
-      const base2 = Number(sets?.[2]?.team2 || 0);
-      nowTop = String(tb1 || base1);
-      nowBot = String(tb2 || base2);
-      nowTitle = 'Super Tie-break';
-    } else if (normalTB){
-      nowTop = String(tb1); nowBot = String(tb2); nowTitle = 'Tie-break';
-    } else {
-      nowTop = String(tennisPoint(p1, cfg.isGP));
-      nowBot = String(tennisPoint(p2, cfg.isGP));
-    }
-
     const isRegularPlaying = !cfg.isProset && !normalTB && !superTB;
-    const cols = []; const titles = [];
+
+    const cols = [];
+    const titles = [];
     if (cfg.isProset){
       if (setConcluded[0]) { cols.push(0); titles.push('Proset'); }
     } else {
@@ -241,37 +222,82 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
         cols.push(2); titles.push(cfg.isSuper ? 'Super Tie-break' : '3º Set');
       }
     }
+    const nowTitle = superTB ? 'Super Tie-break' : (normalTB ? 'Tie-break' : 'Jogo');
+    const showNow  = !matchOver;
 
-    function setCellVal(i, team){
-      if (!cfg.isProset && normalTB && i === currentIndex) return '6';           // mostrar 6–6 no TB normal
-      if (!cfg.isProset && isRegularPlaying && i === currentIndex) return String(team === 1 ? g1 : g2); // jogos a decorrer
-      const ss = sets[i];
-      if (!ss || !isSetConcluded(ss, cfg, i)) return '';
-      return String(team === 1 ? (ss.team1 ?? '') : (ss.team2 ?? ''));
-    }
+    const shapeKey = [
+      cfg.isProset?'P':'N',
+      titles.join('|') || '-',
+      showNow ? nowTitle : '-',
+      matchOver?'X':'O'
+    ].join('#');
+
+    return { cfg, sets, cur, setConcluded, currentIndex, w1, w2, matchOver, normalTB, superTB, isRegularPlaying, cols, titles, nowTitle, showNow, shapeKey };
+  }
+
+  const CSS_VARS = ['--fs-name','--fs-set','--fs-now','--fs-head','--fs-badge','--badge-pad-y','--badge-pad-x','--gap-v','--pad-cell-y','--pad-cell-x'];
+  function copyVars(src, dst){
+    const cs = getComputedStyle(src);
+    CSS_VARS.forEach(v => dst.style.setProperty(v, cs.getPropertyValue(v)));
+  }
+
+  /* ---------- construir/atualizar tile ---------- */
+  function buildTile(game){
+    const meta = computeShape(game);
+
+    const pair1a = escapeHtml(game.player1 || ''), pair1b = escapeHtml(game.player2 || '');
+    const pair2a = escapeHtml(game.player3 || ''), pair2b = escapeHtml(game.player4 || '');
 
     const courtName = game.court_name
       ? `${escapeHtml(game.court_name)}`
       : (game.court_id ? `CAMPO ${escapeHtml(String(game.court_id)).slice(0,8)}` : '');
 
+    const { cfg, sets, cur, setConcluded, currentIndex, matchOver, normalTB, superTB, isRegularPlaying } = meta;
+
+    const g1 = Number(cur.games_team1||0), g2 = Number(cur.games_team2||0);
+    const tb1= Number(cur.tb_team1||0),    tb2= Number(cur.tb_team2||0);
+    const p1 = Number(cur.points_team1||0),p2 = Number(cur.points_team2||0);
+    let nowTop='', nowBot='';
+    if (superTB){
+      const base1 = Number(sets?.[2]?.team1 || 0);
+      const base2 = Number(sets?.[2]?.team2 || 0);
+      nowTop = String(tb1 || base1);
+      nowBot = String(tb2 || base2);
+    } else if (normalTB){
+      nowTop = String(tb1); nowBot = String(tb2);
+    } else {
+      nowTop = String(tennisPoint(p1, cfg.isGP));
+      nowBot = String(tennisPoint(p2, cfg.isGP));
+    }
+
     const anySetFinished = setConcluded.some(Boolean);
     const anySetFilled   = sets.some(ss => (Number(ss?.team1||0) + Number(ss?.team2||0)) > 0);
     const hasCurrent     = (g1+g2+p1+p2+tb1+tb2) > 0;
     const started        = anySetFinished || anySetFilled || hasCurrent;
-
     const statusText  = matchOver ? 'TERMINADO' : (started ? 'AO VIVO' : 'PRÉ-JOGO');
     const statusInner = (started && !matchOver) ? '<span class="pulse">AO VIVO</span>' : statusText;
 
     const wrap = document.createElement('div');
     wrap.className = 'tile';
+    wrap.dataset.gameId = game.id;
+    wrap.dataset.shapeKey = meta.shapeKey;
 
-    const headerSetTh = titles.map(t => `<th class="set">${t}</th>`).join('');
-    const rowTopSets  = cols.map(i => `<td class="set"><div class="cell">${setCellVal(i,1)}</div></td>`).join('');
-    const rowBotSets  = cols.map(i => `<td class="set"><div class="cell">${setCellVal(i,2)}</div></td>`).join('');
+    const headerSetTh = meta.titles.map(t => `<th class="set">${t}</th>`).join('');
 
-    const nowHeader = matchOver ? '' : `<th class="now">${nowTitle}</th>`;
-    const nowTopTd  = matchOver ? '' : `<td class="now"><div class="cell-now">${nowTop}</div></td>`;
-    const nowBotTd  = matchOver ? '' : `<td class="now"><div class="cell-now">${nowBot}</div></td>`;
+    function setCellVal(i, team){
+      if (!cfg.isProset && normalTB && i === currentIndex) return '6';
+      if (!cfg.isProset && isRegularPlaying && i === currentIndex){
+        return String(team === 1 ? g1 : g2);
+      }
+      const ss = sets[i];
+      if (!ss || !isSetConcluded(ss, cfg, i)) return '';
+      return String(team === 1 ? (ss.team1 ?? '') : (ss.team2 ?? ''));
+    }
+    const rowTopSets  = meta.cols.map(i => `<td class="set"><div class="cell">${setCellVal(i,1)}</div></td>`).join('');
+    const rowBotSets  = meta.cols.map(i => `<td class="set"><div class="cell">${setCellVal(i,2)}</div></td>`).join('');
+    const nowHeader = meta.showNow ? `<th class="now">${meta.nowTitle}</th>` : '';
+    const nowTopTd  = meta.showNow ? `<td class="now"><div class="cell-now">${nowTop}</div></td>` : '';
+    const nowBotTd  = meta.showNow ? `<td class="now"><div class="cell-now">${nowBot}</div></td>` : '';
 
     wrap.innerHTML = `
       <div class="row">
@@ -310,9 +336,98 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     return wrap;
   }
 
+  function updateTile(el, game){
+    const meta = computeShape(game);
+    const oldKey = el.dataset.shapeKey;
+    if (oldKey !== meta.shapeKey){
+      // Rebuild, mas preserva tamanhos (CSS vars) para não “saltar”
+      const replacement = buildTile(game);
+      copyVars(el, replacement);
+      el.replaceWith(replacement);
+      try { tileSizer.observe(replacement); } catch {}
+      return replacement;
+    }
+
+    // Atualização in-place (textos)
+    el.dataset.gameId = game.id;
+
+    const row = el.querySelector('.row');
+    const courtBadge = row?.querySelector('.badge.court');
+    const statusBadge = row?.querySelector('.badge.status');
+    const courtName = game.court_name
+      ? `${escapeHtml(game.court_name)}`
+      : (game.court_id ? `CAMPO ${escapeHtml(String(game.court_id)).slice(0,8)}` : '');
+    if (courtBadge) courtBadge.textContent = courtName || '—';
+
+    // status
+    const { setConcluded, cur, sets, cfg, currentIndex, matchOver, normalTB, superTB, isRegularPlaying } = meta;
+    const g1 = Number(cur.games_team1||0), g2 = Number(cur.games_team2||0);
+    const tb1= Number(cur.tb_team1||0),    tb2= Number(cur.tb_team2||0);
+    const p1 = Number(cur.points_team1||0),p2 = Number(cur.points_team2||0);
+    const anySetFinished = setConcluded.some(Boolean);
+    const anySetFilled   = sets.some(ss => (Number(ss?.team1||0) + Number(ss?.team2||0)) > 0);
+    const hasCurrent     = (g1+g2+p1+p2+tb1+tb2) > 0;
+    const started        = anySetFinished || anySetFilled || hasCurrent;
+    const statusText  = matchOver ? 'TERMINADO' : (started ? 'AO VIVO' : 'PRÉ-JOGO');
+    if (statusBadge){
+      statusBadge.innerHTML = (started && !matchOver) ? '<span class="pulse">AO VIVO</span>' : statusText;
+    }
+
+    // nomes (caso mudem)
+    const [n1a,n1b,n2a,n2b] = [
+      game.player1||'', game.player2||'', game.player3||'', game.player4||''
+    ].map(escapeHtml);
+    const nameLines = el.querySelectorAll('td.names .line');
+    if (nameLines[0]) nameLines[0].textContent = n1a;
+    if (nameLines[1]) nameLines[1].textContent = n1b;
+    if (nameLines[2]) nameLines[2].textContent = n2a;
+    if (nameLines[3]) nameLines[3].textContent = n2b;
+
+    // NOW values
+    let nowTop='', nowBot='';
+    if (superTB){
+      const base1 = Number(sets?.[2]?.team1 || 0);
+      const base2 = Number(sets?.[2]?.team2 || 0);
+      nowTop = String(tb1 || base1);
+      nowBot = String(tb2 || base2);
+    } else if (normalTB){
+      nowTop = String(tb1); nowBot = String(tb2);
+    } else {
+      nowTop = String(tennisPoint(p1, cfg.isGP));
+      nowBot = String(tennisPoint(p2, cfg.isGP));
+    }
+    const nowCells = el.querySelectorAll('td.now .cell-now');
+    if (nowCells[0]) nowCells[0].textContent = nowTop;
+    if (nowCells[1]) nowCells[1].textContent = nowBot;
+
+    // set cells (ordem: para cada coluna visível -> topo, baixo)
+    const setCells = el.querySelectorAll('td.set .cell');
+    function setCellVal(i, team){
+      if (!cfg.isProset && normalTB && i === currentIndex) return '6';
+      if (!cfg.isProset && isRegularPlaying && i === currentIndex){
+        return String(team === 1 ? g1 : g2);
+      }
+      const ss = sets[i];
+      if (!ss || !isSetConcluded(ss, cfg, i)) return '';
+      return String(team === 1 ? (ss.team1 ?? '') : (ss.team2 ?? ''));
+    }
+    for (let c=0; c<meta.cols.length; c++){
+      const i = meta.cols[c];
+      const topIdx = c*2, botIdx = c*2 + 1;
+      const topEl = setCells[topIdx];
+      const botEl = setCells[botIdx];
+      if (topEl) topEl.textContent = setCellVal(i,1);
+      if (botEl) botEl.textContent = setCellVal(i,2);
+    }
+
+    return el;
+  }
+
+  /* ---------- placeholder por posição ---------- */
   function emptyTile(){
     const wrap = document.createElement('div');
     wrap.className = 'tile';
+    wrap.dataset.type = 'empty';
     wrap.innerHTML = `
       <div class="row">
         <div class="left"><span class="badge court">—</span></div>
@@ -323,7 +438,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     return wrap;
   }
 
-  /* ======== DATA / SLOTS ======== */
+  /* ---------- data / slots ---------- */
   async function getScreenByKey(key){
     const { data, error } = await supabase
       .from('scoreboards')
@@ -368,29 +483,64 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     const ids = rows.map(r => r.game_id).filter(Boolean);
     const games = await getGames(ids);
     const gmap = new Map(games.map(g=>[g.id, g]));
-    // slots 1..positions, por ordem row-major
     const slots = Array.from({length: positions}, (_, i) => {
       const row = rows.find(r => Number(r.position) === i+1);
       if (row && row.game_id && gmap.has(row.game_id)) return gmap.get(row.game_id);
-      return null; // placeholder
+      return null;
     });
     return { slots, positions, ids };
   }
 
-  /* ======== RENDER ======== */
+  /* ---------- render persistente (evitar flicker) ---------- */
+  let tileEls = []; // elemento por slot
   function renderGridSlots(slots, positions){
-    grid.innerHTML = '';
     const [cols, rows] = computeGridFromPositions(positions);
     grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
     grid.style.gridTemplateRows    = `repeat(${rows}, 1fr)`;
-    slots.forEach(item => {
-      const el = item ? tile(item) : emptyTile();
-      grid.appendChild(el);
-      try { tileSizer.observe(el); } catch {}
-    });
+
+    // Primeira vez ou mudou nº de posições → (re)constrói tudo uma vez
+    if (tileEls.length !== positions){
+      grid.innerHTML = '';
+      tileEls = Array.from({length: positions}, (_, i) => {
+        const item = slots[i];
+        const el = item ? buildTile(item) : emptyTile();
+        grid.appendChild(el);
+        try { tileSizer.observe(el); } catch {}
+        return el;
+      });
+      return;
+    }
+
+    // Caso normal: update in-place por slot
+    for (let i=0;i<positions;i++){
+      const item = slots[i];
+      const el = tileEls[i];
+      if (!item){
+        // garantir placeholder
+        if (el?.dataset?.type !== 'empty'){
+          const rep = emptyTile();
+          copyVars(el, rep);
+          el.replaceWith(rep);
+          try { tileSizer.observe(rep); } catch {}
+          tileEls[i] = rep;
+        }
+        continue;
+      }
+      // tem jogo
+      if (!el || el.dataset.type === 'empty' || el.dataset.gameId !== item.id){
+        const rep = buildTile(item);
+        if (el) copyVars(el, rep);
+        if (el && el.parentNode) el.replaceWith(rep); else grid.appendChild(rep);
+        try { tileSizer.observe(rep); } catch {}
+        tileEls[i] = rep;
+      } else {
+        // mesmo jogo → só atualizar texto
+        tileEls[i] = updateTile(el, item);
+      }
+    }
   }
 
-  /* ======== bootstrap + realtime ======== */
+  /* ---------- bootstrap & realtime ---------- */
   let currentSlots = [];
   let currentIds = [];
   let screen = null;
@@ -414,19 +564,25 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     touch('Erro inicial', false);
   }
 
-  // seleções: trocar jogos/posições
+  // seleções (INSERT/UPDATE com filtro; DELETE sem filtro -> filtra no cliente)
   let selChannel = null;
+  function handleSelectionChange(){
+    reloadAll().then(() => { touch('Seleções atualizadas', true); return resubscribe(currentIds); })
+               .catch(e => { console.error('Erro ao atualizar seleções:', e); touch('Erro seleções', false); });
+  }
   async function setupSelectionSubscription(screenId){
     if (selChannel) { supabase.removeChannel(selChannel); selChannel = null; }
     selChannel = supabase.channel('selections-live')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'scoreboard_selections', filter: `scoreboard_id=eq.${screenId}` }, async () => {
-        try{ await reloadAll(); touch('Seleções atualizadas', true); await resubscribe(currentIds); }
-        catch(e){ console.error('Erro ao atualizar seleções:', e); touch('Erro seleções', false); }
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'scoreboard_selections', filter: `scoreboard_id=eq.${screenId}` }, handleSelectionChange)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'scoreboard_selections', filter: `scoreboard_id=eq.${screenId}` }, handleSelectionChange)
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'scoreboard_selections' }, async (payload) => {
+        if (payload?.old?.scoreboard_id && payload.old.scoreboard_id !== screenId) return;
+        handleSelectionChange();
       })
       .subscribe();
   }
 
-  // jogos em tempo real
+  // jogos em tempo real (update in-place)
   let gamesChannel = null;
   async function resubscribe(ids){
     if (gamesChannel) { supabase.removeChannel(gamesChannel); gamesChannel = null; }
@@ -435,9 +591,18 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       .on('postgres_changes', { event: '*', schema: 'public', table: 'games', filter: `id=in.(${ids.join(',')})` }, async (payload) => {
         const row = payload.new;
         const idx = currentSlots.findIndex(g => g && g.id === row.id);
-        if (idx >= 0) currentSlots[idx] = { ...currentSlots[idx], ...row };
-        else await reloadAll();
-        renderGridSlots(currentSlots, (screen?.positions) || currentSlots.length || 1);
+        if (idx >= 0) {
+          // modelo
+          currentSlots[idx] = { ...currentSlots[idx], ...row };
+          // vista (sem rebuild salvo mudança de shape)
+          const el = tileEls[idx];
+          if (el){
+            const rep = updateTile(el, currentSlots[idx]);
+            tileEls[idx] = rep; // caso tenha reconstruído
+          }
+        } else {
+          await reloadAll();
+        }
         touch('Atualizado', true);
       })
       .subscribe();
