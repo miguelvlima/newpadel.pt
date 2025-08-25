@@ -1,9 +1,8 @@
-// public/js/filament/scoreboard.js (v52)
-// Focus: bigger fonts & wider badges; results block right-aligned without wasting space.
-// - Larger multipliers (names & sets)
-// - Min-width for set cells (CSS var --set-minw)
-// - Small controlled spacer (CSS var --spacer-w) instead of big flex fill
-// - Glow only when LIVE (NOW column); finished -> last set stays at right, no glow
+// public/js/filament/scoreboard.js (v53)
+// Fix: numbers & names never overflow their badges/tiles.
+// - New fitSetFonts(): shrinks --fs-set/--fs-now per tile until all cells fit.
+// - Called on resize, after build, and after in-place updates.
+// - Keeps the big look but respects the badge bounds.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 (async () => {
@@ -100,10 +99,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           const w = rect?.width || 0, h = rect?.height || 0;
           const base = Math.max(0, Math.min(w, h));
 
-          // MUCH bigger
           const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
-          const fsName = clamp(base * 0.24, 22, 140);   // names really big
-          const fsSet  = clamp(base * 0.24, 28, 150);   // set numbers larger
+          const fsName = clamp(base * 0.24, 22, 140);
+          const fsSet  = clamp(base * 0.24, 28, 150);
           const fsHead = clamp(fsSet * 0.55, 12, 34);
           const fsNow  = fsSet;
 
@@ -115,9 +113,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           const padY = clamp(base * 0.06, 10, 30);
           const padX = clamp(base * 0.085, 12, 38);
 
-          // new: widths
-          const setMinW = clamp(w * 0.16, 90, 240); // each badge wider
-          const spacerW = clamp(w * 0.03, 12, 40);  // small spacer only
+          const setMinW = clamp(w * 0.16, 90, 240);
+          const spacerW = clamp(w * 0.03, 12, 40);
 
           setVar(el, '--fs-name',  `${fsName}px`);
           setVar(el, '--fs-set',   `${fsSet}px`);
@@ -135,6 +132,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           requestAnimationFrame(() => {
             fitNames(el);
             fitBadges(el);
+            fitSetFonts(el);
             fitTileVertically(el);
           });
         }
@@ -161,12 +159,33 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     }
   }
 
-  function calibrateTile(el){
-    fitNames(el); fitBadges(el); fitTileVertically(el);
-    if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(() => { fitNames(el); fitBadges(el); fitTileVertically(el); });
+  // NEW: ensure set numbers always fit inside their badges
+  function fitSetFonts(el){
+    const cells = el.querySelectorAll('td.set .cell, td.now .cell-now');
+    if (!cells.length) return;
+    let fs = getVar(el, '--fs-set') || 24;
+    let tries = 0;
+    const overflow = () => {
+      for (const c of cells){
+        if (c.scrollWidth > c.clientWidth + 0.5) return true;
+        if (c.scrollHeight > c.clientHeight + 0.5) return true;
+      }
+      return false;
+    };
+    while (overflow() && fs > 16 && tries < 40){
+      fs -= 1;
+      setVar(el, '--fs-set', `${fs}px`);
+      setVar(el, '--fs-now', `${fs}px`);
+      tries++;
     }
-    setTimeout(() => { fitNames(el); fitBadges(el); fitTileVertically(el); }, 120);
+  }
+
+  function calibrateTile(el){
+    fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); });
+    }
+    setTimeout(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); }, 120);
   }
 
   function shrinkVars(el, factor = 0.94){
@@ -215,7 +234,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   }
 
   /* ---------- shape/key ---------- */
-  const isSetDone = isSetConcluded;
   function computeShape(game){
     const cfg = parseFormat(game.format);
     const s   = game.score || {};
@@ -375,6 +393,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       </table>
     `;
 
+    // final fit pass
+    requestAnimationFrame(()=>calibrateTile(wrap));
     return wrap;
   }
 
@@ -452,6 +472,10 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       if (topEl) topEl.textContent = setCellVal(i, 1);
       if (botEl) botEl.textContent = setCellVal(i, 2);
     }
+
+    // ensure numbers fit after updates
+    fitSetFonts(el);
+    fitTileVertically(el);
 
     return el;
   }
