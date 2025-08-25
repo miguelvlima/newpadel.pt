@@ -25,6 +25,6 @@ Route::get('/ementa', function () {
     return view('ementa');
 });
 
-Route::get('/scoreboard', function () {
-    return view('scoreboard');
-});
+Route::get('/scoreboard/{screen?}', function (string $screen = 'default') {
+    return view('scoreboard', ['screen' => $screen]); // o Blade já usa $screen
+})->where('screen', '[A-Za-z0-9_-]+');
