@@ -22,25 +22,16 @@
       --tile:#0b0b0b; --tile-grad:#141414;
       --set-bg:rgba(255,255,255,.08); --set-br:rgba(255,255,255,.16);
       --live:#ff4d4d; --now-fg:#e7ffee;
-
-      /* tamanhos base (ajustados via JS/ResizeObserver) */
+      --app-h: 100vh;
       --fs-name: 22px;  --fs-set: 26px;  --fs-now: 36px;  --fs-head: 12px;
       --fs-badge: 14px;
-
-      /* espaçamentos controláveis (auto-fit vertical) */
-      --gap-v: 10px;
-      --pad-cell-y: 10px;
-      --pad-cell-x: 12px;
-
-      /* badge controlável */
-      --badge-pad-y: 6px;
-      --badge-pad-x: 12px;
-      --badge-radius: 999px;
+      --gap-v: 10px; --pad-cell-y: 10px; --pad-cell-x: 12px;
+      --badge-pad-y: 6px; --badge-pad-x: 12px; --badge-radius: 999px;
       --names-pad-l: var(--pad-cell-x);
     }
 
     *{box-sizing:border-box}
-    html,body{ height: 100svh; overflow:hidden; }
+    html,body{ height: var(--app-h); overflow:hidden; }
     body{
       margin:0; background:var(--bg); color:var(--fg);
       -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
@@ -50,8 +41,8 @@
       text-transform:uppercase;
     }
 
-    header, footer { padding:12px 16px; }
-    header{ display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,.12) }
+    header, footer { padding:12px 16px; flex: 0 0 auto; }
+    header{ display:grid; grid-template-columns: 1fr auto auto; align-items:center; gap:12px; border-bottom:1px solid rgba(255,255,255,.12) }
     footer{ border-top:1px solid rgba(255,255,255,.12); text-align:center }
     .muted{color:var(--muted)}
     .status-ok{color:#5ee87b} .status-bad{color:#ff8a8a}
@@ -69,22 +60,23 @@
       height:100%;
       border-radius:14px; border:1px solid rgba(255,255,255,.10);
       background:linear-gradient(135deg,var(--tile),var(--tile-grad));
-      padding:12px; display:flex; flex-direction:column;
+      padding:12px; display:flex; flex-direction:column; min-height:0;
     }
 
-    .row{ display:flex; align-items:center; justify-content:space-between }
-    .row .left, .row .right{ display:flex; align-items:center }
+    .row{ display:grid; grid-template-columns: 1fr auto; align-items:center; }
+    .row .left{ min-width:0; overflow:hidden; }
+    .row .right{ justify-self:end; }
 
     .badge{
       display:inline-flex; align-items:center; justify-content:center;
       font-size: var(--fs-badge);
-      letter-spacing:.12em;
+      letter-spacing:.08em;
       padding: var(--badge-pad-y) var(--badge-pad-x);
       border-radius: var(--badge-radius);
       border:1px solid rgba(255,255,255,.18);
       background:rgba(255,255,255,.06);
       line-height:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-      max-width: calc(50% - var(--names-pad-l));
+      max-width: 100%;
     }
     .row .badge.court{ margin-left: var(--names-pad-l); }
     .row .badge.status{ border-color: rgba(255,255,255,.22); }
@@ -149,6 +141,6 @@
     <div class="muted">© New Padel Solutions 2025</div>
   </footer>
 
-  <script type="module" src="/js/filament/scoreboard.js?v=33"></script>
+  <script type="module" src="/js/filament/scoreboard.js?v=40"></script>
 </body>
 </html>

@@ -2,13 +2,12 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 (async () => {
-  // Altura real do viewport (mobile)
-  const setVH = () => {
-    document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+  const setAppHeight = () => {
+    document.documentElement.style.setProperty('--app-h', `${window.innerHeight}px`);
   };
-  setVH();
-  window.addEventListener('resize', setVH);
-  window.addEventListener('orientationchange', setVH);
+  setAppHeight();
+  window.addEventListener('resize', setAppHeight);
+  window.addEventListener('orientationchange', setAppHeight);
 
   const grid = document.getElementById('grid');
   const statusEl = document.getElementById('status');
@@ -44,12 +43,11 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     realtime: { params: { eventsPerSecond: 5 } }
   });
 
-  // ======== Regras padel/tenis ========
   function parseFormat(fmt){
     const f=(fmt||'best_of_3').toLowerCase();
     const isGP=f.endsWith('_gp');
-    const isProset=f.startsWith('proset');
-    const isSuper=f.startsWith('super_tiebreak');
+    const isProset=f.startsWith?.('proset') || f.indexOf('proset')===0;
+    const isSuper=f.startsWith?.('super_tiebreak') || f.indexOf('super_tiebreak')===0;
     const gamesToWinSet=isProset?9:6;
     const setsToWinMatch=isProset?1:2;
     return {f,isGP,isProset,isSuper,gamesToWinSet,setsToWinMatch};
@@ -86,7 +84,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     return (w1===1 && w2===1);
   }
 
-  // ======== Layout ========
   function computeGrid(n, layout='auto'){
     if (layout && layout !== 'auto'){
       const [c,r] = layout.split('x').map(Number);
@@ -105,7 +102,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     }
   }
 
-  // === dimensionamento automático por tile ===
   const tileSizer = (typeof ResizeObserver !== 'undefined')
     ? new ResizeObserver((entries) => {
         for (const entry of entries) {
@@ -114,14 +110,14 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           const w = rect?.width || 0, h = rect?.height || 0;
           const base = Math.max(0, Math.min(w, h));
 
-          const fsName = Math.max(16, Math.min(50, base * 0.10));
-          const fsSet  = Math.max(18, Math.min(62, base * 0.105));
-          const fsNow  = Math.max(26, Math.min(86, base * 0.15));
-          const fsHead = Math.max(14, Math.min(18, fsSet * 0.45));
+          const fsName = Math.max(16, Math.min(48, base * 0.095));
+          const fsSet  = Math.max(18, Math.min(60, base * 0.105));
+          const fsNow  = Math.max(26, Math.min(82, base * 0.15));
+          const fsHead = Math.max(12, Math.min(18, fsSet * 0.45));
 
-          const fsBadge   = Math.max(12, Math.min(24, base * 0.06));
-          const badgePadY = Math.max(4,  Math.min(14, base * 0.032));
-          const badgePadX = Math.max(8,  Math.min(22, base * 0.05));
+          const fsBadge   = Math.max(12, Math.min(26, base * 0.065));
+          const badgePadY = Math.max(4,  Math.min(14, base * 0.034));
+          const badgePadX = Math.max(8,  Math.min(24, base * 0.055));
 
           el.style.setProperty('--fs-name',  `${fsName}px`);
           el.style.setProperty('--fs-set',   `${fsSet}px`);
@@ -140,7 +136,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       })
     : { observe: () => {} };
 
-  // --- helpers de ajuste ---
   function fitNames(el){
     let fs = parseFloat(getComputedStyle(el).getPropertyValue('--fs-name')) || 22;
     const min = 12; let tries = 0;
@@ -152,12 +147,14 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   }
 
   function fitBadges(el){
-    const badges = el.querySelectorAll('.badge');
-    if (!badges.length) return;
+    const row = el.querySelector('.row'); if (!row) return;
+    const left = row.querySelector('.left'); const right = row.querySelector('.right');
+    const court = row.querySelector('.badge.court'); const status = row.querySelector('.badge.status');
+    if (!left || !right) return;
     let fs = parseFloat(getComputedStyle(el).getPropertyValue('--fs-badge')) || 14;
     let tries = 0;
-    const over = () => [...badges].some(b => b.scrollWidth > b.clientWidth);
-    while (over() && fs > 10 && tries < 12){
+    const over = () => (court && court.scrollWidth > left.clientWidth) || (status && status.scrollWidth > right.clientWidth);
+    while (over() && fs > 10 && tries < 16){
       fs -= 1; el.style.setProperty('--fs-badge', `${fs}px`); tries++;
     }
   }
@@ -176,9 +173,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     const padY   = clamp(get('--pad-cell-y') * factor, 4, 20);
     const padX   = clamp(get('--pad-cell-x') * factor, 6, 24);
 
-    const fsBadge   = clamp(get('--fs-badge') * factor,   10, 28);
+    const fsBadge   = clamp(get('--fs-badge') * factor,   10, 30);
     const badgePadY = clamp(get('--badge-pad-y') * factor, 4, 16);
-    const badgePadX = clamp(get('--badge-pad-x') * factor, 6, 26);
+    const badgePadX = clamp(get('--badge-pad-x') * factor, 6, 28);
 
     el.style.setProperty('--fs-name', `${fsName}px`);
     el.style.setProperty('--fs-set',  `${fsSet}px`);
@@ -195,7 +192,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   }
 
   function fitTileVertically(el){
-    let safety = 10;
+    let safety = 12;
     const tryFit = () => {
       if (el.scrollHeight <= el.clientHeight || safety-- <= 0) return;
       shrinkVars(el, 0.93);
@@ -204,10 +201,21 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     requestAnimationFrame(tryFit);
   }
 
-  // ======== Render grid ========
+  function fitMainVertically(){
+    let tries = 10;
+    const tiles = [...grid.querySelectorAll('.tile')];
+    const need = () => grid.scrollHeight > grid.clientHeight;
+    const allShrink = () => tiles.forEach(t => shrinkVars(t, 0.95));
+    const loop = () => {
+      if (!need() || tries-- <= 0) return;
+      allShrink();
+      requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+  }
+
   function renderGrid(games, layout='auto'){
     grid.innerHTML = '';
-
     const n = games.length;
     const [cols, rows] = computeGrid(n || 1, layout);
     grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
@@ -244,6 +252,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
         try { fitBadges(el); } catch {}
         try { fitTileVertically(el); } catch {}
       });
+      fitMainVertically();
     };
     requestAnimationFrame(doFit);
     if (document.fonts?.ready){
@@ -251,7 +260,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     }
   }
 
-  // ======== Render de um jogo ========
   function tile(game){
     const cfg = parseFormat(game.format);
     const s   = game.score || {};
@@ -312,8 +320,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     }
 
     const courtName = game.court_name
-      ? `Campo ${escapeHtml(game.court_name)}`
-      : (game.court_id ? `Campo ${escapeHtml(String(game.court_id)).slice(0,8)}` : '');
+      ? `CAMPO ${escapeHtml(game.court_name)}`
+      : (game.court_id ? `CAMPO ${escapeHtml(String(game.court_id)).slice(0,8)}` : '');
 
     const anySetFinished = setConcluded.some(Boolean);
     const anySetFilled   = sets.some(ss => (Number(ss?.team1||0) + Number(ss?.team2||0)) > 0);
@@ -371,7 +379,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     return wrap;
   }
 
-  // ========== DATA ==========
   async function getScreenByKey(key){
     const { data, error } = await supabase
       .from('scoreboards')
@@ -410,7 +417,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     return games;
   }
 
-  // ===== Bootstrap
   let currentGames = [];
   let screen = null;
   try {
@@ -428,7 +434,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     touch('Erro inicial', false);
   }
 
-  // ===== Realtime
   let gamesChannel = null;
   let selChannel = null;
 
