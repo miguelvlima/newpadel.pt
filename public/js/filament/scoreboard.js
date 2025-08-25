@@ -218,9 +218,18 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       if (setConcluded[0] && (setConcluded[1] || (isRegularPlaying && currentIndex === 1) || (normalTB && currentIndex === 1))){
         cols.push(1); titles.push('2º Set');
       }
-      if (setConcluded[2]){
-        cols.push(2); titles.push(cfg.isSuper ? 'Super Tie-break' : '3º Set');
-      }
+      // depois:
+        if (!cfg.isSuper) {
+        // 3º set normal: mostra se concluído OU a decorrer (inclui TB normal a 6–6)
+        if (setConcluded[2] || (isRegularPlaying && currentIndex === 2) || (normalTB && currentIndex === 2)) {
+            cols.push(2); titles.push('3º Set');
+        }
+        } else {
+        // Super TB: só mostra coluna quando estiver concluído (durante STB fica só "AGORA")
+        if (setConcluded[2]) {
+            cols.push(2); titles.push('Super Tie-break');
+        }
+        }
     }
     const nowTitle = superTB ? 'Super Tie-break' : (normalTB ? 'Tie-break' : 'Jogo');
     const showNow  = !matchOver;
@@ -400,25 +409,27 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     if (nowCells[0]) nowCells[0].textContent = nowTop;
     if (nowCells[1]) nowCells[1].textContent = nowBot;
 
-    // set cells (ordem: para cada coluna visível -> topo, baixo)
+    // set cells (ordem: topo todos os sets, depois baixo todos os sets)
     const setCells = el.querySelectorAll('td.set .cell');
     function setCellVal(i, team){
-      if (!cfg.isProset && normalTB && i === currentIndex) return '6';
-      if (!cfg.isProset && isRegularPlaying && i === currentIndex){
+    if (!cfg.isProset && normalTB && i === currentIndex) return '6';
+    if (!cfg.isProset && isRegularPlaying && i === currentIndex){
         return String(team === 1 ? g1 : g2);
-      }
-      const ss = sets[i];
-      if (!ss || !isSetConcluded(ss, cfg, i)) return '';
-      return String(team === 1 ? (ss.team1 ?? '') : (ss.team2 ?? ''));
     }
-    for (let c=0; c<meta.cols.length; c++){
-      const i = meta.cols[c];
-      const topIdx = c*2, botIdx = c*2 + 1;
-      const topEl = setCells[topIdx];
-      const botEl = setCells[botIdx];
-      if (topEl) topEl.textContent = setCellVal(i,1);
-      if (botEl) botEl.textContent = setCellVal(i,2);
+    const ss = sets[i];
+    if (!ss || !isSetConcluded(ss, cfg, i)) return '';
+    return String(team === 1 ? (ss.team1 ?? '') : (ss.team2 ?? ''));
     }
+
+    const n = meta.cols.length; // nº de colunas visíveis de sets
+    for (let c = 0; c < n; c++) {
+    const i = meta.cols[c];
+    const topEl = setCells[c];       // linha de cima, coluna c
+    const botEl = setCells[n + c];   // linha de baixo, coluna c
+    if (topEl) topEl.textContent = setCellVal(i, 1);
+    if (botEl) botEl.textContent = setCellVal(i, 2);
+    }
+
 
     return el;
   }
