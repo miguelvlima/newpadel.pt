@@ -10,40 +10,37 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Scoreboard</title>
+
   <!-- Google Fonts: Bebas Neue -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+
   <style>
-    /* Paleta + tamanhos base (JS ajusta via ResizeObserver) */
     :root{
       --bg:#000; --fg:#fff; --muted:#b7b7b7;
       --tile:#0b0b0b; --tile-grad:#141414;
       --set-bg:rgba(255,255,255,.08); --set-br:rgba(255,255,255,.16);
       --live:#ff4d4d; --now-fg:#e7ffee;
 
-      --fs-name: 22px;  /* nomes */
-      --fs-set:  26px;  /* números dos sets */
-      --fs-now:  36px;  /* “AGORA” */
-      --fs-head: 12px;  /* cabeçalhos */
-      --fs-badge: 16px; /* novo: tamanho da badge Campo */
-        --badge-pad-y: 6px;      /* padding vertical da badge */
-        --badge-pad-x: 12px;     /* padding horizontal da badge */
-        --badge-radius: 999px;   /* raio (pill) */
-        --names-pad-l: var(--pad-cell-x);    /* alinhamento horizontal com os nomes */
-      --gap-v: 10px;          /* espaço vertical entre as 2 linhas */
-      --pad-cell-y: 10px;     /* padding vertical dentro das células */
-      --pad-cell-x: 12px;     /* padding horizontal dentro das células */
+      /* tamanhos base (ajustados via JS/ResizeObserver) */
+      --fs-name: 22px;  --fs-set: 26px;  --fs-now: 36px;  --fs-head: 12px;
+      --fs-badge: 14px;
+
+      /* espaçamentos controláveis (auto-fit vertical) */
+      --gap-v: 10px;
+      --pad-cell-y: 10px;
+      --pad-cell-x: 12px;
+
+      /* badge controlável */
+      --badge-pad-y: 6px;
+      --badge-pad-x: 12px;
+      --badge-radius: 999px;
+      --names-pad-l: var(--pad-cell-x);
     }
 
     *{box-sizing:border-box}
-
-    /* altura real do viewport (mobile-safe) + sem scroll da página */
-    html,body{
-      height: calc(var(--vh, 1vh) * 100);
-      overflow: hidden;
-    }
-
+    html,body{ height: 100svh; overflow:hidden; }
     body{
       margin:0; background:var(--bg); color:var(--fg);
       -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
@@ -54,102 +51,59 @@
     }
 
     header, footer { padding:12px 16px; }
-    header{
-      display:flex; align-items:center; justify-content:space-between;
-      border-bottom:1px solid rgba(255,255,255,.12)
-    }
-    footer{border-top:1px solid rgba(255,255,255,.12); text-align:center}
+    header{ display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,.12) }
+    footer{ border-top:1px solid rgba(255,255,255,.12); text-align:center }
     .muted{color:var(--muted)}
-    .status-ok{color:#5ee87b}
-    .status-bad{color:#ff8a8a}
-    button{
-      background:rgba(255,255,255,.08); color:#fff; border:0; border-radius:14px;
-      padding:8px 12px; cursor:pointer;
-      font-family:inherit;
-    }
+    .status-ok{color:#5ee87b} .status-bad{color:#ff8a8a}
+    button{ background:rgba(255,255,255,.08); color:#fff; border:0; border-radius:14px; padding:8px 12px; cursor:pointer; font-family:inherit }
     button:hover{background:rgba(255,255,255,.16)}
 
-    /* conteúdo ocupa o espaço entre header e footer, SEM rebentar */
     main{
-      flex: 1 1 auto;
-      min-height: 0;
+      flex:1 1 auto; min-height:0;
       padding:16px; display:grid; gap:16px;
-      grid-template-columns:repeat(2,1fr);
-      grid-template-rows:repeat(2,1fr);
-      place-items:stretch;
-      overflow:hidden;
+      grid-template-columns:repeat(2,1fr); grid-template-rows:repeat(2,1fr);
+      place-items:stretch; overflow:hidden;
     }
 
-    /* fallback/upgrade para navegadores com 100svh */
-    @supports (height: 100svh){
-      html,body{ height: 100svh; }
-    }
-
-    /* tile escuro */
     .tile{
       height:100%;
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.10);
+      border-radius:14px; border:1px solid rgba(255,255,255,.10);
       background:linear-gradient(135deg,var(--tile),var(--tile-grad));
       padding:12px; display:flex; flex-direction:column;
     }
 
-    /* topo do tile */
-    .row{display:flex;align-items:center;justify-content:space-between}
+    .row{ display:flex; align-items:center; justify-content:space-between }
+    .row .left, .row .right{ display:flex; align-items:center }
+
     .badge{
-    display:inline-flex; align-items:center; justify-content:center;
-    font-size: var(--fs-badge);
-    letter-spacing:.12em;
-    padding: var(--badge-pad-y) var(--badge-pad-x);
-    border-radius: var(--badge-radius);
-    border:1px solid rgba(255,255,255,.18);
-    background:rgba(255,255,255,.06);
-    line-height:1;
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    max-width: calc(50% - var(--names-pad-l)); /* cresce até ~metade do tile */
+      display:inline-flex; align-items:center; justify-content:center;
+      font-size: var(--fs-badge);
+      letter-spacing:.12em;
+      padding: var(--badge-pad-y) var(--badge-pad-x);
+      border-radius: var(--badge-radius);
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.06);
+      line-height:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      max-width: calc(50% - var(--names-pad-l));
     }
     .row .badge.court{ margin-left: var(--names-pad-l); }
     .row .badge.status{ border-color: rgba(255,255,255,.22); }
 
-
-
-
-    .pulse{ animation:pulse 1s infinite; color:var(--live); font-weight:800; }
+    .pulse{ animation:pulse 1s infinite; color:var(--live); font-weight:800 }
     @keyframes pulse{0%{opacity:1}50%{opacity:.55}100%{opacity:1}}
 
-    /* tabela estilo TV (sem linhas, com gap entre as duas equipas) */
-    .scoretable{
-      width:100%; table-layout:fixed;
-      border-collapse:separate; order-spacing: 0 var(--gap-v);
-      margin-top:8px;
-    }
-    .scoretable thead th{
-      font-size:var(--fs-head); letter-spacing:.08em;
-      color:var(--muted); font-weight:700; text-align:center; padding-bottom:4px;
-    }
+    .scoretable{ width:100%; table-layout:fixed; border-collapse:separate; border-spacing:0 var(--gap-v); margin-top:8px; }
+    .scoretable thead th{ font-size:var(--fs-head); letter-spacing:.08em; color:var(--muted); font-weight:700; text-align:center; padding-bottom:4px; }
     .scoretable thead th.names{ text-align:left; }
+    .scoretable th, .scoretable td{ border-bottom:0; padding:8px 10px; vertical-align:middle; background-clip:padding-box }
+    .scoretable td.names{ font-size:var(--fs-name); line-height:1.07; padding-left: var(--names-pad-l); }
+    .scoretable td.names .line{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
 
-    .scoretable th, .scoretable td{
-      border-bottom:0; padding:8px 10px; vertical-align:middle;
-      background-clip:padding-box;
-    }
-
-    .scoretable td.names{
-        font-size: var(--fs-name);
-        line-height:1.07;
-        padding-left: var(--names-pad-l);    /* <— alinha referência */
-    }
-
-    .row{ display:flex; align-items:center; justify-content:space-between; }
-    .row .left, .row .right{ display:flex; align-items:center; }
-    .scoretable td.names .line{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-
-    /* centragem + caixas arredondadas nas células de sets/AGORA */
     .scoretable td.set, .scoretable td.now{ padding:0 !important; }
 
     .scoretable td.set > .cell{
       display:flex; align-items:center; justify-content:center;
-      padding: var(--pad-cell-y) var(--pad-cell-x); min-height:2.4em;
+      padding:var(--pad-cell-y) var(--pad-cell-x); min-height:2.4em;
       background:var(--set-bg); border:1px solid var(--set-br); border-radius:12px;
       font-weight:900; font-size:var(--fs-set); line-height:1; color:#fff;
       font-variant-numeric: tabular-nums;
@@ -157,7 +111,7 @@
 
     .scoretable td.now > .cell-now{
       display:flex; align-items:center; justify-content:center;
-      padding: var(--pad-cell-y) var(--pad-cell-x); min-height:2.6em;
+      padding:var(--pad-cell-y) var(--pad-cell-x); min-height:2.6em;
       color:var(--now-fg);
       background:linear-gradient(180deg, rgba(0,255,163,.18), rgba(0,180,120,.14));
       border:1px solid rgba(0,255,163,.45); border-radius:12px;
@@ -166,23 +120,15 @@
       font-variant-numeric: tabular-nums;
     }
 
-    /* placeholder e cursores */
     .placeholder{display:grid;place-items:center;color:#9b9b9b;font-size:18px}
     .hide-cursor *{cursor:none !important}
 
-    /* responsivo */
     @media (max-width: 900px){
       header,footer{padding:10px 12px}
       main{gap:12px; padding:12px}
       .tile{padding:10px}
       .scoretable th, .scoretable td{ padding:6px 8px; }
     }
-
-    /* overrides anti-reset */
-    :root { color-scheme: dark; }
-    html, body { background:#000 !important; color:#fff !important; }
-    main { background:transparent !important; }
-    .tile { background:linear-gradient(135deg,#0b0b0b,#141414) !important; border-color:rgba(255,255,255,.10) !important; }
   </style>
 </head>
 <body>
@@ -203,6 +149,6 @@
     <div class="muted">© New Padel Solutions 2025</div>
   </footer>
 
-  <script type="module" src="/js/filament/scoreboard.js?v=27"></script>
+  <script type="module" src="/js/filament/scoreboard.js?v=33"></script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 (async () => {
-  // Altura real do viewport (corrige barras do browser em mobile)
+  // Altura real do viewport (mobile)
   const setVH = () => {
     document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
   };
@@ -30,7 +30,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   });
 
   function fmtTime(d){ return d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
-  function escapeHtml(s=''){return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+  function escapeHtml(s=''){return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
   function touch(text, ok){ if (statusEl) statusEl.innerHTML = `<span class="${ok?'status-ok':'status-bad'}">●</span> ${text} • ${fmtTime(new Date())}`; }
 
   if (!/^https:\/\/.+\.supabase\.co/i.test(SUPABASE_URL)) {
@@ -105,23 +105,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     }
   }
 
-  function fitBadge(el){
-    const badgeCourt = el.querySelector('.badge.court');
-    const badgeStatus = el.querySelector('.badge.status');
-    [badgeCourt, badgeStatus].forEach(badge => {
-        if (!badge) return;
-        let fs = parseFloat(getComputedStyle(el).getPropertyValue('--fs-badge')) || 14;
-        let tries = 0;
-        while (badge.scrollWidth > badge.clientWidth && fs > 10 && tries < 10){
-        fs -= 1;
-        el.style.setProperty('--fs-badge', `${fs}px`);
-        tries++;
-        }
-    });
-    }
-
-
-  // === dimensionamento automático por tile (com fallback seguro) ===
+  // === dimensionamento automático por tile ===
   const tileSizer = (typeof ResizeObserver !== 'undefined')
     ? new ResizeObserver((entries) => {
         for (const entry of entries) {
@@ -130,72 +114,97 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           const w = rect?.width || 0, h = rect?.height || 0;
           const base = Math.max(0, Math.min(w, h));
 
-          const fsName = Math.max(16, Math.min(50, base * 0.10)); // nomes
-          const fsSet  = Math.max(18, Math.min(62, base * 0.105)); // sets
-          const fsNow  = Math.max(26, Math.min(86, base * 0.15));  // AGORA
-          const fsHead = Math.max(14, Math.min(18, fsSet * 0.45)); // cabeçalhos
-          const fsBadge = Math.max(12, Math.min(22, base * 0.05)); // ajuste a gosto
+          const fsName = Math.max(16, Math.min(50, base * 0.10));
+          const fsSet  = Math.max(18, Math.min(62, base * 0.105));
+          const fsNow  = Math.max(26, Math.min(86, base * 0.15));
+          const fsHead = Math.max(14, Math.min(18, fsSet * 0.45));
 
+          const fsBadge   = Math.max(12, Math.min(24, base * 0.06));
+          const badgePadY = Math.max(4,  Math.min(14, base * 0.032));
+          const badgePadX = Math.max(8,  Math.min(22, base * 0.05));
+
+          el.style.setProperty('--fs-name',  `${fsName}px`);
+          el.style.setProperty('--fs-set',   `${fsSet}px`);
+          el.style.setProperty('--fs-now',   `${fsNow}px`);
+          el.style.setProperty('--fs-head',  `${fsHead}px`);
           el.style.setProperty('--fs-badge', `${fsBadge}px`);
-          el.style.setProperty('--fs-name', `${fsName}px`);
-          el.style.setProperty('--fs-set',  `${fsSet}px`);
-          el.style.setProperty('--fs-now',  `${fsNow}px`);
-          el.style.setProperty('--fs-head', `${fsHead}px`);
+          el.style.setProperty('--badge-pad-y', `${badgePadY}px`);
+          el.style.setProperty('--badge-pad-x', `${badgePadX}px`);
 
-          requestAnimationFrame(() => fitNamesAndBadge(el));
-          requestAnimationFrame(() => fitTileVertically(el));
-          requestAnimationFrame(() => fitBadge(el));
-
+          requestAnimationFrame(() => {
+            fitNames(el);
+            fitBadges(el);
+            fitTileVertically(el);
+          });
         }
       })
     : { observe: () => {} };
 
-// --- shrink progressivo por tile (fontes + gaps + paddings) ---
-    function shrinkVars(el, factor = 0.93){
-        const cs = getComputedStyle(el);
-        const get = name => parseFloat(cs.getPropertyValue(name)) || 0;
-        const clamp = (v,min,max) => Math.max(min, Math.min(max, v));
-
-        const fsName = clamp(get('--fs-name') * factor, 12, 80);
-        const fsSet  = clamp(get('--fs-set')  * factor, 14, 90);
-        const fsNow  = clamp(get('--fs-now')  * factor, 18, 110);
-        const fsHead = clamp(get('--fs-head') * factor, 10, 24);
-        const fsBadge = Math.max(12, Math.min(24, base * 0.06));
-        const badgePadY = Math.max(4, Math.min(14, base * 0.032));
-        const badgePadX = Math.max(8, Math.min(22, base * 0.05));
-        const badgeRadius = Math.max(12, Math.min(22, base * 0.12));
-
-        const gapV   = clamp(parseFloat(cs.getPropertyValue('--gap-v'))     * factor, 4, 20);
-        const padY   = clamp(parseFloat(cs.getPropertyValue('--pad-cell-y'))* factor, 4, 20);
-        const padX   = clamp(parseFloat(cs.getPropertyValue('--pad-cell-x'))* factor, 6, 24);
-
-        el.style.setProperty('--fs-name', `${fsName}px`);
-        el.style.setProperty('--fs-set',  `${fsSet}px`);
-        el.style.setProperty('--fs-now',  `${fsNow}px`);
-        el.style.setProperty('--fs-head', `${fsHead}px`);
-        el.style.setProperty('--fs-badge', `${fsBadge}px`);
-        el.style.setProperty('--badge-pad-y', `${badgePadY}px`);
-        el.style.setProperty('--badge-pad-x', `${badgePadX}px`);
-        el.style.setProperty('--badge-radius', `${badgeRadius}px`);
-
-        el.style.setProperty('--gap-v', `${gapV}px`);
-        el.style.setProperty('--pad-cell-y', `${padY}px`);
-        el.style.setProperty('--pad-cell-x', `${padX}px`);
+  // --- helpers de ajuste ---
+  function fitNames(el){
+    let fs = parseFloat(getComputedStyle(el).getPropertyValue('--fs-name')) || 22;
+    const min = 12; let tries = 0;
+    const tooWide = () => [...el.querySelectorAll('td.names .line')]
+                        .some(d => d.scrollWidth > d.clientWidth);
+    while (tooWide() && fs > min && tries < 18){
+      fs -= 1; el.style.setProperty('--fs-name', `${fs}px`); tries++;
     }
+  }
 
-    function fitTileVertically(el){
-        // encolhe até caber dentro do tile (sem mexer no layout global)
-        let safety = 10;
-        // mede depois de pintar
-        const tryFit = () => {
-            if (el.scrollHeight <= el.clientHeight || safety-- <= 0) return;
-            shrinkVars(el, 0.93);
-            requestAnimationFrame(tryFit);
-        };
-        requestAnimationFrame(tryFit);
+  function fitBadges(el){
+    const badges = el.querySelectorAll('.badge');
+    if (!badges.length) return;
+    let fs = parseFloat(getComputedStyle(el).getPropertyValue('--fs-badge')) || 14;
+    let tries = 0;
+    const over = () => [...badges].some(b => b.scrollWidth > b.clientWidth);
+    while (over() && fs > 10 && tries < 12){
+      fs -= 1; el.style.setProperty('--fs-badge', `${fs}px`); tries++;
     }
+  }
 
+  function shrinkVars(el, factor = 0.93){
+    const cs = getComputedStyle(el);
+    const get = name => parseFloat(cs.getPropertyValue(name)) || 0;
+    const clamp = (v,min,max) => Math.max(min, Math.min(max, v));
 
+    const fsName = clamp(get('--fs-name') * factor, 12, 80);
+    const fsSet  = clamp(get('--fs-set')  * factor, 14, 90);
+    const fsNow  = clamp(get('--fs-now')  * factor, 18, 110);
+    const fsHead = clamp(get('--fs-head') * factor, 10, 24);
+
+    const gapV   = clamp(get('--gap-v') * factor,      4, 20);
+    const padY   = clamp(get('--pad-cell-y') * factor, 4, 20);
+    const padX   = clamp(get('--pad-cell-x') * factor, 6, 24);
+
+    const fsBadge   = clamp(get('--fs-badge') * factor,   10, 28);
+    const badgePadY = clamp(get('--badge-pad-y') * factor, 4, 16);
+    const badgePadX = clamp(get('--badge-pad-x') * factor, 6, 26);
+
+    el.style.setProperty('--fs-name', `${fsName}px`);
+    el.style.setProperty('--fs-set',  `${fsSet}px`);
+    el.style.setProperty('--fs-now',  `${fsNow}px`);
+    el.style.setProperty('--fs-head', `${fsHead}px`);
+
+    el.style.setProperty('--gap-v', `${gapV}px`);
+    el.style.setProperty('--pad-cell-y', `${padY}px`);
+    el.style.setProperty('--pad-cell-x', `${padX}px`);
+
+    el.style.setProperty('--fs-badge', `${fsBadge}px`);
+    el.style.setProperty('--badge-pad-y', `${badgePadY}px`);
+    el.style.setProperty('--badge-pad-x', `${badgePadX}px`);
+  }
+
+  function fitTileVertically(el){
+    let safety = 10;
+    const tryFit = () => {
+      if (el.scrollHeight <= el.clientHeight || safety-- <= 0) return;
+      shrinkVars(el, 0.93);
+      requestAnimationFrame(tryFit);
+    };
+    requestAnimationFrame(tryFit);
+  }
+
+  // ======== Render grid ========
   function renderGrid(games, layout='auto'){
     grid.innerHTML = '';
 
@@ -205,70 +214,42 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     grid.style.gridTemplateRows    = `repeat(${rows}, 1fr)`;
 
     if (!n){
-        const ph = document.createElement('div');
-        ph.className='tile placeholder';
-        ph.textContent = 'Sem jogos para mostrar. Configura no backoffice.';
-        grid.appendChild(ph);
-        try { tileSizer.observe(ph); } catch {}
-        return;
+      const ph = document.createElement('div');
+      ph.className='tile placeholder';
+      ph.textContent = 'Sem jogos para mostrar. Configura no backoffice.';
+      grid.appendChild(ph);
+      try { tileSizer.observe(ph); } catch {}
+      return;
     }
 
     const tiles = [];
-
     games.forEach(g => {
-        const el = tile(g);
-        grid.appendChild(el);
-        tiles.push(el);
-        try { tileSizer.observe(el); } catch {}
+      const el = tile(g);
+      grid.appendChild(el);
+      tiles.push(el);
+      try { tileSizer.observe(el); } catch {}
     });
 
-    // completa o grid com placeholders
     const target = cols * rows;
     for (let i=n; i<target; i++){
-        const ph=document.createElement('div');
-        ph.className='tile placeholder';
-        grid.appendChild(ph);
-        try { tileSizer.observe(ph); } catch {}
+      const ph=document.createElement('div');
+      ph.className='tile placeholder';
+      grid.appendChild(ph);
+      try { tileSizer.observe(ph); } catch {}
     }
 
-    // === PASSO 1: deixar renderizar e só depois fazer fit ===
     const doFit = () => {
-        tiles.forEach(el => {
-        try { fitNamesAndBadge(el); } catch {}
-        try { fitBadge(el); } catch {}
+      tiles.forEach(el => {
+        try { fitNames(el); } catch {}
+        try { fitBadges(el); } catch {}
         try { fitTileVertically(el); } catch {}
-        });
+      });
     };
     requestAnimationFrame(doFit);
-
-    // === PASSO 2: repetir quando a fonte web terminar de carregar ===
     if (document.fonts?.ready){
-        document.fonts.ready.then(() => requestAnimationFrame(doFit));
+      document.fonts.ready.then(() => requestAnimationFrame(doFit));
     }
-    }
-
-
-  function fitNamesAndBadge(el){
-    // encolhe --fs-name se alguma linha dos nomes fizer overflow
-    let fs = parseFloat(getComputedStyle(el).getPropertyValue('--fs-name')) || 22;
-    const min = 12; let tries = 0;
-    const tooWide = () => [...el.querySelectorAll('td.names .line')]
-                            .some(d => d.scrollWidth > d.clientWidth);
-    while (tooWide() && fs > min && tries < 18){
-        fs -= 1; el.style.setProperty('--fs-name', `${fs}px`); tries++;
-    }
-    // badge (campo)
-    const badge = el.querySelector('.badge');
-    if (badge){
-        let fb = parseFloat(getComputedStyle(el).getPropertyValue('--fs-badge')) || 14;
-        let btries = 0;
-        const bWide = () => badge.scrollWidth > badge.clientWidth;
-        while (bWide() && fb > 10 && btries < 10){
-        fb -= 1; el.style.setProperty('--fs-badge', `${fb}px`); btries++;
-        }
-    }
-    }
-
+  }
 
   // ======== Render de um jogo ========
   function tile(game){
@@ -277,67 +258,62 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     const sets = Array.isArray(s.sets) ? s.sets.slice(0,3) : [];
     const cur  = s.current || {};
 
-    // --- estado dos sets / match ---
     const setConcluded = [0,1,2].map(i => isSetConcluded(sets[i], cfg, i));
-    const currentIndex = setConcluded.filter(Boolean).length; // 0..2
+    const currentIndex = setConcluded.filter(Boolean).length;
     const [w1, w2] = countWonSets(sets, cfg);
     const matchOver = (w1 >= cfg.setsToWinMatch) || (w2 >= cfg.setsToWinMatch);
     const normalTB  = isNormalTBActive(cur, cfg);
     const superTB   = superTBActive(sets, cfg, matchOver);
 
-    // --- nomes ---
     const pair1a = escapeHtml(game.player1 || ''), pair1b = escapeHtml(game.player2 || '');
     const pair2a = escapeHtml(game.player3 || ''), pair2b = escapeHtml(game.player4 || '');
 
-    // --- coluna "AGORA" ---
     const g1 = Number(cur.games_team1||0), g2 = Number(cur.games_team2||0);
     const tb1= Number(cur.tb_team1||0),    tb2= Number(cur.tb_team2||0);
     const p1 = Number(cur.points_team1||0),p2 = Number(cur.points_team2||0);
     let nowTop='', nowBot='', nowTitle='Jogo';
     if (superTB){
-        const base1 = Number(sets?.[2]?.team1 || 0);
-        const base2 = Number(sets?.[2]?.team2 || 0);
-        nowTop = String(tb1 || base1);
-        nowBot = String(tb2 || base2);
-        nowTitle = 'Super Tie-break';
+      const base1 = Number(sets?.[2]?.team1 || 0);
+      const base2 = Number(sets?.[2]?.team2 || 0);
+      nowTop = String(tb1 || base1);
+      nowBot = String(tb2 || base2);
+      nowTitle = 'Super Tie-break';
     } else if (normalTB){
-        nowTop = String(tb1); nowBot = String(tb2); nowTitle = 'Tie-break';
+      nowTop = String(tb1); nowBot = String(tb2); nowTitle = 'Tie-break';
     } else {
-        nowTop = String(tennisPoint(p1, cfg.isGP));
-        nowBot = String(tennisPoint(p2, cfg.isGP));
+      nowTop = String(tennisPoint(p1, cfg.isGP));
+      nowBot = String(tennisPoint(p2, cfg.isGP));
     }
 
-    // --- que set mostrar ---
     const isRegularPlaying = !cfg.isProset && !normalTB && !superTB;
     const cols = []; const titles = [];
     if (cfg.isProset){
-        if (setConcluded[0]) { cols.push(0); titles.push('Proset'); }
+      if (setConcluded[0]) { cols.push(0); titles.push('Proset'); }
     } else {
-        if (setConcluded[0] || (isRegularPlaying && currentIndex === 0) || (normalTB && currentIndex === 0)){
+      if (setConcluded[0] || (isRegularPlaying && currentIndex === 0) || (normalTB && currentIndex === 0)){
         cols.push(0); titles.push('1º Set');
-        }
-        if (setConcluded[0] && (setConcluded[1] || (isRegularPlaying && currentIndex === 1) || (normalTB && currentIndex === 1))){
+      }
+      if (setConcluded[0] && (setConcluded[1] || (isRegularPlaying && currentIndex === 1) || (normalTB && currentIndex === 1))){
         cols.push(1); titles.push('2º Set');
-        }
-        if (setConcluded[2]){
+      }
+      if (setConcluded[2]){
         cols.push(2); titles.push(cfg.isSuper ? 'Super Tie-break' : '3º Set');
-        }
+      }
     }
 
     function setCellVal(i, team){
-        if (!cfg.isProset && normalTB && i === currentIndex) return '6'; // 6–6 no set do TB
-        if (!cfg.isProset && isRegularPlaying && i === currentIndex){
-        return String(team === 1 ? g1 : g2); // jogos atuais no set em curso
-        }
-        const ss = sets[i];
-        if (!ss || !isSetConcluded(ss, cfg, i)) return '';
-        return String(team === 1 ? (ss.team1 ?? '') : (ss.team2 ?? ''));
+      if (!cfg.isProset && normalTB && i === currentIndex) return '6';
+      if (!cfg.isProset && isRegularPlaying && i === currentIndex){
+        return String(team === 1 ? g1 : g2);
+      }
+      const ss = sets[i];
+      if (!ss || !isSetConcluded(ss, cfg, i)) return '';
+      return String(team === 1 ? (ss.team1 ?? '') : (ss.team2 ?? ''));
     }
 
-    // --- topo: Campo + Estado (definir *antes* de usar no HTML!) ---
     const courtName = game.court_name
-        ? `Campo ${escapeHtml(game.court_name)}`
-        : (game.court_id ? `Campo ${escapeHtml(String(game.court_id)).slice(0,8)}` : '');
+      ? `Campo ${escapeHtml(game.court_name)}`
+      : (game.court_id ? `Campo ${escapeHtml(String(game.court_id)).slice(0,8)}` : '');
 
     const anySetFinished = setConcluded.some(Boolean);
     const anySetFilled   = sets.some(ss => (Number(ss?.team1||0) + Number(ss?.team2||0)) > 0);
@@ -347,7 +323,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     const statusText  = matchOver ? 'TERMINADO' : (started ? 'AO VIVO' : 'PRÉ-JOGO');
     const statusInner = (started && !matchOver) ? '<span class="pulse">AO VIVO</span>' : statusText;
 
-    // --- HTML ---
     const wrap = document.createElement('div');
     wrap.className = 'tile';
 
@@ -360,44 +335,43 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     const nowBotTd  = matchOver ? '' : `<td class="now"><div class="cell-now">${nowBot}</div></td>`;
 
     wrap.innerHTML = `
-        <div class="row">
-            <div class="left">${courtName ? `<span class="badge court">${courtName}</span>` : ''}</div>
-            <div class="right"><span class="badge status">${statusInner}</span></div>
-        </div>
+      <div class="row">
+        <div class="left">${courtName ? `<span class="badge court">${courtName}</span>` : ''}</div>
+        <div class="right"><span class="badge status">${statusInner}</span></div>
+      </div>
 
-        <table class="scoretable" aria-label="Scoreboard do jogo">
+      <table class="scoretable" aria-label="Scoreboard do jogo">
         <thead>
-            <tr>
+          <tr>
             <th class="names"></th>
             ${headerSetTh}
             ${nowHeader}
-            </tr>
+          </tr>
         </thead>
         <tbody>
-            <tr>
+          <tr>
             <td class="names">
-                <div class="line">${pair1a}</div>
-                <div class="line">${pair1b}</div>
+              <div class="line">${pair1a}</div>
+              <div class="line">${pair1b}</div>
             </td>
             ${rowTopSets}
             ${nowTopTd}
-            </tr>
-            <tr>
+          </tr>
+          <tr>
             <td class="names">
-                <div class="line">${pair2a}</div>
-                <div class="line">${pair2b}</div>
+              <div class="line">${pair2a}</div>
+              <div class="line">${pair2b}</div>
             </td>
             ${rowBotSets}
             ${nowBotTd}
-            </tr>
+          </tr>
         </tbody>
-        </table>
+      </table>
     `;
     return wrap;
-    }
+  }
 
-
-  // ========== DATA: screen -> selections -> games (+courts) ==========
+  // ========== DATA ==========
   async function getScreenByKey(key){
     const { data, error } = await supabase
       .from('scoreboards')
@@ -454,7 +428,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     touch('Erro inicial', false);
   }
 
-  // ===== Realtime: reagir a mudanças de seleções e de jogos
+  // ===== Realtime
   let gamesChannel = null;
   let selChannel = null;
 
@@ -465,11 +439,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       .on('postgres_changes', { event: '*', schema: 'public', table: 'games', filter: `id=in.(${ids.join(',')})` }, async (payload) => {
         const row = payload.new;
         const idx = currentGames.findIndex(g => g.id === row.id);
-        if (idx >= 0) {
-          currentGames[idx] = { ...currentGames[idx], ...row };
-        } else {
-          currentGames = await getGames(ids);
-        }
+        if (idx >= 0) { currentGames[idx] = { ...currentGames[idx], ...row }; }
+        else { currentGames = await getGames(ids); }
         renderGrid(currentGames, screen?.layout || 'auto');
         touch('Atualizado', true);
       })
