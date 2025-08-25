@@ -97,23 +97,21 @@
     /* topo do tile */
     .row{display:flex;align-items:center;justify-content:space-between}
     .badge{
-        display:inline-flex; align-items:center; justify-content:center;
-        font-size: var(--fs-badge);
-        letter-spacing:.12em;
-        padding: var(--badge-pad-y) var(--badge-pad-x);
-        border-radius: var(--badge-radius);
-        border:1px solid rgba(255,255,255,.18);
-        background:rgba(255,255,255,.06);
-        line-height:1;
-        white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-        max-width: 48%;              /* cresce até metade; ajusta se precisares */
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size: var(--fs-badge);
+    letter-spacing:.12em;
+    padding: var(--badge-pad-y) var(--badge-pad-x);
+    border-radius: var(--badge-radius);
+    border:1px solid rgba(255,255,255,.18);
+    background:rgba(255,255,255,.06);
+    line-height:1;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    max-width: calc(50% - var(--names-pad-l)); /* cresce até ~metade do tile */
     }
-
-    /* alinhar a badge do CAMPO com o início dos nomes */
     .row .badge.court{ margin-left: var(--names-pad-l); }
-
-    /* mesma “pill” para o estado */
     .row .badge.status{ border-color: rgba(255,255,255,.22); }
+
+
 
 
     .pulse{ animation:pulse 1s infinite; color:var(--live); font-weight:800; }
@@ -141,6 +139,9 @@
         line-height:1.07;
         padding-left: var(--names-pad-l);    /* <— alinha referência */
     }
+
+    .row{ display:flex; align-items:center; justify-content:space-between; }
+    .row .left, .row .right{ display:flex; align-items:center; }
     .scoretable td.names .line{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
     /* centragem + caixas arredondadas nas células de sets/AGORA */

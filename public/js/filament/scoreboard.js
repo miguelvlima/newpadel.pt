@@ -198,36 +198,55 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
   function renderGrid(games, layout='auto'){
     grid.innerHTML = '';
+
     const n = games.length;
     const [cols, rows] = computeGrid(n || 1, layout);
     grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-    grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+    grid.style.gridTemplateRows    = `repeat(${rows}, 1fr)`;
 
     if (!n){
-      const ph = document.createElement('div'); ph.className='tile placeholder';
-      ph.innerHTML='Sem jogos para mostrar. Configura no backoffice.';
-      grid.appendChild(ph);
-      try { tileSizer.observe(ph); } catch {}
-      return;
+        const ph = document.createElement('div');
+        ph.className='tile placeholder';
+        ph.textContent = 'Sem jogos para mostrar. Configura no backoffice.';
+        grid.appendChild(ph);
+        try { tileSizer.observe(ph); } catch {}
+        return;
     }
+
+    const tiles = [];
 
     games.forEach(g => {
-      const el = tile(g);
-      grid.appendChild(el);
-
+        const el = tile(g);
+        grid.appendChild(el);
+        tiles.push(el);
         try { tileSizer.observe(el); } catch {}
-        fitNamesAndBadge(el);
-        fitTileVertically(el);
-        fitBadge(el);
-
     });
 
-    const target = cols*rows;
+    // completa o grid com placeholders
+    const target = cols * rows;
     for (let i=n; i<target; i++){
-      const ph=document.createElement('div'); ph.className='tile placeholder'; grid.appendChild(ph);
-      try { tileSizer.observe(ph); } catch {}
+        const ph=document.createElement('div');
+        ph.className='tile placeholder';
+        grid.appendChild(ph);
+        try { tileSizer.observe(ph); } catch {}
     }
-  }
+
+    // === PASSO 1: deixar renderizar e só depois fazer fit ===
+    const doFit = () => {
+        tiles.forEach(el => {
+        try { fitNamesAndBadge(el); } catch {}
+        try { fitBadge(el); } catch {}
+        try { fitTileVertically(el); } catch {}
+        });
+    };
+    requestAnimationFrame(doFit);
+
+    // === PASSO 2: repetir quando a fonte web terminar de carregar ===
+    if (document.fonts?.ready){
+        document.fonts.ready.then(() => requestAnimationFrame(doFit));
+    }
+    }
+
 
   function fitNamesAndBadge(el){
     // encolhe --fs-name se alguma linha dos nomes fizer overflow
@@ -342,8 +361,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
     wrap.innerHTML = `
         <div class="row">
-        <div>${courtName ? `<span class="badge court">${courtName}</span>` : ''}</div>
-        <div><span class="badge status">${statusInner}</span></div>
+            <div class="left">${courtName ? `<span class="badge court">${courtName}</span>` : ''}</div>
+            <div class="right"><span class="badge status">${statusInner}</span></div>
         </div>
 
         <table class="scoretable" aria-label="Scoreboard do jogo">
