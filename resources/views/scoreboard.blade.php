@@ -54,7 +54,7 @@
     header{ display:grid; grid-template-columns: 1fr auto auto; align-items:center; gap:12px; border-bottom:1px solid rgba(255,255,255,.12) }
     footer{ border-top:1px solid rgba(255,255,255,.12); text-align:center }
     .muted{color:var(--muted)} .status-ok{color:#5ee87b} .status-bad{color:#ff8a8a}
-    button{ background:rgba(255,255,255,.08); color:#fff; border:0; border-radius:14px; padding:8px 12px; cursor:pointer; font-family:inherit }
+    button{ background:rgba(255,255,255,.08); color:#fff; border:0; padding:8px 12px; cursor:pointer; font-family:inherit }
     button:hover{background:rgba(255,255,255,.16)}
 
     main{
@@ -66,7 +66,7 @@
 
     .tile{
       height:100%;
-      border-radius:14px; border:1px solid rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.10);
       background:linear-gradient(135deg,var(--tile),var(--tile-grad));
       padding:var(--tile-pad); display:flex; flex-direction:column; min-height:0; overflow:hidden;
     }
@@ -75,7 +75,7 @@
     .row .left{ min-width:0; overflow:hidden; } .row .right{ justify-self:end; }
 
     .badge{ display:inline-flex; align-items:center; justify-content:center; font-size: var(--fs-badge);
-      letter-spacing:.08em; padding: var(--badge-pad-y) var(--badge-pad-x); border-radius: var(--badge-radius);
+      letter-spacing:.08em; padding: var(--badge-pad-y) var(--badge-pad-x);
       border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.06);
       line-height:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 100%;
     }
@@ -99,7 +99,7 @@
       display:flex; align-items:center; justify-content:center;
       padding:var(--pad-cell-y) var(--pad-cell-x); min-height:2.6em;
       min-width: var(--set-minw);
-      background:var(--set-bg); border:1px solid var(--set-br); border-radius:12px;
+      background:var(--set-bg); border:1px solid var(--set-br);
       font-weight:900; font-size:var(--fs-set); line-height:1; color:#fff;
       font-variant-numeric: tabular-nums;
     }
@@ -185,6 +185,6 @@
     <div class="muted">© New Padel Solutions 2025</div>
   </footer>
 
-  <script type="module" src="/js/filament/scoreboard.js?v=59"></script>
+  <script type="module" src="/js/filament/scoreboard.js?v=60"></script>
 </body>
 </html>
