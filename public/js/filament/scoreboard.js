@@ -30,15 +30,18 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     document.title = t;
   }
 
-  document.getElementById('fs')?.addEventListener('click', () => {
+    const fsBtn = document.getElementById('fs');
+
+    // clicar = entra/sai de fullscreen
+    fsBtn?.addEventListener('click', () => {
     if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
     else document.exitFullscreen?.();
-  });
+    });
 
-  // esconder/mostrar o botão consoante o estado
-const syncFSBtn = () => { if (fsBtn) fsBtn.style.display = document.fullscreenElement ? 'none' : ''; };
-document.addEventListener('fullscreenchange', syncFSBtn);
-syncFSBtn(); // estado inicial
+    // esconder/mostrar o botão consoante o estado
+    const syncFSBtn = () => { if (fsBtn) fsBtn.style.display = document.fullscreenElement ? 'none' : ''; };
+    document.addEventListener('fullscreenchange', syncFSBtn);
+    syncFSBtn(); // estado inicial
 
   const fmtTime = d => d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   const escapeHtml = (s='') => s.replace(/[&<>\"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
