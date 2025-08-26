@@ -21,7 +21,7 @@
       --bg:#000; --fg:#fff; --muted:#b7b7b7;
       --tile:#0b0b0b; --tile-grad:#141414;
       --set-bg:rgba(255,255,255,.08); --set-br:rgba(255,255,255,.16);
-      --live:#ff4d4d; --now-fg:#9fce64;
+      --live:#9fce64; --now-fg:#9fce64;
       --app-h: 100vh;
       --now-glow: 159,206,100;   /* r,g,b */
 
@@ -185,6 +185,6 @@
     <div class="muted">© New Padel Solutions 2025</div>
   </footer>
 
-  <script type="module" src="/js/filament/scoreboard.js?v=60"></script>
+  <script type="module" src="/js/filament/scoreboard.js?v=61"></script>
 </body>
 </html>
