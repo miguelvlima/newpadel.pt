@@ -70,7 +70,32 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
   const fmtTime = d => d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   const escapeHtml = (s='') => s.replace(/[&<>\"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  const touch = (text, ok) => { if (statusEl) statusEl.innerHTML = `<span class="${ok?'status-ok':'status-bad'}">●</span> ${text} • ${fmtTime(new Date())}`; };
+
+
+    let clockTimer = null;
+    function startClock(){
+    // evita timers a duplicar
+    if (clockTimer) clearInterval(clockTimer);
+    const tick = () => {
+        const el = document.getElementById('status-clock');
+        if (el) el.textContent = new Date().toLocaleTimeString(undefined, {
+        hour: '2-digit', minute: '2-digit', second: '2-digit', /* hour12: false */
+        });
+    };
+    tick();
+    clockTimer = setInterval(tick, 1000);
+    }
+
+    // substitui a tua função touch por esta
+    const touch = (text, ok) => {
+    if (!statusEl) return;
+    statusEl.innerHTML = `
+        <span class="${ok ? 'status-ok' : 'status-bad'}">●</span>
+        ${text} • <span id="status-clock"></span>
+    `;
+    startClock();
+    };
+
 
   if (!/^https:\/\/.+\.supabase\.co/i.test(SUPABASE_URL)) {
     console.error('SUPABASE_URL inválida/vazia:', SUPABASE_URL);

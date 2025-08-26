@@ -34,7 +34,7 @@
       --names-pad-l: var(--pad-cell-x);
       --grid-pad: 16px; --grid-gap: 16px; --tile-pad: 12px;
 
-      --header-logo-h: 28px;
+      --header-logo-h: 48px;
     }
 
     *{box-sizing:border-box}
@@ -145,6 +145,8 @@
         letter-spacing:.14em;
         }
 
+    #status { font-variant-numeric: tabular-nums; }
+
     @media (max-width: 900px){
       header,footer{padding:10px 12px}
       main{gap:12px; padding:12px}
@@ -181,6 +183,6 @@
     <div class="muted">© New Padel Solutions 2025</div>
   </footer>
 
-  <script type="module" src="/js/filament/scoreboard.js?v=56"></script>
+  <script type="module" src="/js/filament/scoreboard.js?v=58"></script>
 </body>
 </html>
