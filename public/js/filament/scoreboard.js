@@ -16,6 +16,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   const grid = document.getElementById('grid');
   const statusEl = document.getElementById('status');
   const titleEl = document.getElementById('screen-title');
+  const logoEl   = document.getElementById('screen-logo');
 
   const SUPABASE_URL  = grid?.dataset?.sbUrl || '';
   const SUPABASE_ANON = grid?.dataset?.sbAnon || '';
@@ -24,11 +25,35 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   const setVar = (el, name, val) => el.style.setProperty(name, val);
   const getVar = (el, name) => parseFloat(getComputedStyle(el).getPropertyValue(name)) || 0;
 
-  function setScreenTitle(txt){
-    const t = (txt && String(txt).trim()) || SCREEN_KEY || 'Scoreboard';
-    if (titleEl) titleEl.textContent = t;
-    document.title = t;
-  }
+    function setBrand(screenLike){
+        const title = (screenLike?.title || SCREEN_KEY || 'Scoreboard').toString();
+        const logo  = (screenLike?.logo_url || '').trim();
+
+        // título do documento
+        document.title = title;
+
+        // preferir logo; se faltar ou falhar, mostrar título
+        const showLogo = !!logo;
+        if (logoEl){
+            if (showLogo){
+            logoEl.src = logo;
+            logoEl.style.display = '';
+            // se a imagem falhar, voltar ao título
+            logoEl.onerror = () => {
+                logoEl.style.display = 'none';
+                if (titleEl){ titleEl.textContent = title; titleEl.style.display = ''; }
+            };
+            }else{
+            logoEl.removeAttribute('src');
+            logoEl.style.display = 'none';
+            }
+        }
+        if (titleEl){
+            titleEl.textContent = title;
+            titleEl.style.display = showLogo ? 'none' : '';
+        }
+    }
+
 
     const fsBtn = document.getElementById('fs');
 
@@ -505,7 +530,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   async function getScreenByKey(key){
     const { data, error } = await supabase
       .from('scoreboards')
-      .select('id, key, title, layout, kiosk, positions')
+      .select('id, key, title, layout, kiosk, positions, logo_url')
       .eq('key', key)
       .maybeSingle();
     if (error) throw error;
@@ -608,13 +633,12 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
   try {
     screen = await getScreenByKey(SCREEN_KEY);
-    setScreenTitle(screen?.title);
+    setBrand(screen);
     if (screen?.kiosk) document.body.classList.add('hide-cursor');
     await reloadAll();
     touch('Ligado', true);
   } catch (e) {
     console.error('Erro a carregar screen/selections:', e);
-    setScreenTitle(SCREEN_KEY);
     touch('Erro inicial', false);
   }
 
@@ -660,17 +684,42 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
   if (screen?.id){
     supabase.channel('screen-meta-live')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'scoreboards', filter: `id=eq.${screen.id}` },
-        async (payload) => {
-          const row = payload.new || payload.old;
-          if (row?.title) setScreenTitle(row.title);
-          if (row && typeof row.positions !== 'undefined') {
+        .on('postgres_changes', {
+            event: '*',
+            schema: 'public',
+            table: 'scoreboards',
+            filter: `id=eq.${screen.id}`,
+        }, async (payload) => {
+            const row = payload.new ?? payload.old ?? {};
+
+            // Atualizar header (logo/título) se vierem campos novos
+            if (Object.prototype.hasOwnProperty.call(row, 'title')
+                || Object.prototype.hasOwnProperty.call(row, 'logo_url')) {
+
+            if (Object.prototype.hasOwnProperty.call(row, 'title')) {
+                screen.title = row.title;          // guardar no estado
+            }
+            if (Object.prototype.hasOwnProperty.call(row, 'logo_url')) {
+                screen.logo_url = row.logo_url;    // guardar no estado
+            }
+            setBrand(screen);                     // aplica logo/título no header
+            }
+
+            // Reagir a alteração do nº de posições (re-render slots)
+            if (Object.prototype.hasOwnProperty.call(row, 'positions')
+                && row.positions !== undefined
+                && row.positions !== screen.positions) {
             screen.positions = row.positions;
             await reloadAll();
-          }
-          if (row?.kiosk) document.body.classList.add('hide-cursor');
+            }
+
+            // Modo quiosque (ocultar cursor)
+            if (row?.kiosk) {
+            document.body.classList.add('hide-cursor');
+            }
         })
-      .subscribe();
+        .subscribe();
+
     setupSelectionSubscription(screen.id);
     const pack = await buildSlots(screen);
     currentIds = pack.ids;

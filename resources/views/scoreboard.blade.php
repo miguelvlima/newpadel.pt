@@ -33,6 +33,8 @@
       --badge-pad-y: 6px; --badge-pad-x: 12px; --badge-radius: 999px;
       --names-pad-l: var(--pad-cell-x);
       --grid-pad: 16px; --grid-gap: 16px; --tile-pad: 12px;
+
+      --header-logo-h: 28px;
     }
 
     *{box-sizing:border-box}
@@ -115,6 +117,34 @@
     .placeholder{display:grid;place-items:center;color:#9b9b9b;font-size:18px}
     .hide-cursor *{cursor:none !important}
 
+    .app-header{
+        display:grid;
+        grid-template-columns: 1fr auto 1fr; /* status à esquerda, logo ao centro, botão à direita */
+        align-items:center;
+        gap:12px;
+        padding:12px 16px;
+        border-bottom:1px solid rgba(255,255,255,.12);
+        }
+
+        .app-header .left { justify-self:start; min-width:0; }
+        .app-header .center { justify-self:center; text-align:center; min-width:0; }
+        .app-header .right { justify-self:end; }
+
+        #screen-logo{
+        max-height: var(--header-logo-h);
+        max-width: min(50vw, 320px);
+        object-fit: contain;
+        display:inline-block;            /* é mostrado/ocultado via JS */
+        vertical-align:middle;
+        }
+
+        #screen-title{
+        /* fallback quando não há logo */
+        display:inline-block;
+        font-size: 18px;
+        letter-spacing:.14em;
+        }
+
     @media (max-width: 900px){
       header,footer{padding:10px 12px}
       main{gap:12px; padding:12px}
@@ -124,11 +154,21 @@
   </style>
 </head>
 <body>
-  <header>
-    <strong id="screen-title">—</strong>
-    <div class="muted" id="status">—</div>
-    <div><button id="fs">Ecrã inteiro</button></div>
-  </header>
+    <header class="app-header">
+    <div class="left">
+        <div class="muted" id="status">—</div>
+    </div>
+
+    <div class="center">
+        <img id="screen-logo" alt="logo" style="display:none" />
+        <strong id="screen-title" style="display:none">—</strong>
+    </div>
+
+    <div class="right">
+        <button id="fs">Ecrã inteiro</button>
+    </div>
+    </header>
+
 
   <main id="grid"
         data-sb-url="{{ $sbUrl }}"
