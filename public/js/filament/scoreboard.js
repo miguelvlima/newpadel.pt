@@ -271,13 +271,57 @@ function fitSetFonts(el){
   setVar(el,'--fs-now', `${best}px`);
 }
 
+// Faz os números preencherem a célula sem ultrapassar (mesmo tamanho em todas)
+function fitNumbersToCells(el){
+  const cells = el.querySelectorAll('td.set .cell, td.now .cell-now');
+  if (!cells.length) return;
+
+  // probe para medir texto com a mesma fonte/peso
+  const probe = document.createElement('span');
+  probe.style.cssText = [
+    'position:absolute','visibility:hidden','white-space:nowrap',
+    'left:-9999px','top:-9999px','font-family:inherit','font-weight:900','line-height:1'
+  ].join(';');
+  document.body.appendChild(probe);
+
+  // usamos "88" como pior caso de largura/altura em dígitos
+  const SAMPLE = '88';
+  let best = Infinity;
+
+  cells.forEach(c => {
+    const boxW = c.clientWidth;
+    const boxH = c.clientHeight;
+    if (!boxW || !boxH) return;
+
+    // medir a relação px -> largura/altura do texto
+    probe.textContent = SAMPLE;
+    probe.style.fontSize = '100px';
+    const ratioW = probe.offsetWidth  / 100;   // largura por 1px de font
+    const ratioH = probe.offsetHeight / 100;   // altura  por 1px de font
+
+    // margem de 8% para respirar
+    const sizeByH = (boxH / ratioH) * 0.92;
+    const sizeByW = (boxW / ratioW) * 0.92;
+    const fitPx   = Math.floor(Math.min(sizeByH, sizeByW));
+
+    if (fitPx > 0 && fitPx < best) best = fitPx;
+  });
+
+  document.body.removeChild(probe);
+  if (!isFinite(best) || best <= 0) return;
+
+  const px = Math.max(12, Math.min(best, 999)); // sanidade
+  cells.forEach(c => { c.style.fontSize = px + 'px'; });
+}
+
+
 
   function calibrateTile(el){
-    fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el);
+    fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); fitNumbersToCells(el);
     if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); });
+      document.fonts.ready.then(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); fitNumbersToCells(el); });
     }
-    setTimeout(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); }, 120);
+    setTimeout(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); fitNumbersToCells(el); }, 120);
   }
 
   function shrinkVars(el, factor = 0.94){
@@ -592,6 +636,7 @@ function setCellVal(i, team){
     // ensure numbers fit after updates
     fitSetFonts(el);
     fitTileVertically(el);
+    fitNumbersToCells(el);
 
     return el;
   }
@@ -831,6 +876,7 @@ document.addEventListener('fullscreenchange', () => {
           fitSetFonts(rep);
           fitTableWidth?.(rep);      // se tens esta helper
           fitTileVertically(rep);
+          fitNumbersToCells(el);
         }
       });
     });
