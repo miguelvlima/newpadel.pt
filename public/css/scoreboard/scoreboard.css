@@ -6,9 +6,8 @@
   --app-h: 100vh;
   --now-glow: 159,206,100;   /* r,g,b */
 
-  --fs-name: 22px;  --fs-set: 26px;  --fs-now: 26px;  --fs-head: 12px;
+  --fs-name: 22px;  --fs-set: 26px;  --fs-head: 12px;
   --fs-badge: 14px;
-  --fs-cell: 26px;            /* baseline fixa da CÉLULA */
 
   --set-minw: 110px;
   --spacer-w: 18px;

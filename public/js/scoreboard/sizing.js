@@ -1,16 +1,22 @@
 // /public/js/scoreboard/sizing.js
 export function fitNames(tile){
-  const names = tile.querySelectorAll('td.names .line');
-  if (!names.length) return;
-  const root = tile; // escopo do tile
-  const getVar = (name) => parseFloat(getComputedStyle(root).getPropertyValue(name)) || 0;
+  const lines = tile.querySelectorAll('td.names .line');
+  if (!lines.length) return;
+
+  const getVar = (name) => parseFloat(getComputedStyle(tile).getPropertyValue(name)) || 0;
   let fs = getVar('--fs-name') || 22;
   const min = 16; let tries = 0;
-  const tooWide = () => [...names].some(d => d.scrollWidth > d.clientWidth);
-  while (tooWide() && fs > min && tries < 30){
-    fs -= 1; root.style.setProperty('--fs-name', `${fs}px`); tries++;
+
+  const tooWide = () => [...lines].some(l => l.scrollWidth > l.clientWidth);
+  const tooTall = () => tile.scrollHeight > tile.clientHeight;
+
+  while ((tooWide() || tooTall()) && fs > min && tries < 60){
+    fs -= 1;
+    tile.style.setProperty('--fs-name', `${fs}px`);
+    tries++;
   }
 }
+
 
 export function fitBadges(tile){
   const left = tile.querySelector('.row .left'), right = tile.querySelector('.row .right');
@@ -47,22 +53,22 @@ export function scaleNumbersToFit(root){
     const num = cell.querySelector('.num');
     if (!num) return;
 
-    // reset para medir "tamanho real"
     num.style.transform = 'scale(1)';
-    // medir caixa disponível
-    const w = cell.clientWidth;
-    const h = cell.clientHeight;
-    // medir conteúdo
+
+    const availW = Math.max(1, cell.clientWidth  - 2);
+    const availH = Math.max(1, cell.clientHeight - 2);
     const r = num.getBoundingClientRect();
-    const scaleW = w > 0 && r.width  > 0 ? (w / r.width)  : 1;
-    const scaleH = h > 0 && r.height > 0 ? (h / r.height) : 1;
-    // margem de segurança para não colar nas bordas
-    let s = 0.94 * Math.min(scaleW, scaleH);
-    // limites razoáveis
-    s = Math.max(0.60, Math.min(1.80, s));
+
+    const needW = r.width  > 0 ? (availW / r.width)  : 1;
+    const needH = r.height > 0 ? (availH / r.height) : 1;
+
+    let s = 0.96 * Math.min(needW, needH);
+    s = Math.max(0.60, Math.min(3.50, s));   // ← antes estava 1.80
+
     num.style.transform = `scale(${s})`;
   });
 }
+
 
 /* altura: encolhe margens/padding antes de reduzir fontes */
 export function fitTileVertically(tile){
@@ -96,25 +102,26 @@ const ro = new ResizeObserver((entries) => {
     const base = Math.max(0, Math.min(w, h));
     const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
 
-    const fsName  = clamp(base * 0.34, 28, 200);
-    const fsCell  = clamp(base * 0.42, 44, 280); // << baseline da célula
-    const fsHead  = clamp(fsCell * 0.55, 12, 36);
+    const fsName  = clamp(base * 0.20, 18, 120);
+    const fsSet   = clamp(base * 0.42, 36, 240);
+    const fsHead  = clamp(fsSet * 0.55, 12, 36);
     const fsBadge = clamp(base * 0.11, 12, 40);
 
     const gapV = clamp(base * 0.03, 8, 28);
     const padY = clamp(base * 0.045, 8, 26);
     const padX = clamp(base * 0.085, 10, 40);
-
-    const setMinW = clamp(w * 0.22, 120, 320);
+    const setMinW = clamp(w * 0.22, 110, 320);
 
     target.style.setProperty('--fs-name',  `${fsName}px`);
-    target.style.setProperty('--fs-cell',  `${fsCell}px`);   // << ESSENCIAL
+    target.style.setProperty('--fs-set',   `${fsSet}px`);
+    target.style.setProperty('--fs-now',   `${fsSet}px`);
     target.style.setProperty('--fs-head',  `${fsHead}px`);
     target.style.setProperty('--fs-badge', `${fsBadge}px`);
     target.style.setProperty('--gap-v',    `${gapV}px`);
     target.style.setProperty('--pad-cell-y', `${padY}px`);
     target.style.setProperty('--pad-cell-x', `${padX}px`);
     target.style.setProperty('--set-minw', `${setMinW}px`);
+
   }
 });
 
