@@ -1,6 +1,6 @@
-// /public/js/filament/scoreboard/ui.js
+// /public/js/scoreboard/ui.js
 import { parseFormat, isSetConcluded, countWonSets, tennisPoint, isNormalTBActive, superTBActive } from './rules.js';
-import { fitNames, fitBadges, fitTileVertically, scaleNumbers } from './sizing.js';
+import { fitNames, fitBadges, fitTileVertically, scaleNumbers, watchTile } from './sizing.js';
 
 let TILE_ELS = [];
 let CURRENT_SLOTS = [];
@@ -148,7 +148,21 @@ function buildTile(game){
   `;
 
   // ajustes finais
-  requestAnimationFrame(() => { fitNames(wrap); fitBadges(wrap); fitTileVertically(wrap); scaleNumbers(wrap); });
+  requestAnimationFrame(() => {
+    fitNames(wrap);
+    fitBadges(wrap);
+    fitTileVertically(wrap);
+    scaleNumbers(wrap);
+  });
+  // ajustes finais
+  requestAnimationFrame(() => {
+    watchTile(wrap);           // << observa tamanho do tile
+    fitNames(wrap);
+    fitBadges(wrap);
+    fitTileVertically(wrap);
+    scaleNumbers(wrap);
+  });
+
   return wrap;
 }
 
@@ -157,6 +171,7 @@ function updateTile(el, game){
   if (el.dataset.shapeKey !== meta.shapeKey){
     const rep = buildTile(game);
     el.replaceWith(rep);
+    watchTile(rep);
     return rep;
   }
 
@@ -255,6 +270,7 @@ export function buildOrUpdateGrid(grid, positions, slots, patch){
       const item = slots[i];
       const el = item ? buildTile(item) : emptyTile();
       grid.appendChild(el);
+      watchTile(rep);
       return el;
     });
     return;

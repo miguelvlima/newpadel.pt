@@ -109,9 +109,10 @@ main{
   display:flex; align-items:center; justify-content:center;
   padding: var(--pad-cell-y-tight) var(--pad-cell-x-tight);
 
-  font-size: var(--fs-cell);  /* célula estável */
+  /* baseline da célula: é dinâmica via JS (ResizeObserver) */
+  font-size: var(--fs-cell);
   line-height: 1;
-  min-height: 2.4em;
+  min-height: calc(var(--fs-cell) * 2.6);   /* <<< dá altura real à célula */
 
   min-width: var(--set-minw);
   background:var(--set-bg); border:1px solid var(--set-br);
@@ -119,17 +120,17 @@ main{
   font-variant-numeric: tabular-nums;
 
   overflow: hidden;
-  position: relative; /* para centrar o .num absolutizado */
+  position: relative;
 }
 
-/* === AGORA (mesma baseline fixa) === */
+/* === AGORA (mesma baseline) === */
 .scoretable td.now > .cell-now{
   display:flex; align-items:center; justify-content:center;
   padding: var(--pad-cell-y-tight) var(--pad-cell-x-tight);
 
   font-size: var(--fs-cell);
   line-height: 1;
-  min-height: 2.4em;
+  min-height: calc(var(--fs-cell) * 2.6);   /* <<< igual aos sets */
 
   min-width: var(--set-minw);
   color:var(--now-fg);
@@ -142,6 +143,7 @@ main{
   overflow: hidden;
   position: relative;
 }
+
 
 /* O NÚMERO escala; a célula fica quieta */
 .scoretable .cell .num,

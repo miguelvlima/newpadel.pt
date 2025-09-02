@@ -82,3 +82,37 @@ export function fitTileVertically(tile){
   };
   requestAnimationFrame(step);
 }
+
+// --- ResizeObserver que repõe as variáveis por TILE ---
+const ro = new ResizeObserver((entries) => {
+  for (const { target, contentRect } of entries) {
+    const w = contentRect.width || 0, h = contentRect.height || 0;
+    const base = Math.max(0, Math.min(w, h));
+    const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
+
+    const fsName  = clamp(base * 0.34, 28, 200);
+    const fsCell  = clamp(base * 0.42, 44, 280); // << baseline da célula
+    const fsHead  = clamp(fsCell * 0.55, 12, 36);
+    const fsBadge = clamp(base * 0.11, 12, 40);
+
+    const gapV = clamp(base * 0.03, 8, 28);
+    const padY = clamp(base * 0.045, 8, 26);
+    const padX = clamp(base * 0.085, 10, 40);
+
+    const setMinW = clamp(w * 0.22, 120, 320);
+
+    target.style.setProperty('--fs-name',  `${fsName}px`);
+    target.style.setProperty('--fs-cell',  `${fsCell}px`);   // << ESSENCIAL
+    target.style.setProperty('--fs-head',  `${fsHead}px`);
+    target.style.setProperty('--fs-badge', `${fsBadge}px`);
+    target.style.setProperty('--gap-v',    `${gapV}px`);
+    target.style.setProperty('--pad-cell-y', `${padY}px`);
+    target.style.setProperty('--pad-cell-x', `${padX}px`);
+    target.style.setProperty('--set-minw', `${setMinW}px`);
+  }
+});
+
+// expõe para o UI observar cada tile
+export function watchTile(tile){
+  try { ro.observe(tile); } catch {}
+}
