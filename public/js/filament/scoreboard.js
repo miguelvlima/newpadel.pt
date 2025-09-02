@@ -217,32 +217,59 @@ const setMinW = clamp(w * 0.22, 120, 320);   // ↑ largura mínima por coluna d
     }
   }
 
-    function fitSetFonts(el){
-    const cells = el.querySelectorAll('td.set .cell, td.now .cell-now');
-    if (!cells.length) return;
+    // === SUBSTITUIR a função existente por esta ===
+function fitSetFonts(el){
+  // Todas as células com números (sets + "AGORA")
+  const cells = el.querySelectorAll('td.set .cell, td.now .cell-now');
+  if (!cells.length) return;
 
-    // ⬇⬇ Se ainda não há layout (larguras 0), não mexer
-    const firstRect = cells[0].getBoundingClientRect();
-    if (firstRect.width === 0 || firstRect.height === 0) return;
+  // Garante que já há layout (evita correr com larguras 0)
+  const r0 = cells[0].getBoundingClientRect();
+  if (!r0.width || !r0.height) return;
 
-    let fs = getVar(el, '--fs-set') || 24;
-    let tries = 0;
-    const overflow = () => {
-        for (const c of cells){
-        const r = c.getBoundingClientRect();
-        if (r.width === 0 || r.height === 0) return false; // evita decisões com 0
-        if (c.scrollWidth > c.clientWidth + 0.5) return true;
-        if (c.scrollHeight > c.clientHeight + 0.5) return true;
-        }
-        return false;
-    };
-    while (overflow() && fs > 16 && tries < 40){
-        fs -= 1;
-        setVar(el, '--fs-set', `${fs}px`);
-        setVar(el, '--fs-now', `${fs}px`);
-        tries++;
+  // Helper: há overflow?
+  const overflows = () => {
+    for (const c of cells){
+      if (c.scrollWidth  > c.clientWidth  + 0.5) return true;
+      if (c.scrollHeight > c.clientHeight + 0.5) return true;
     }
+    return false;
+  };
+
+  // Seed: parte do valor atual (ou 24) e cresce
+  let seed = Math.max(getVar(el,'--fs-set') || 24, 24);
+  setVar(el,'--fs-set', `${seed}px`);
+  setVar(el,'--fs-now', `${seed}px`); // "AGORA" sempre igual aos sets
+
+  // 1) Crescimento exponencial até tocar no limite
+  let lo = 16;              // cabe
+  let hi = seed;            // candidato
+  const MAX = 640;          // teto de segurança
+  while (!overflows() && hi < MAX){
+    lo = hi;
+    hi = Math.min(MAX, Math.round(hi * 1.35)); // cresce 35%
+    setVar(el,'--fs-set', `${hi}px`);
+    setVar(el,'--fs-now', `${hi}px`);
+  }
+
+  // 2) Busca binária entre lo (cabe) e hi (ultrapassa)
+  let best = lo;
+  while (lo <= hi){
+    const mid = (lo + hi) >> 1;
+    setVar(el,'--fs-set', `${mid}px`);
+    setVar(el,'--fs-now', `${mid}px`);
+    if (overflows()){
+      hi = mid - 1;
+    } else {
+      best = mid;
+      lo = mid + 1;
     }
+  }
+
+  // 3) Aplica o melhor valor (no limite da célula)
+  setVar(el,'--fs-set', `${best}px`);
+  setVar(el,'--fs-now', `${best}px`);
+}
 
 
   function calibrateTile(el){

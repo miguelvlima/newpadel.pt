@@ -37,6 +37,9 @@
 
       --header-logo-h: 48px;
 
+      --pad-cell-y-tight: calc(var(--pad-cell-y) * .66);
+      --pad-cell-x-tight: calc(var(--pad-cell-x) * .80);
+
     }
 
     *{box-sizing:border-box}
@@ -97,7 +100,9 @@
 
     .scoretable td.set > .cell{
       display:flex; align-items:center; justify-content:center;
-      padding:var(--pad-cell-y) var(--pad-cell-x); min-height:2.6em;
+  padding: var(--pad-cell-y-tight) var(--pad-cell-x-tight);
+  line-height: 1;               /* já deves ter, mas ajuda a caber mais */
+  min-height: 2.4em;            /* opcional: baixa ligeiramente (era 2.6em) */
       min-width: var(--set-minw);
       background:var(--set-bg); border:1px solid var(--set-br);
       font-weight:900; font-size:var(--fs-set); line-height:1; color:#fff;
@@ -106,7 +111,9 @@
 
     .scoretable td.now > .cell-now{
       display:flex; align-items:center; justify-content:center;
-      padding:var(--pad-cell-y) var(--pad-cell-x); min-height:2.6em;
+  padding: var(--pad-cell-y-tight) var(--pad-cell-x-tight);
+  line-height: 1;               /* já deves ter, mas ajuda a caber mais */
+  min-height: 2.4em;            /* opcional: baixa ligeiramente (era 2.6em) */
       min-width: var(--set-minw);
       color:var(--now-fg);
       background:linear-gradient(180deg, rgba(var(--now-glow), .18), rgba(var(--now-glow), .10));
@@ -185,6 +192,6 @@
     <div class="muted">© New Padel Solutions 2025</div>
   </footer>
 
-  <script type="module" src="/js/filament/scoreboard.js?v=73"></script>
+  <script type="module" src="/js/filament/scoreboard.js?v=74"></script>
 </body>
 </html>
