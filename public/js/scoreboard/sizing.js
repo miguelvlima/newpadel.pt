@@ -124,12 +124,27 @@ const ro = new ResizeObserver((entries) => {
     target.style.setProperty('--pad-cell-x', `${padX}px`);
     target.style.setProperty('--set-minw', `${setMinW}px`);
 
+    if (target.dataset.sizingLock === '1') continue;
+    target.dataset.sizingLock = '1';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        ensureNumWrappers(target); // garante <span class="num">
+        setRowHeightVar(target);   // fixa --row-h pela altura real do tile
+        scaleNumbersToFit(target); // números enchem célula (transform: scale)
+        fitNames(target);          // baixa fs dos nomes se ainda não couberem
+        fitBadges(target);         // ajusta badges se necessário
+        delete target.dataset.sizingLock;
+      });
+    });
+
   }
 });
 
 // expõe para o UI observar cada tile
 export function watchTile(tile){
-  try { ro.observe(tile); } catch {}
+  if (tile.dataset.observed) return;
+  ro.observe(tile);
+  tile.dataset.observed = '1';
 }
 
 export function setRowHeightVar(tile){

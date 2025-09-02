@@ -148,15 +148,14 @@ function buildTile(game){
   `;
 
   // ajustes finais
-  requestAnimationFrame(() => {
-    setRowHeightVar(wrap);
-    watchTile(wrap);           // << observa tamanho do tile
-    fitNames(wrap);
-    fitBadges(wrap);
-    fitTileVertically(wrap);
-    scaleNumbersToFit(wrap);
-    ensureNumWrappers(wrap);
-  });
+    requestAnimationFrame(() => {
+        ensureNumWrappers(wrap);   // 1) garante <span class="num">…</span>
+        setRowHeightVar(wrap);     // 2) fixa a altura da linha pelo espaço do tile
+        scaleNumbersToFit(wrap);   // 3) números crescem dentro da célula
+        fitNames(wrap);            // 4) nomes cabem sem estourar (altura/ largura)
+        fitBadges(wrap);           // 5) badges ajustam
+        watchTile(wrap);           // 6) passa a observar alterações de tamanho
+    });
 
   return wrap;
 }
@@ -221,18 +220,13 @@ function updateTile(el, game){
     if (botEl) botEl.textContent = setCellVal(meta, i, 2);
   }
 
-
-    ensureNumWrappers(el);
-
-  requestAnimationFrame(() => {
-    setRowHeightVar(el);
-    watchTile(el);           // << observa tamanho do tile
-    fitNames(el);
-    fitBadges(el);
-    fitTileVertically(el);
-    scaleNumbersToFit(el);
-    ensureNumWrappers(el);
-  });
+    requestAnimationFrame(() => {
+        ensureNumWrappers(el);   // 1) garante <span class="num">…</span>
+        setRowHeightVar(el);     // 2) fixa a altura da linha pelo espaço do tile
+        scaleNumbersToFit(el);   // 3) números crescem dentro da célula
+        fitNames(el);            // 4) nomes cabem sem estourar (altura/ largura)
+        fitBadges(el);           // 5) badges ajustam
+    });
   return el;
 }
 

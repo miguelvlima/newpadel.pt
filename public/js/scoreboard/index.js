@@ -92,24 +92,18 @@ import { scaleNumbersToFit } from './sizing.js';
     touch('Erro inicial', false);
   }
 
-  function rescaleAllTiles(){
-    document.querySelectorAll('.tile').forEach(t => scaleNumbersToFit(t));
-    }
-
-  // Responsivo
-  window.addEventListener('resize', () => {
-    requestAnimationFrame(() => {
-      buildOrUpdateGrid(grid, screen?.positions || getCurrentSlots().length || 1, getCurrentSlots());
-      rescaleAllTiles();
+    const refitAll = () => {
+    document.querySelectorAll('.tile').forEach(t => {
+        ensureNumWrappers(t);
+        setRowHeightVar(t);
+        scaleNumbersToFit(t);
+        fitNames(t);
+        fitBadges(t);
     });
-  });
-  window.addEventListener('orientationchange', () => {
-    requestAnimationFrame(() => {
-      buildOrUpdateGrid(grid, screen?.positions || getCurrentSlots().length || 1, getCurrentSlots());
-      rescaleAllTiles();
-    });
-  });
-
-  document.addEventListener('fullscreenchange', rescaleAllTiles);
+    };
+    window.addEventListener('resize', refitAll);
+    window.addEventListener('orientationchange', refitAll);
+    document.addEventListener('fullscreenchange', refitAll);
+    if (document.fonts?.ready) document.fonts.ready.then(refitAll);
 
 })();
