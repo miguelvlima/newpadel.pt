@@ -149,6 +149,7 @@ function buildTile(game){
 
   // ajustes finais
   requestAnimationFrame(() => {
+    setRowHeightVar(wrap);
     watchTile(wrap);           // << observa tamanho do tile
     fitNames(wrap);
     fitBadges(wrap);
@@ -222,7 +223,9 @@ function updateTile(el, game){
 
 
     ensureNumWrappers(el);
+
   requestAnimationFrame(() => {
+    setRowHeightVar(wrap);
     watchTile(wrap);           // << observa tamanho do tile
     fitNames(wrap);
     fitBadges(wrap);

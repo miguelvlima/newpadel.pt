@@ -57,17 +57,19 @@ export function scaleNumbersToFit(root){
 
     const availW = Math.max(1, cell.clientWidth  - 2);
     const availH = Math.max(1, cell.clientHeight - 2);
-    const r = num.getBoundingClientRect();
+    const r      = num.getBoundingClientRect();
 
-    const needW = r.width  > 0 ? (availW / r.width)  : 1;
-    const needH = r.height > 0 ? (availH / r.height) : 1;
+    const needW  = r.width  > 0 ? (availW / r.width)  : 1;
+    const needH  = r.height > 0 ? (availH / r.height) : 1;
 
     let s = 0.96 * Math.min(needW, needH);
-    s = Math.max(0.60, Math.min(3.50, s));   // ← antes estava 1.80
+    // Limite superior para não “estourar”
+    s = Math.max(0.60, Math.min(2.50, s));  // ← podes afinar 2.2–2.8
 
     num.style.transform = `scale(${s})`;
   });
 }
+
 
 
 /* altura: encolhe margens/padding antes de reduzir fontes */
@@ -129,3 +131,27 @@ const ro = new ResizeObserver((entries) => {
 export function watchTile(tile){
   try { ro.observe(tile); } catch {}
 }
+
+function setRowHeightVar(tile){
+  const table = tile.querySelector('.scoretable');
+  if (!table) return;
+
+  const csTile  = getComputedStyle(tile);
+  const gapV    = parseFloat(csTile.getPropertyValue('--gap-v')) || 0;
+
+  const thead   = table.tHead;
+  const headH   = thead ? thead.offsetHeight : 0;
+
+  // altura total do tile disponível
+  const tileH   = tile.clientHeight;
+
+  // margem-top da tabela (se existir, ex.: 8px)
+  const mt      = parseFloat(getComputedStyle(table).marginTop || 0);
+
+  // 2 linhas no tbody → 1 gap vertical entre elas
+  const available = Math.max(0, tileH - headH - gapV - mt);
+
+  const rowH = Math.max(44, Math.floor(available / 2)); // 44px mínimo por linha
+  tile.style.setProperty('--row-h', `${rowH}px`);
+}
+

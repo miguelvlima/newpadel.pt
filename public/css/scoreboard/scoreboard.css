@@ -94,6 +94,9 @@ main{
 
 /* Right-aligned results block with small spacer */
 .scoretable{ width:100%; table-layout:auto; border-collapse:separate; border-spacing:0 var(--gap-v); margin-top:8px; }
+.scoretable tbody tr{
+  height: var(--row-h);
+}
 .scoretable thead th{ font-size:var(--fs-head); letter-spacing:.08em; color:var(--muted); font-weight:700; text-align:center; padding-bottom:4px; }
 .scoretable thead th.names{ text-align:left; }
 .scoretable th, .scoretable td{ border-bottom:0; padding:8px 10px; vertical-align:middle; background-clip:padding-box }
@@ -108,7 +111,9 @@ main{
   display:flex; align-items:center; justify-content:center;
   padding: var(--pad-cell-y-tight) var(--pad-cell-x-tight);
   line-height: 1;
-  min-height: 2.6em;                /* <- NÃO cresce com o número */
+    /* altura fixa e sem crescer com o font-size */
+  height: var(--row-h);
+  min-height: 0;
   min-width: var(--set-minw);
   background: var(--set-bg);
   border:1px solid var(--set-br);
@@ -124,7 +129,10 @@ main{
   display:flex; align-items:center; justify-content:center;
   padding: var(--pad-cell-y-tight) var(--pad-cell-x-tight);
   line-height: 1;
-  min-height: 2.6em;                /* <- igual aos sets */
+    /* altura fixa e sem crescer com o font-size */
+  height: var(--row-h);
+  min-height: 0;
+
   min-width: var(--set-minw);
   color: var(--now-fg);
   background:linear-gradient(180deg, rgba(var(--now-glow), .18), rgba(var(--now-glow), .10));
