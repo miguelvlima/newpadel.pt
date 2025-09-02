@@ -191,6 +191,7 @@ const setMinW = clamp(w * 0.22, 120, 320);   // ↑ largura mínima por coluna d
             fitNames(el);
             fitBadges(el);
             fitSetFonts(el);
+            fitTableWidth(el);
             fitTileVertically(el);
           });
         }
@@ -238,12 +239,36 @@ const setMinW = clamp(w * 0.22, 120, 320);   // ↑ largura mínima por coluna d
     }
   }
 
-  function calibrateTile(el){
-    fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el);
-    if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); });
+  function fitTableWidth(el){
+    const tbl = el.querySelector('.scoretable');
+    if (!tbl) return;
+
+    let tries = 0;
+    let setMinW = getVar(el,'--set-minw') || 140;  // largura mínima de cada badge de set
+    let padX    = getVar(el,'--pad-cell-x') || 16; // padding horizontal da badge
+
+    // encolhe só o necessário até caber no tile
+    while (tbl.scrollWidth > tbl.clientWidth && tries < 24){
+        setMinW = Math.max(76, setMinW * 0.92);   // limite inferior seguro
+        padX    = Math.max(8,  padX    * 0.94);
+
+        setVar(el, '--set-minw', `${setMinW}px`);
+        setVar(el, '--pad-cell-x', `${padX}px`);
+
+        // garantir que os números continuam a caber dentro das badges
+        fitSetFonts(el);
+
+        tries++;
     }
-    setTimeout(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); }, 120);
+    }
+
+
+  function calibrateTile(el){
+    fitNames(el); fitBadges(el); fitSetFonts(el); fitTableWidth(el);  fitTileVertically(el);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTableWidth(el);  fitTileVertically(el); });
+    }
+    setTimeout(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTableWidth(el);  fitTileVertically(el); }, 120);
   }
 
   function shrinkVars(el, factor = 0.94){
@@ -656,6 +681,7 @@ const setMinW = clamp(w * 0.22, 120, 320);   // ↑ largura mínima por coluna d
     }
   }
 
+
   let currentSlots = [];
   let currentIds = [];
   let screen = null;
@@ -765,4 +791,10 @@ const setMinW = clamp(w * 0.22, 120, 320);   // ↑ largura mínima por coluna d
   let rAF; const onResize=()=>{ cancelAnimationFrame(rAF); rAF=requestAnimationFrame(()=> renderGridSlots(currentSlots, (screen?.positions)||currentSlots.length||1)); };
   window.addEventListener('resize', onResize);
   window.addEventListener('orientationchange', onResize);
+
+  document.addEventListener('fullscreenchange', () => {
+    // re-calibra todos os tiles (sem rebuild) para evitar “sumiços”
+    tileEls.forEach(el => { if (el && el.isConnected) calibrateTile(el); });
+    });
+
 })();
