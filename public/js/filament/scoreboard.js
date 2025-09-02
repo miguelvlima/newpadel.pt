@@ -158,9 +158,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           const base = Math.max(0, Math.min(w, h));
 
           const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
-          const fsName   = clamp(base * 0.12, 18, 72);
-          const fsHead   = clamp(base * 0.07, 12, 26);
-          const fsDigits = clamp(base * 0.20, 36, 160);
+          const fsName = clamp(base * 0.34, 28, 200);
+          const fsHead = clamp(fsSet * 0.55, 12, 36);
+          const fsDigits = clamp(base * 0.34, 46, 200);
 
 
           const fsBadge   = clamp(base * 0.11, 12, 40);
