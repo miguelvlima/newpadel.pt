@@ -1,8 +1,8 @@
 // /public/js/scoreboard/index.js
-import { setAppHeight, onFullscreenToggle, byId } from 'utils.js';
-import { initSupabase, fetchScreen, fetchSlots, subscribeSelections, subscribeGames, subscribeScreenMeta } from 'supabase-api.js';
-import { buildOrUpdateGrid, getTileEls, getCurrentSlots, setCurrentSlots } from 'ui.js';
-import { scaleAllTiles } from 'sizing.js';
+import { setAppHeight, onFullscreenToggle, byId } from './utils.js';
+import { initSupabase, fetchScreen, fetchSlots, subscribeSelections, subscribeGames, subscribeScreenMeta } from './supabase-api.js';
+import { buildOrUpdateGrid, getTileEls, getCurrentSlots, setCurrentSlots } from './ui.js';
+import { scaleAllTiles } from './sizing.js';
 
 (async () => {
   setAppHeight();
