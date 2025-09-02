@@ -45,6 +45,6 @@
   </footer>
 
   <!-- JS modular (ESM) -->
-  <script type="module" src="/js/scoreboard/index.js?v=1.0"></script>
+  <script type="module" src="/js/scoreboard/index.js?v=2"></script>
 </body>
 </html>

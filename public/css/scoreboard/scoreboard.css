@@ -93,13 +93,13 @@ main{
 @keyframes pulse{0%{opacity:1}50%{opacity:.55}100%{opacity:1}}
 
 /* Right-aligned results block with small spacer */
-.scoretable{ width:100%; table-layout:auto; border-collapse:separate; border-spacing:0 var(--gap-v); margin-top:8px; }
+.scoretable{ width:100%; table-layout:auto; border-collapse:separate; border-spacing:0; margin-top:8px; }
 .scoretable tbody tr{
   height: var(--row-h);
 }
 .scoretable thead th{ font-size:var(--fs-head); letter-spacing:.08em; color:var(--muted); font-weight:700; text-align:center; padding-bottom:4px; }
 .scoretable thead th.names{ text-align:left; }
-.scoretable th, .scoretable td{ border-bottom:0; padding:8px 10px; vertical-align:middle; background-clip:padding-box }
+.scoretable th, .scoretable td{ border-bottom:0; padding:0 10px; vertical-align:middle; background-clip:padding-box }
 .scoretable td.names{ font-size:var(--fs-name); line-height:1.07; padding-left: var(--names-pad-l); }
 .scoretable td.names .line{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
 .scoretable th.flexfill, .scoretable td.flexfill{ width: var(--spacer-w); padding:0; }
