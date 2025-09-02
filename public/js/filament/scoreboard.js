@@ -1,12 +1,11 @@
-// public/js/filament/scoreboard.js (v54)
-// - Calibração robusta no 1.º paint e em fullscreen
-// - Sem erros de optional chaining em identificadores não definidos
-// - Mantém autosize grande mas SEM overflow dos badges
-
+// public/js/filament/scoreboard.js (v53)
+// Fix: numbers & names never overflow their badges/tiles.
+// - New fitSetFonts(): shrinks --fs-set/--fs-now per tile until all cells fit.
+// - Called on resize, after build, and after in-place updates.
+// - Keeps the big look but respects the badge bounds.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 (async () => {
-  /* ---------- viewport height fix (mobile 100vh) ---------- */
   const setAppHeight = () => {
     document.documentElement.style.setProperty('--app-h', `${window.innerHeight}px`);
   };
@@ -14,9 +13,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   window.addEventListener('resize', setAppHeight);
   window.addEventListener('orientationchange', setAppHeight);
 
-  const grid     = document.getElementById('grid');
+  const grid = document.getElementById('grid');
   const statusEl = document.getElementById('status');
-  const titleEl  = document.getElementById('screen-title');
+  const titleEl = document.getElementById('screen-title');
   const logoEl   = document.getElementById('screen-logo');
 
   const SUPABASE_URL  = grid?.dataset?.sbUrl || '';
@@ -26,83 +25,84 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   const setVar = (el, name, val) => el.style.setProperty(name, val);
   const getVar = (el, name) => parseFloat(getComputedStyle(el).getPropertyValue(name)) || 0;
 
-  /* ---------- util: tenta chamar uma função global opcional ---------- */
-  function maybeFitTableWidth(el){
-    const fn = window?.fitTableWidth;
-    if (typeof fn === 'function') fn(el);
-  }
+    function setBrand(screenLike){
+        const title = (screenLike?.title || SCREEN_KEY || 'Scoreboard').toString();
+        const logo  = (screenLike?.logo_url || '').trim();
 
-  /* ---------- brand (logo/título) ---------- */
-  function setBrand(screenLike){
-    const title = (screenLike?.title || SCREEN_KEY || 'Scoreboard').toString();
-    const logo  = (screenLike?.logo_url || '').trim();
+        // título do documento
+        document.title = title;
 
-    document.title = title;
-
-    const showLogo = !!logo;
-    if (logoEl){
-      if (showLogo){
-        logoEl.src = logo;
-        logoEl.style.display = '';
-        logoEl.onerror = () => {
-          logoEl.style.display = 'none';
-          if (titleEl){ titleEl.textContent = title; titleEl.style.display = ''; }
-        };
-      } else {
-        logoEl.removeAttribute('src');
-        logoEl.style.display = 'none';
-      }
+        // preferir logo; se faltar ou falhar, mostrar título
+        const showLogo = !!logo;
+        if (logoEl){
+            if (showLogo){
+            logoEl.src = logo;
+            logoEl.style.display = '';
+            // se a imagem falhar, voltar ao título
+            logoEl.onerror = () => {
+                logoEl.style.display = 'none';
+                if (titleEl){ titleEl.textContent = title; titleEl.style.display = ''; }
+            };
+            }else{
+            logoEl.removeAttribute('src');
+            logoEl.style.display = 'none';
+            }
+        }
+        if (titleEl){
+            titleEl.textContent = title;
+            titleEl.style.display = showLogo ? 'none' : '';
+        }
     }
-    if (titleEl){
-      titleEl.textContent = title;
-      titleEl.style.display = showLogo ? 'none' : '';
-    }
-  }
 
-  /* ---------- fullscreen button ---------- */
-  const fsBtn = document.getElementById('fs');
-  fsBtn?.addEventListener('click', () => {
+
+    const fsBtn = document.getElementById('fs');
+
+    // clicar = entra/sai de fullscreen
+    fsBtn?.addEventListener('click', () => {
     if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
     else document.exitFullscreen?.();
-  });
-  const syncFSBtn = () => { if (fsBtn) fsBtn.style.display = document.fullscreenElement ? 'none' : ''; };
-  document.addEventListener('fullscreenchange', () => {
-    syncFSBtn();
-    firstCalibrate();
-  });
-  syncFSBtn();
+    });
 
-  /* ---------- status/clock ---------- */
+    // esconder/mostrar o botão consoante o estado
+    const syncFSBtn = () => { if (fsBtn) fsBtn.style.display = document.fullscreenElement ? 'none' : ''; };
+    document.addEventListener('fullscreenchange', syncFSBtn);
+    syncFSBtn(); // estado inicial
+
   const fmtTime = d => d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   const escapeHtml = (s='') => s.replace(/[&<>\"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
-  let clockTimer = null;
-  function startClock(){
+
+    let clockTimer = null;
+    function startClock(){
+    // evita timers a duplicar
     if (clockTimer) clearInterval(clockTimer);
     const tick = () => {
-      const el = document.getElementById('status-clock');
-      if (el) el.textContent = new Date().toLocaleTimeString(undefined, {
-        hour: '2-digit', minute: '2-digit', second: '2-digit',
-      });
+        const el = document.getElementById('status-clock');
+        if (el) el.textContent = new Date().toLocaleTimeString(undefined, {
+        hour: '2-digit', minute: '2-digit', second: '2-digit', /* hour12: false */
+        });
     };
     tick();
     clockTimer = setInterval(tick, 1000);
-  }
-  const touch = (text, ok) => {
+    }
+
+    // substitui a tua função touch por esta
+    const touch = (text, ok) => {
     if (!statusEl) return;
     statusEl.innerHTML = `
-      <span class="${ok ? 'status-ok' : 'status-bad'}">●</span>
-      ${text} • <span id="status-clock"></span>
+        <span class="${ok ? 'status-ok' : 'status-bad'}">●</span>
+        ${text} • <span id="status-clock"></span>
     `;
     startClock();
-  };
+    };
 
-  /* ---------- supabase ---------- */
+
   if (!/^https:\/\/.+\.supabase\.co/i.test(SUPABASE_URL)) {
     console.error('SUPABASE_URL inválida/vazia:', SUPABASE_URL);
     if (statusEl) statusEl.textContent = 'Configuração Supabase inválida (URL).';
     return;
   }
+
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON, {
     global: { headers: { Accept: 'application/json' } },
     realtime: { params: { eventsPerSecond: 5 } }
@@ -158,25 +158,26 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           const base = Math.max(0, Math.min(w, h));
 
           const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
-          const fsName = clamp(base * 0.34, 28, 200);
-          const fsHead = clamp(fsSet * 0.55, 12, 36);
-          const fsDigits = clamp(base * 0.34, 46, 200);
-
+const fsName = clamp(base * 0.34, 28, 200); // ↑ bem maior
+const fsSet  = clamp(base * 0.34, 36, 240);  // ↑ multiplicador, ↑ mínimos e máximos
+const fsHead = clamp(fsSet * 0.55, 12, 36);
+          const fsNow  = fsSet;
 
           const fsBadge   = clamp(base * 0.11, 12, 40);
           const badgePadY = clamp(base * 0.045, 4, 22);
           const badgePadX = clamp(base * 0.085, 10, 40);
 
           const gapV = clamp(base * 0.03, 8, 28);
-          const padY = clamp(base * 0.045, 8, 26);
-          const padX = clamp(base * 0.085, 10, 40);
+          const padY = clamp(base * 0.06, 10, 30);
+          const padX = clamp(base * 0.085, 12, 38);
 
-          const setMinW = clamp(w * 0.22, 120, 320);
+const setMinW = clamp(w * 0.22, 120, 320);   // ↑ largura mínima por coluna de set
           const spacerW = clamp(w * 0.03, 12, 40);
 
           setVar(el, '--fs-name',  `${fsName}px`);
+          setVar(el, '--fs-set',   `${fsSet}px`);
+          setVar(el, '--fs-now',   `${fsNow}px`);
           setVar(el, '--fs-head',  `${fsHead}px`);
-          setVar(el, '--fs-digits', `${fsDigits}px`);
           setVar(el, '--fs-badge', `${fsBadge}px`);
           setVar(el, '--badge-pad-y', `${badgePadY}px`);
           setVar(el, '--badge-pad-x', `${badgePadX}px`);
@@ -189,7 +190,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           requestAnimationFrame(() => {
             fitNames(el);
             fitBadges(el);
-            fillDigits(el);
+            fitSetFonts(el);
             fitTileVertically(el);
           });
         }
@@ -216,62 +217,48 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     }
   }
 
-  function fillDigits(el){
-        // Ajusta UMA só variável (--fs-digits) para todas as células numéricas
+    function fitSetFonts(el){
     const cells = el.querySelectorAll('td.set .cell, td.now .cell-now');
     if (!cells.length) return;
 
-    const overflows = () => {
+    // ⬇⬇ Se ainda não há layout (larguras 0), não mexer
+    const firstRect = cells[0].getBoundingClientRect();
+    if (firstRect.width === 0 || firstRect.height === 0) return;
+
+    let fs = getVar(el, '--fs-set') || 24;
+    let tries = 0;
+    const overflow = () => {
         for (const c of cells){
-        if (c.scrollWidth  > c.clientWidth  + 0.5) return true;
+        const r = c.getBoundingClientRect();
+        if (r.width === 0 || r.height === 0) return false; // evita decisões com 0
+        if (c.scrollWidth > c.clientWidth + 0.5) return true;
         if (c.scrollHeight > c.clientHeight + 0.5) return true;
         }
         return false;
     };
-
-    let seed = Math.max(getVar(el,'--fs-digits') || 32, 24);
-    setVar(el,'--fs-digits', `${seed}px`);
-
-    // Crescimento exponencial até “bater no teto”
-    let lo = 16, hi = seed, MAX = 640;
-    while (!overflows() && hi < MAX){
-        lo = hi; hi = Math.min(MAX, Math.round(hi * 1.35));
-        setVar(el,'--fs-digits', `${hi}px`);
+    while (overflow() && fs > 16 && tries < 40){
+        fs -= 1;
+        setVar(el, '--fs-set', `${fs}px`);
+        setVar(el, '--fs-now', `${fs}px`);
+        tries++;
+    }
     }
 
-    // Busca binária para encher a caixa sem rebentar
-    let best = lo;
-    while (lo <= hi){
-        const mid = (lo + hi) >> 1;
-        setVar(el,'--fs-digits', `${mid}px`);
-        if (overflows()) hi = mid - 1; else { best = mid; lo = mid + 1; }
-    }
-
-    setVar(el,'--fs-digits', `${Math.max(16, best - 1)}px`);
-  }
 
   function calibrateTile(el){
-    fitNames(el);
-    fitBadges(el);
-    maybeFitTableWidth(el);
-    fillDigits(el);
-    fitTileVertically(el);
-
-    if (document.fonts && document.fonts.ready){
-      document.fonts.ready.then(() => {
-        fitNames(el); fitBadges(el); maybeFitTableWidth(el); fillDigits(el); fitTileVertically(el);
-      });
+    fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); });
     }
-    setTimeout(() => {
-      fitNames(el); fitBadges(el); maybeFitTableWidth(el); fillDigits(el); fitTileVertically(el);
-    }, 120);
+    setTimeout(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); }, 120);
   }
 
   function shrinkVars(el, factor = 0.94){
     const clamp = (v,min,max) => Math.max(min, Math.min(max, v));
     const fsName = clamp(getVar(el,'--fs-name')*factor, 16, 160);
+    const fsSet  = clamp(getVar(el,'--fs-set') *factor, 22, 170);
+    const fsNow  = clamp(getVar(el,'--fs-now') *factor, 22, 170);
     const fsHead = clamp(getVar(el,'--fs-head')*factor, 10, 36);
-    const fsDigits = clamp(getVar(el,'--fs-digits') * factor, 22, 170);
     const gapV   = clamp(getVar(el,'--gap-v')   *factor, 6, 30);
     const padY   = clamp(getVar(el,'--pad-cell-y')*factor, 8, 32);
     const padX   = clamp(getVar(el,'--pad-cell-x')*factor, 10, 40);
@@ -281,8 +268,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     const setMinW   = clamp(getVar(el,'--set-minw')*factor, 80, 260);
 
     setVar(el,'--fs-name',`${fsName}px`);
+    setVar(el,'--fs-set', `${fsSet}px`);
+    setVar(el,'--fs-now', `${fsNow}px`);
     setVar(el,'--fs-head',`${fsHead}px`);
-    setVar(el,'--fs-digits', `${fsDigits}px`);
     setVar(el,'--gap-v', `${gapV}px`);
     setVar(el,'--pad-cell-y',`${padY}px`);
     setVar(el,'--pad-cell-x',`${padX}px`);
@@ -332,8 +320,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     let cols = [];
     let titles = [];
     if (cfg.isProset){
-      cols.push(0);
-      titles.push('Proset');
+        cols.push(0);
+        titles.push('Proset');
     } else {
       if (setConcluded[0] || (isRegularPlaying && currentIndex === 0) || (normalTB && currentIndex === 0)){
         cols.push(0); titles.push('1º Set');
@@ -372,7 +360,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     return { cfg, sets, cur, setConcluded, currentIndex, w1, w2, matchOver, normalTB, superTB, isRegularPlaying, cols, titles, nowTitle, showNow, lastConcludedIndex, shapeKey };
   }
 
-  const CSS_VARS = ['--fs-name','--fs-head','--fs-badge','--badge-pad-y','--badge-pad-x','--gap-v','--pad-cell-y','--pad-cell-x','--set-minw','--spacer-w'];
+  const CSS_VARS = ['--fs-name','--fs-set','--fs-now','--fs-head','--fs-badge','--badge-pad-y','--badge-pad-x','--gap-v','--pad-cell-y','--pad-cell-x','--set-minw','--spacer-w'];
   function copyVars(src, dst){
     const cs = getComputedStyle(src);
     CSS_VARS.forEach(v => dst.style.setProperty(v, cs.getPropertyValue(v)));
@@ -418,24 +406,26 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
     const headerSetTh = meta.titles.map(t => `<th class="set">${t}</th>`).join('');
 
-    function setCellVal(i, team){
-      // PROSET
-      if (cfg.isProset){
-        const ss = sets[i];
-        if (isSetConcluded(ss, cfg, i)) {
-          return String(team === 1 ? (ss?.team1 ?? g1) : (ss?.team2 ?? g2));
-        }
-        return String(team === 1 ? g1 : g2);
-      }
-      // Best-of-3
-      if (meta.normalTB && i === meta.currentIndex) return '6';
-      if (meta.isRegularPlaying && i === meta.currentIndex){
-        return String(team === 1 ? g1 : g2);
-      }
-      const ss = sets[i];
-      if (!ss || !isSetConcluded(ss, cfg, i)) return '';
-      return String(team === 1 ? (ss.team1 ?? '') : (ss.team2 ?? ''));
+function setCellVal(i, team){
+  // PROSET — durante o jogo: mostrar JOGOS atuais; terminado: score final
+  if (cfg.isProset){
+    const ss = sets[i];
+    if (isSetConcluded(ss, cfg, i)) {
+      return String(team === 1 ? (ss?.team1 ?? g1) : (ss?.team2 ?? g2));
     }
+    return String(team === 1 ? g1 : g2);
+  }
+
+  // Best-of-3 / normal
+  if (meta.normalTB && i === meta.currentIndex) return '6';           // 6–6 em TB normal
+  if (meta.isRegularPlaying && i === meta.currentIndex){
+    return String(team === 1 ? g1 : g2);                               // jogos do set corrente
+  }
+  const ss = sets[i];
+  if (!ss || !isSetConcluded(ss, cfg, i)) return '';
+  return String(team === 1 ? (ss.team1 ?? '') : (ss.team2 ?? ''));
+}
+
 
     const rowTopSets  = meta.cols.map(i => `<td class="set"><div class="cell">${setCellVal(i,1)}</div></td>`).join('');
     const rowBotSets  = meta.cols.map(i => `<td class="set"><div class="cell">${setCellVal(i,2)}</div></td>`).join('');
@@ -481,13 +471,13 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       </table>
     `;
 
+    // final fit pass
     requestAnimationFrame(()=>calibrateTile(wrap));
     return wrap;
   }
 
   function updateTile(el, game){
     const meta = computeShape(game);
-
     if (el.dataset.shapeKey !== meta.shapeKey){
       const rep = buildTile(game);
       copyVars(el, rep);
@@ -497,7 +487,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     }
 
     el.dataset.gameId = game.id;
-
     const row = el.querySelector('.row');
     const courtBadge = row?.querySelector('.badge.court');
     const statusBadge = row?.querySelector('.badge.status');
@@ -544,22 +533,26 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     }
 
     const setCells = el.querySelectorAll('td.set .cell');
+
     function setCellVal(i, team){
-      if (meta.cfg.isProset){
+    // PROSET — durante o jogo: mostrar JOGOS atuais; terminado: score final
+    if (meta.cfg.isProset){
         const ss = meta.sets[i];
         if (isSetConcluded(ss, meta.cfg, i)) {
-          return String(team === 1 ? (ss?.team1 ?? g1) : (ss?.team2 ?? g2));
+        return String(team === 1 ? (ss?.team1 ?? g1) : (ss?.team2 ?? g2));
         }
         return String(team === 1 ? g1 : g2);
-      }
-      if (meta.normalTB && i === meta.currentIndex) return '6';
-      if (meta.isRegularPlaying && i === meta.currentIndex){
-        return String(team === 1 ? g1 : g2);
-      }
-      const ss = meta.sets[i];
-      if (!ss || !isSetConcluded(ss, meta.cfg, i)) return '';
-      return String(team === 1 ? (ss.team1 ?? '') : (ss.team2 ?? ''));
     }
+
+    if (meta.normalTB && i === meta.currentIndex) return '6';
+    if (meta.isRegularPlaying && i === meta.currentIndex){
+        return String(team === 1 ? g1 : g2);
+    }
+    const ss = meta.sets[i];
+    if (!ss || !isSetConcluded(ss, meta.cfg, i)) return '';
+    return String(team === 1 ? (ss.team1 ?? '') : (ss.team2 ?? ''));
+    }
+
     const n = meta.cols.length;
     for (let c = 0; c < n; c++) {
       const i = meta.cols[c];
@@ -569,7 +562,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       if (botEl) botEl.textContent = setCellVal(i, 2);
     }
 
-    fillDigits(el);
+    // ensure numbers fit after updates
+    fitSetFonts(el);
     fitTileVertically(el);
 
     return el;
@@ -639,7 +633,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     return { slots, positions, ids };
   }
 
-  /* ---------- render persistente ---------- */
   let tileEls = [];
   function renderGridSlots(slots, positions){
     const [cols, rows] = computeGridFromPositions(positions);
@@ -655,7 +648,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
         try { tileSizer.observe(el); } catch {}
         return el;
       });
-      firstCalibrate();
       return;
     }
 
@@ -682,10 +674,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
         tileEls[i] = updateTile(el, item);
       }
     }
-    firstCalibrate();
   }
 
-  /* ---------- bootstrap & realtime ---------- */
   let currentSlots = [];
   let currentIds = [];
   let screen = null;
@@ -695,7 +685,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     currentSlots = pack.slots;
     currentIds   = pack.ids;
     renderGridSlots(currentSlots, pack.positions);
-    firstCalibrate();
   }
 
   try {
@@ -703,7 +692,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     setBrand(screen);
     if (screen?.kiosk) document.body.classList.add('hide-cursor');
     await reloadAll();
-    firstCalibrate();
     touch('Ligado', true);
   } catch (e) {
     console.error('Erro a carregar screen/selections:', e);
@@ -752,37 +740,41 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
   if (screen?.id){
     supabase.channel('screen-meta-live')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'scoreboards',
-        filter: `id=eq.${screen.id}`,
-      }, async (payload) => {
-        const row = payload.new ?? payload.old ?? {};
+        .on('postgres_changes', {
+            event: '*',
+            schema: 'public',
+            table: 'scoreboards',
+            filter: `id=eq.${screen.id}`,
+        }, async (payload) => {
+            const row = payload.new ?? payload.old ?? {};
 
-        if (Object.prototype.hasOwnProperty.call(row, 'title')
-            || Object.prototype.hasOwnProperty.call(row, 'logo_url')) {
-          if (Object.prototype.hasOwnProperty.call(row, 'title')) {
-            screen.title = row.title;
-          }
-          if (Object.prototype.hasOwnProperty.call(row, 'logo_url')) {
-            screen.logo_url = row.logo_url;
-          }
-          setBrand(screen);
-        }
+            // Atualizar header (logo/título) se vierem campos novos
+            if (Object.prototype.hasOwnProperty.call(row, 'title')
+                || Object.prototype.hasOwnProperty.call(row, 'logo_url')) {
 
-        if (Object.prototype.hasOwnProperty.call(row, 'positions')
-            && row.positions !== undefined
-            && row.positions !== screen.positions) {
-          screen.positions = row.positions;
-          await reloadAll();
-        }
+            if (Object.prototype.hasOwnProperty.call(row, 'title')) {
+                screen.title = row.title;          // guardar no estado
+            }
+            if (Object.prototype.hasOwnProperty.call(row, 'logo_url')) {
+                screen.logo_url = row.logo_url;    // guardar no estado
+            }
+            setBrand(screen);                     // aplica logo/título no header
+            }
 
-        if (row?.kiosk) {
-          document.body.classList.add('hide-cursor');
-        }
-      })
-      .subscribe();
+            // Reagir a alteração do nº de posições (re-render slots)
+            if (Object.prototype.hasOwnProperty.call(row, 'positions')
+                && row.positions !== undefined
+                && row.positions !== screen.positions) {
+            screen.positions = row.positions;
+            await reloadAll();
+            }
+
+            // Modo quiosque (ocultar cursor)
+            if (row?.kiosk) {
+            document.body.classList.add('hide-cursor');
+            }
+        })
+        .subscribe();
 
     setupSelectionSubscription(screen.id);
     const pack = await buildSlots(screen);
@@ -790,24 +782,33 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     await resubscribe(currentIds);
   }
 
-  let rAF;
-  const onResize=()=>{ cancelAnimationFrame(rAF); rAF=requestAnimationFrame(()=> renderGridSlots(currentSlots, (screen?.positions)||currentSlots.length||1)); };
+  let rAF; const onResize=()=>{ cancelAnimationFrame(rAF); rAF=requestAnimationFrame(()=> renderGridSlots(currentSlots, (screen?.positions)||currentSlots.length||1)); };
   window.addEventListener('resize', onResize);
   window.addEventListener('orientationchange', onResize);
 
-  /* ---------- calibração global (arranque/resize/fonts) ---------- */
-  function firstCalibrate(){
+document.addEventListener('fullscreenchange', () => {
+  // re-aplica os números (sem rebuild global) e calibra depois do layout estabilizar
+  tileEls.forEach((el, i) => {
+    if (!el || !el.isConnected) return;
+    const game = currentSlots[i];
+    if (!game) return;
+
+    // 1º: re-escreve texto (garante que pró-set volta a ter dígitos)
+    const rep = updateTile(el, game);
+    tileEls[i] = rep;
+
+    // 2º: após 1–2 frames, calibra fontes/larguras
     requestAnimationFrame(() => {
-      tileEls.forEach(el => el && calibrateTile(el));
-    });
-    if (document.fonts && document.fonts.ready){
-      document.fonts.ready.then(() => {
-        tileEls.forEach(el => el && calibrateTile(el));
+      requestAnimationFrame(() => {
+        if (rep && rep.isConnected) {
+          fitSetFonts(rep);
+          fitTableWidth?.(rep);      // se tens esta helper
+          fitTileVertically(rep);
+        }
       });
-    }
-    setTimeout(() => {
-      tileEls.forEach(el => el && calibrateTile(el));
-    }, 120);
-  }
-  window.addEventListener('load', firstCalibrate);
+    });
+  });
+});
+
+
 })();
