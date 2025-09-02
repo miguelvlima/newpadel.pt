@@ -1,6 +1,6 @@
 // /public/js/scoreboard/ui.js
 import { parseFormat, isSetConcluded, countWonSets, tennisPoint, isNormalTBActive, superTBActive } from './rules.js';
-import { fitNames, fitBadges, fitTileVertically, scaleNumbers, watchTile, ensureNumWrappers, scaleNumbersToFit } from './sizing.js';
+import { fitNames, fitBadges, fitTileVertically, watchTile, ensureNumWrappers, scaleNumbersToFit } from './sizing.js';
 
 let TILE_ELS = [];
 let CURRENT_SLOTS = [];
@@ -149,22 +149,13 @@ function buildTile(game){
 
   // ajustes finais
   requestAnimationFrame(() => {
-    fitNames(wrap);
-    fitBadges(wrap);
-    fitTileVertically(wrap);
-    scaleNumbers(wrap);
-  });
-  // ajustes finais
-  requestAnimationFrame(() => {
     watchTile(wrap);           // << observa tamanho do tile
     fitNames(wrap);
     fitBadges(wrap);
     fitTileVertically(wrap);
-    scaleNumbers(wrap);
-  });
-
+    scaleNumbersToFit(wrap);
     ensureNumWrappers(wrap);
-    requestAnimationFrame(() => scaleNumbersToFit(wrap));
+  });
 
   return wrap;
 }
@@ -230,12 +221,15 @@ function updateTile(el, game){
   }
 
 
-
-  // ensure fit
-  fitNames(el); fitBadges(el); fitTileVertically(el); scaleNumbers(el);
-
     ensureNumWrappers(el);
-    requestAnimationFrame(() => scaleNumbersToFit(el));
+  requestAnimationFrame(() => {
+    watchTile(wrap);           // << observa tamanho do tile
+    fitNames(wrap);
+    fitBadges(wrap);
+    fitTileVertically(wrap);
+    scaleNumbersToFit(wrap);
+    ensureNumWrappers(wrap);
+  });
   return el;
 }
 
