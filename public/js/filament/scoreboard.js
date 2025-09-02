@@ -1,10 +1,12 @@
-// public/js/filament/scoreboard.js (v53)
-// Fix: numbers & names never overflow their badges/tiles.
-// - Called on resize, after build, and after in-place updates.
-// - Keeps the big look but respects the badge bounds.
+// public/js/filament/scoreboard.js (v54)
+// - Calibração robusta no 1.º paint e em fullscreen
+// - Sem erros de optional chaining em identificadores não definidos
+// - Mantém autosize grande mas SEM overflow dos badges
+
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 (async () => {
+  /* ---------- viewport height fix (mobile 100vh) ---------- */
   const setAppHeight = () => {
     document.documentElement.style.setProperty('--app-h', `${window.innerHeight}px`);
   };
@@ -12,9 +14,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   window.addEventListener('resize', setAppHeight);
   window.addEventListener('orientationchange', setAppHeight);
 
-  const grid = document.getElementById('grid');
+  const grid     = document.getElementById('grid');
   const statusEl = document.getElementById('status');
-  const titleEl = document.getElementById('screen-title');
+  const titleEl  = document.getElementById('screen-title');
   const logoEl   = document.getElementById('screen-logo');
 
   const SUPABASE_URL  = grid?.dataset?.sbUrl || '';
@@ -24,84 +26,83 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   const setVar = (el, name, val) => el.style.setProperty(name, val);
   const getVar = (el, name) => parseFloat(getComputedStyle(el).getPropertyValue(name)) || 0;
 
-    function setBrand(screenLike){
-        const title = (screenLike?.title || SCREEN_KEY || 'Scoreboard').toString();
-        const logo  = (screenLike?.logo_url || '').trim();
+  /* ---------- util: tenta chamar uma função global opcional ---------- */
+  function maybeFitTableWidth(el){
+    const fn = window?.fitTableWidth;
+    if (typeof fn === 'function') fn(el);
+  }
 
-        // título do documento
-        document.title = title;
+  /* ---------- brand (logo/título) ---------- */
+  function setBrand(screenLike){
+    const title = (screenLike?.title || SCREEN_KEY || 'Scoreboard').toString();
+    const logo  = (screenLike?.logo_url || '').trim();
 
-        // preferir logo; se faltar ou falhar, mostrar título
-        const showLogo = !!logo;
-        if (logoEl){
-            if (showLogo){
-            logoEl.src = logo;
-            logoEl.style.display = '';
-            // se a imagem falhar, voltar ao título
-            logoEl.onerror = () => {
-                logoEl.style.display = 'none';
-                if (titleEl){ titleEl.textContent = title; titleEl.style.display = ''; }
-            };
-            }else{
-            logoEl.removeAttribute('src');
-            logoEl.style.display = 'none';
-            }
-        }
-        if (titleEl){
-            titleEl.textContent = title;
-            titleEl.style.display = showLogo ? 'none' : '';
-        }
+    document.title = title;
+
+    const showLogo = !!logo;
+    if (logoEl){
+      if (showLogo){
+        logoEl.src = logo;
+        logoEl.style.display = '';
+        logoEl.onerror = () => {
+          logoEl.style.display = 'none';
+          if (titleEl){ titleEl.textContent = title; titleEl.style.display = ''; }
+        };
+      } else {
+        logoEl.removeAttribute('src');
+        logoEl.style.display = 'none';
+      }
     }
+    if (titleEl){
+      titleEl.textContent = title;
+      titleEl.style.display = showLogo ? 'none' : '';
+    }
+  }
 
-
-    const fsBtn = document.getElementById('fs');
-
-    // clicar = entra/sai de fullscreen
-    fsBtn?.addEventListener('click', () => {
+  /* ---------- fullscreen button ---------- */
+  const fsBtn = document.getElementById('fs');
+  fsBtn?.addEventListener('click', () => {
     if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
     else document.exitFullscreen?.();
-    });
+  });
+  const syncFSBtn = () => { if (fsBtn) fsBtn.style.display = document.fullscreenElement ? 'none' : ''; };
+  document.addEventListener('fullscreenchange', () => {
+    syncFSBtn();
+    firstCalibrate();
+  });
+  syncFSBtn();
 
-    // esconder/mostrar o botão consoante o estado
-    const syncFSBtn = () => { if (fsBtn) fsBtn.style.display = document.fullscreenElement ? 'none' : ''; };
-    document.addEventListener('fullscreenchange', syncFSBtn);
-    syncFSBtn(); // estado inicial
-
+  /* ---------- status/clock ---------- */
   const fmtTime = d => d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   const escapeHtml = (s='') => s.replace(/[&<>\"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
-
-    let clockTimer = null;
-    function startClock(){
-    // evita timers a duplicar
+  let clockTimer = null;
+  function startClock(){
     if (clockTimer) clearInterval(clockTimer);
     const tick = () => {
-        const el = document.getElementById('status-clock');
-        if (el) el.textContent = new Date().toLocaleTimeString(undefined, {
-        hour: '2-digit', minute: '2-digit', second: '2-digit', /* hour12: false */
-        });
+      const el = document.getElementById('status-clock');
+      if (el) el.textContent = new Date().toLocaleTimeString(undefined, {
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+      });
     };
     tick();
     clockTimer = setInterval(tick, 1000);
-    }
-
-    // substitui a tua função touch por esta
-    const touch = (text, ok) => {
+  }
+  const touch = (text, ok) => {
     if (!statusEl) return;
     statusEl.innerHTML = `
-        <span class="${ok ? 'status-ok' : 'status-bad'}">●</span>
-        ${text} • <span id="status-clock"></span>
+      <span class="${ok ? 'status-ok' : 'status-bad'}">●</span>
+      ${text} • <span id="status-clock"></span>
     `;
     startClock();
-    };
+  };
 
-
+  /* ---------- supabase ---------- */
   if (!/^https:\/\/.+\.supabase\.co/i.test(SUPABASE_URL)) {
     console.error('SUPABASE_URL inválida/vazia:', SUPABASE_URL);
     if (statusEl) statusEl.textContent = 'Configuração Supabase inválida (URL).';
     return;
   }
-
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON, {
     global: { headers: { Accept: 'application/json' } },
     realtime: { params: { eventsPerSecond: 5 } }
@@ -157,9 +158,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           const base = Math.max(0, Math.min(w, h));
 
           const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
-const fsName = clamp(base * 0.34, 28, 200); // ↑ bem maior
-const fsSet  = clamp(base * 0.42, 44, 280);  // ↑ multiplicador, ↑ mínimos e máximos
-const fsHead = clamp(fsSet * 0.55, 12, 36);
+          const fsName = clamp(base * 0.34, 28, 200);
+          const fsSet  = clamp(base * 0.42, 44, 280);
+          const fsHead = clamp(fsSet * 0.55, 12, 36);
           const fsNow  = fsSet;
 
           const fsBadge   = clamp(base * 0.11, 12, 40);
@@ -167,10 +168,10 @@ const fsHead = clamp(fsSet * 0.55, 12, 36);
           const badgePadX = clamp(base * 0.085, 10, 40);
 
           const gapV = clamp(base * 0.03, 8, 28);
-const padY = clamp(base * 0.045, 8, 26);
-const padX = clamp(base * 0.085, 10, 40);
+          const padY = clamp(base * 0.045, 8, 26);
+          const padX = clamp(base * 0.085, 10, 40);
 
-const setMinW = clamp(w * 0.22, 120, 320);   // ↑ largura mínima por coluna de set
+          const setMinW = clamp(w * 0.22, 120, 320);
           const spacerW = clamp(w * 0.03, 12, 40);
 
           setVar(el, '--fs-name',  `${fsName}px`);
@@ -216,49 +217,69 @@ const setMinW = clamp(w * 0.22, 120, 320);   // ↑ largura mínima por coluna d
     }
   }
 
-function fillSetFonts(el){
-  const cells = el.querySelectorAll('td.set .cell, td.now .cell-now');
-  if (!cells.length) return;
+  function fillSetFonts(el){
+    const cells = el.querySelectorAll('td.set .cell, td.now .cell-now');
+    if (!cells.length) return;
 
-  // se ainda não há layout neste frame, sai
-  const r0 = cells[0].getBoundingClientRect();
-  if (!r0.width || !r0.height) return;
+    const r0 = cells[0].getBoundingClientRect();
+    if (!r0.width || !r0.height) return;
 
-  const overflow = () => {
-    for (const c of cells){
-      // não usamos getComputedStyle; basta comparar scroll vs client box
-      if (c.scrollWidth > c.clientWidth + 0.5)  return true;
-      if (c.scrollHeight > c.clientHeight + 0.5) return true;
+    const overflows = () => {
+      for (const c of cells){
+        if (c.scrollWidth  > c.clientWidth  + 0.5) return true;
+        if (c.scrollHeight > c.clientHeight + 0.5) return true;
+      }
+      return false;
+    };
+
+    let seed = Math.max(getVar(el,'--fs-set') || 32, 32);
+    setVar(el,'--fs-set', `${seed}px`);
+    setVar(el,'--fs-now', `${seed}px`);
+
+    let lo = 16;
+    let hi = seed;
+    const MAX = 640;
+    while (!overflows() && hi < MAX){
+      lo = hi;
+      hi = Math.min(MAX, Math.round(hi * 1.35));
+      setVar(el,'--fs-set', `${hi}px`);
+      setVar(el,'--fs-now', `${hi}px`);
     }
-    return false;
-  };
 
-  // 1) cresce até “bater” no limite
-  let fs = getVar(el, '--fs-set') || 24;
-  let steps = 60;                         // trava de segurança
-  while (!overflow() && steps-- > 0){
-    fs += 1;
-    setVar(el, '--fs-set', `${fs}px`);
-    setVar(el, '--fs-now', `${fs}px`);
+    let best = lo;
+    while (lo <= hi){
+      const mid = (lo + hi) >> 1;
+      setVar(el,'--fs-set', `${mid}px`);
+      setVar(el,'--fs-now', `${mid}px`);
+      if (overflows()){
+        hi = mid - 1;
+      } else {
+        best = mid;
+        lo = mid + 1;
+      }
+    }
+
+    const final = Math.max(16, best - 1);
+    setVar(el,'--fs-set', `${final}px`);
+    setVar(el,'--fs-now', `${final}px`);
   }
 
-  // 2) se passou o limite, recua um bocadinho
-  if (overflow()){
-    fs = Math.max(16, fs - 2);
-    setVar(el, '--fs-set', `${fs}px`);
-    setVar(el, '--fs-now', `${fs}px`);
+  function calibrateTile(el){
+    fitNames(el);
+    fitBadges(el);
+    maybeFitTableWidth(el);
+    fillSetFonts(el);
+    fitTileVertically(el);
+
+    if (document.fonts && document.fonts.ready){
+      document.fonts.ready.then(() => {
+        fitNames(el); fitBadges(el); maybeFitTableWidth(el); fillSetFonts(el); fitTileVertically(el);
+      });
+    }
+    setTimeout(() => {
+      fitNames(el); fitBadges(el); maybeFitTableWidth(el); fillSetFonts(el); fitTileVertically(el);
+    }, 120);
   }
-}
-
-
-
-function calibrateTile(el){
-  fitNames(el); fitBadges(el); fitTableWidth?.(el); fillSetFonts(el); fitTileVertically(el);
-  if (document.fonts && document.fonts.ready){
-    document.fonts.ready.then(() => { fitNames(el); fitBadges(el); fitTableWidth?.(el); fillSetFonts(el); fitTileVertically(el); });
-  }
-  setTimeout(() => { fitNames(el); fitBadges(el); fitTableWidth?.(el); fillSetFonts(el); fitTileVertically(el); }, 120);
-}
 
   function shrinkVars(el, factor = 0.94){
     const clamp = (v,min,max) => Math.max(min, Math.min(max, v));
@@ -327,8 +348,8 @@ function calibrateTile(el){
     let cols = [];
     let titles = [];
     if (cfg.isProset){
-        cols.push(0);
-        titles.push('Proset');
+      cols.push(0);
+      titles.push('Proset');
     } else {
       if (setConcluded[0] || (isRegularPlaying && currentIndex === 0) || (normalTB && currentIndex === 0)){
         cols.push(0); titles.push('1º Set');
@@ -413,26 +434,24 @@ function calibrateTile(el){
 
     const headerSetTh = meta.titles.map(t => `<th class="set">${t}</th>`).join('');
 
-function setCellVal(i, team){
-  // PROSET — durante o jogo: mostrar JOGOS atuais; terminado: score final
-  if (cfg.isProset){
-    const ss = sets[i];
-    if (isSetConcluded(ss, cfg, i)) {
-      return String(team === 1 ? (ss?.team1 ?? g1) : (ss?.team2 ?? g2));
+    function setCellVal(i, team){
+      // PROSET
+      if (cfg.isProset){
+        const ss = sets[i];
+        if (isSetConcluded(ss, cfg, i)) {
+          return String(team === 1 ? (ss?.team1 ?? g1) : (ss?.team2 ?? g2));
+        }
+        return String(team === 1 ? g1 : g2);
+      }
+      // Best-of-3
+      if (meta.normalTB && i === meta.currentIndex) return '6';
+      if (meta.isRegularPlaying && i === meta.currentIndex){
+        return String(team === 1 ? g1 : g2);
+      }
+      const ss = sets[i];
+      if (!ss || !isSetConcluded(ss, cfg, i)) return '';
+      return String(team === 1 ? (ss.team1 ?? '') : (ss.team2 ?? ''));
     }
-    return String(team === 1 ? g1 : g2);
-  }
-
-  // Best-of-3 / normal
-  if (meta.normalTB && i === meta.currentIndex) return '6';           // 6–6 em TB normal
-  if (meta.isRegularPlaying && i === meta.currentIndex){
-    return String(team === 1 ? g1 : g2);                               // jogos do set corrente
-  }
-  const ss = sets[i];
-  if (!ss || !isSetConcluded(ss, cfg, i)) return '';
-  return String(team === 1 ? (ss.team1 ?? '') : (ss.team2 ?? ''));
-}
-
 
     const rowTopSets  = meta.cols.map(i => `<td class="set"><div class="cell">${setCellVal(i,1)}</div></td>`).join('');
     const rowBotSets  = meta.cols.map(i => `<td class="set"><div class="cell">${setCellVal(i,2)}</div></td>`).join('');
@@ -478,13 +497,13 @@ function setCellVal(i, team){
       </table>
     `;
 
-    // final fit pass
     requestAnimationFrame(()=>calibrateTile(wrap));
     return wrap;
   }
 
   function updateTile(el, game){
     const meta = computeShape(game);
+
     if (el.dataset.shapeKey !== meta.shapeKey){
       const rep = buildTile(game);
       copyVars(el, rep);
@@ -494,6 +513,7 @@ function setCellVal(i, team){
     }
 
     el.dataset.gameId = game.id;
+
     const row = el.querySelector('.row');
     const courtBadge = row?.querySelector('.badge.court');
     const statusBadge = row?.querySelector('.badge.status');
@@ -540,26 +560,22 @@ function setCellVal(i, team){
     }
 
     const setCells = el.querySelectorAll('td.set .cell');
-
     function setCellVal(i, team){
-    // PROSET — durante o jogo: mostrar JOGOS atuais; terminado: score final
-    if (meta.cfg.isProset){
+      if (meta.cfg.isProset){
         const ss = meta.sets[i];
         if (isSetConcluded(ss, meta.cfg, i)) {
-        return String(team === 1 ? (ss?.team1 ?? g1) : (ss?.team2 ?? g2));
+          return String(team === 1 ? (ss?.team1 ?? g1) : (ss?.team2 ?? g2));
         }
         return String(team === 1 ? g1 : g2);
-    }
-
-    if (meta.normalTB && i === meta.currentIndex) return '6';
-    if (meta.isRegularPlaying && i === meta.currentIndex){
+      }
+      if (meta.normalTB && i === meta.currentIndex) return '6';
+      if (meta.isRegularPlaying && i === meta.currentIndex){
         return String(team === 1 ? g1 : g2);
+      }
+      const ss = meta.sets[i];
+      if (!ss || !isSetConcluded(ss, meta.cfg, i)) return '';
+      return String(team === 1 ? (ss.team1 ?? '') : (ss.team2 ?? ''));
     }
-    const ss = meta.sets[i];
-    if (!ss || !isSetConcluded(ss, meta.cfg, i)) return '';
-    return String(team === 1 ? (ss.team1 ?? '') : (ss.team2 ?? ''));
-    }
-
     const n = meta.cols.length;
     for (let c = 0; c < n; c++) {
       const i = meta.cols[c];
@@ -569,7 +585,6 @@ function setCellVal(i, team){
       if (botEl) botEl.textContent = setCellVal(i, 2);
     }
 
-    // ensure numbers fit after updates
     fillSetFonts(el);
     fitTileVertically(el);
 
@@ -640,6 +655,7 @@ function setCellVal(i, team){
     return { slots, positions, ids };
   }
 
+  /* ---------- render persistente ---------- */
   let tileEls = [];
   function renderGridSlots(slots, positions){
     const [cols, rows] = computeGridFromPositions(positions);
@@ -655,6 +671,7 @@ function setCellVal(i, team){
         try { tileSizer.observe(el); } catch {}
         return el;
       });
+      firstCalibrate();
       return;
     }
 
@@ -681,8 +698,10 @@ function setCellVal(i, team){
         tileEls[i] = updateTile(el, item);
       }
     }
+    firstCalibrate();
   }
 
+  /* ---------- bootstrap & realtime ---------- */
   let currentSlots = [];
   let currentIds = [];
   let screen = null;
@@ -692,6 +711,7 @@ function setCellVal(i, team){
     currentSlots = pack.slots;
     currentIds   = pack.ids;
     renderGridSlots(currentSlots, pack.positions);
+    firstCalibrate();
   }
 
   try {
@@ -699,6 +719,7 @@ function setCellVal(i, team){
     setBrand(screen);
     if (screen?.kiosk) document.body.classList.add('hide-cursor');
     await reloadAll();
+    firstCalibrate();
     touch('Ligado', true);
   } catch (e) {
     console.error('Erro a carregar screen/selections:', e);
@@ -747,41 +768,37 @@ function setCellVal(i, team){
 
   if (screen?.id){
     supabase.channel('screen-meta-live')
-        .on('postgres_changes', {
-            event: '*',
-            schema: 'public',
-            table: 'scoreboards',
-            filter: `id=eq.${screen.id}`,
-        }, async (payload) => {
-            const row = payload.new ?? payload.old ?? {};
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'scoreboards',
+        filter: `id=eq.${screen.id}`,
+      }, async (payload) => {
+        const row = payload.new ?? payload.old ?? {};
 
-            // Atualizar header (logo/título) se vierem campos novos
-            if (Object.prototype.hasOwnProperty.call(row, 'title')
-                || Object.prototype.hasOwnProperty.call(row, 'logo_url')) {
+        if (Object.prototype.hasOwnProperty.call(row, 'title')
+            || Object.prototype.hasOwnProperty.call(row, 'logo_url')) {
+          if (Object.prototype.hasOwnProperty.call(row, 'title')) {
+            screen.title = row.title;
+          }
+          if (Object.prototype.hasOwnProperty.call(row, 'logo_url')) {
+            screen.logo_url = row.logo_url;
+          }
+          setBrand(screen);
+        }
 
-            if (Object.prototype.hasOwnProperty.call(row, 'title')) {
-                screen.title = row.title;          // guardar no estado
-            }
-            if (Object.prototype.hasOwnProperty.call(row, 'logo_url')) {
-                screen.logo_url = row.logo_url;    // guardar no estado
-            }
-            setBrand(screen);                     // aplica logo/título no header
-            }
+        if (Object.prototype.hasOwnProperty.call(row, 'positions')
+            && row.positions !== undefined
+            && row.positions !== screen.positions) {
+          screen.positions = row.positions;
+          await reloadAll();
+        }
 
-            // Reagir a alteração do nº de posições (re-render slots)
-            if (Object.prototype.hasOwnProperty.call(row, 'positions')
-                && row.positions !== undefined
-                && row.positions !== screen.positions) {
-            screen.positions = row.positions;
-            await reloadAll();
-            }
-
-            // Modo quiosque (ocultar cursor)
-            if (row?.kiosk) {
-            document.body.classList.add('hide-cursor');
-            }
-        })
-        .subscribe();
+        if (row?.kiosk) {
+          document.body.classList.add('hide-cursor');
+        }
+      })
+      .subscribe();
 
     setupSelectionSubscription(screen.id);
     const pack = await buildSlots(screen);
@@ -789,28 +806,24 @@ function setCellVal(i, team){
     await resubscribe(currentIds);
   }
 
-  let rAF; const onResize=()=>{ cancelAnimationFrame(rAF); rAF=requestAnimationFrame(()=> renderGridSlots(currentSlots, (screen?.positions)||currentSlots.length||1)); };
+  let rAF;
+  const onResize=()=>{ cancelAnimationFrame(rAF); rAF=requestAnimationFrame(()=> renderGridSlots(currentSlots, (screen?.positions)||currentSlots.length||1)); };
   window.addEventListener('resize', onResize);
   window.addEventListener('orientationchange', onResize);
 
-document.addEventListener('fullscreenchange', () => {
-  tileEls.forEach((el, i) => {
-    const game = currentSlots[i];
-    if (!el || !game) return;
-    const rep = updateTile(el, game); // reescreve texto
-    tileEls[i] = rep;
+  /* ---------- calibração global (arranque/resize/fonts) ---------- */
+  function firstCalibrate(){
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (rep && rep.isConnected){
-          fitTableWidth?.(rep);
-          fillSetFonts(rep);
-          fitTileVertically(rep);
-        }
-      });
+      tileEls.forEach(el => el && calibrateTile(el));
     });
-  });
-});
-
-
-
+    if (document.fonts && document.fonts.ready){
+      document.fonts.ready.then(() => {
+        tileEls.forEach(el => el && calibrateTile(el));
+      });
+    }
+    setTimeout(() => {
+      tileEls.forEach(el => el && calibrateTile(el));
+    }, 120);
+  }
+  window.addEventListener('load', firstCalibrate);
 })();
