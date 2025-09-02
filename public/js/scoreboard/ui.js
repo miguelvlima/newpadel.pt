@@ -270,7 +270,7 @@ export function buildOrUpdateGrid(grid, positions, slots, patch){
       const item = slots[i];
       const el = item ? buildTile(item) : emptyTile();
       grid.appendChild(el);
-      watchTile(rep);
+      watchTile(el);
       return el;
     });
     return;
