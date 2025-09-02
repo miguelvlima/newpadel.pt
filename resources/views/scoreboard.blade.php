@@ -25,7 +25,7 @@
       --app-h: 100vh;
       --now-glow: 159,206,100;   /* r,g,b */
 
-      --fs-name: 22px;  --fs-set: 36px;  --fs-now: 26px;  --fs-head: 12px;
+      --fs-name: 22px;  --fs-set: 26px;  --fs-now: 26px;  --fs-head: 12px;
       --fs-badge: 14px;
       --set-minw: 110px;
       --spacer-w: 18px;
@@ -185,6 +185,6 @@
     <div class="muted">© New Padel Solutions 2025</div>
   </footer>
 
-  <script type="module" src="/js/filament/scoreboard.js?v=62"></script>
+  <script type="module" src="/js/filament/scoreboard.js?v=63"></script>
 </body>
 </html>

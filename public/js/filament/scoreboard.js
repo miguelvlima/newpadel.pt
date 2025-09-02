@@ -158,9 +158,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           const base = Math.max(0, Math.min(w, h));
 
           const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
-          const fsName = clamp(base * 0.24, 22, 140);
-          const fsSet  = clamp(base * 0.24, 28, 150);
-          const fsHead = clamp(fsSet * 0.55, 12, 34);
+const fsName = clamp(base * 0.34, 28, 200); // ↑ bem maior
+const fsSet  = clamp(base * 0.34, 36, 240);  // ↑ multiplicador, ↑ mínimos e máximos
+const fsHead = clamp(fsSet * 0.55, 12, 36);
           const fsNow  = fsSet;
 
           const fsBadge   = clamp(base * 0.11, 12, 40);
@@ -171,7 +171,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           const padY = clamp(base * 0.06, 10, 30);
           const padX = clamp(base * 0.085, 12, 38);
 
-          const setMinW = clamp(w * 0.16, 90, 240);
+const setMinW = clamp(w * 0.22, 120, 320);   // ↑ largura mínima por coluna de set
           const spacerW = clamp(w * 0.03, 12, 40);
 
           setVar(el, '--fs-name',  `${fsName}px`);
