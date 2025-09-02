@@ -225,13 +225,13 @@ function updateTile(el, game){
     ensureNumWrappers(el);
 
   requestAnimationFrame(() => {
-    setRowHeightVar(wrap);
-    watchTile(wrap);           // << observa tamanho do tile
-    fitNames(wrap);
-    fitBadges(wrap);
-    fitTileVertically(wrap);
-    scaleNumbersToFit(wrap);
-    ensureNumWrappers(wrap);
+    setRowHeightVar(el);
+    watchTile(el);           // << observa tamanho do tile
+    fitNames(el);
+    fitBadges(el);
+    fitTileVertically(el);
+    scaleNumbersToFit(el);
+    ensureNumWrappers(el);
   });
   return el;
 }
