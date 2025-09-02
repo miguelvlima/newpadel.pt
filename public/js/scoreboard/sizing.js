@@ -25,37 +25,43 @@ export function fitBadges(tile){
   }
 }
 
-/* === ESCALA APENAS O NÚMERO (sem mexer na célula) === */
-function ensureNum(container){
-  if (!container) return null;
-  let span = container.querySelector('.num');
-  if (!span) {
-    span = document.createElement('span');
-    span.className='num';
-    span.textContent = container.textContent || '';
-    container.textContent = '';
-    container.appendChild(span);
-  }
-  return span;
+export function ensureNumWrappers(root){
+  const cells = root.querySelectorAll('td.set .cell, td.now .cell-now');
+  cells.forEach(cell => {
+    if (!cell) return;
+    // já tem wrapper?
+    if (cell.querySelector('.num')) return;
+    // só texto? embrulhamos
+    const text = cell.textContent;
+    cell.textContent = '';
+    const span = document.createElement('span');
+    span.className = 'num';
+    span.textContent = text;
+    cell.appendChild(span);
+  });
 }
-function scaleOneNumber(cell){
-  const span = ensureNum(cell);
-  if (!span) return;
-  span.style.transform = 'translate(-50%, -50%) scale(1)';
-  const fit = () => {
-    const cw = cell.clientWidth, ch = cell.clientHeight;
-    const r = span.getBoundingClientRect();
-    if (!cw || !ch || !r.width || !r.height) return;
-    const s = Math.max(0.1, Math.min((cw-2)/r.width, (ch-2)/r.height)) * 0.98;
-    span.style.transform = `translate(-50%, -50%) scale(${s})`;
-  };
-  fit(); requestAnimationFrame(fit);
-}
-export function scaleNumbers(tile){
-  tile.querySelectorAll('td.set .cell, td.now .cell-now').forEach(scaleOneNumber);
-}
-export function scaleAllTiles(){
-  document.querySelectorAll('.tile').forEach(scaleNumbers);
+
+export function scaleNumbersToFit(root){
+  const cells = root.querySelectorAll('td.set .cell, td.now .cell-now');
+  cells.forEach(cell => {
+    const num = cell.querySelector('.num');
+    if (!num) return;
+
+    // reset para medir "tamanho real"
+    num.style.transform = 'scale(1)';
+    // medir caixa disponível
+    const w = cell.clientWidth;
+    const h = cell.clientHeight;
+    // medir conteúdo
+    const r = num.getBoundingClientRect();
+    const scaleW = w > 0 && r.width  > 0 ? (w / r.width)  : 1;
+    const scaleH = h > 0 && r.height > 0 ? (h / r.height) : 1;
+    // margem de segurança para não colar nas bordas
+    let s = 0.94 * Math.min(scaleW, scaleH);
+    // limites razoáveis
+    s = Math.max(0.60, Math.min(1.80, s));
+    num.style.transform = `scale(${s})`;
+  });
 }
 
 /* altura: encolhe margens/padding antes de reduzir fontes */

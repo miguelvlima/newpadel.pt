@@ -1,6 +1,6 @@
 // /public/js/scoreboard/ui.js
 import { parseFormat, isSetConcluded, countWonSets, tennisPoint, isNormalTBActive, superTBActive } from './rules.js';
-import { fitNames, fitBadges, fitTileVertically, scaleNumbers, watchTile } from './sizing.js';
+import { fitNames, fitBadges, fitTileVertically, scaleNumbers, watchTile, ensureNumWrappers, scaleNumbersToFit } from './sizing.js';
 
 let TILE_ELS = [];
 let CURRENT_SLOTS = [];
@@ -163,6 +163,9 @@ function buildTile(game){
     scaleNumbers(wrap);
   });
 
+    ensureNumWrappers(wrap);
+    requestAnimationFrame(() => scaleNumbersToFit(wrap));
+
   return wrap;
 }
 
@@ -226,8 +229,13 @@ function updateTile(el, game){
     if (botEl) botEl.textContent = setCellVal(meta, i, 2);
   }
 
+
+
   // ensure fit
   fitNames(el); fitBadges(el); fitTileVertically(el); scaleNumbers(el);
+
+    ensureNumWrappers(el);
+    requestAnimationFrame(() => scaleNumbersToFit(el));
   return el;
 }
 

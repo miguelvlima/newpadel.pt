@@ -91,6 +91,10 @@ import { scaleAllTiles } from './sizing.js';
     touch('Erro inicial', false);
   }
 
+  function rescaleAllTiles(){
+    document.querySelectorAll('.tile').forEach(t => scaleNumbersToFit(t));
+    }
+
   // Responsivo
   window.addEventListener('resize', () => {
     requestAnimationFrame(() => {
@@ -104,4 +108,7 @@ import { scaleAllTiles } from './sizing.js';
       scaleAllTiles();
     });
   });
+
+  document.addEventListener('fullscreenchange', rescaleAllTiles);
+
 })();

@@ -108,59 +108,43 @@ main{
 .scoretable td.set > .cell{
   display:flex; align-items:center; justify-content:center;
   padding: var(--pad-cell-y-tight) var(--pad-cell-x-tight);
-
-  /* baseline da célula: é dinâmica via JS (ResizeObserver) */
-  font-size: var(--fs-cell);
   line-height: 1;
-  min-height: calc(var(--fs-cell) * 2.6);   /* <<< dá altura real à célula */
-
+  min-height: 2.6em;                /* <- NÃO cresce com o número */
   min-width: var(--set-minw);
-  background:var(--set-bg); border:1px solid var(--set-br);
-  font-weight:900; color:#fff;
+  background: var(--set-bg);
+  border:1px solid var(--set-br);
+  font-weight:900;                   /* font-size base fica como estava */
+  font-size: var(--fs-set);
+  color:#fff;
   font-variant-numeric: tabular-nums;
-
-  overflow: hidden;
-  position: relative;
+  overflow: hidden;                  /* corta o que passar */
 }
 
 /* === AGORA (mesma baseline) === */
 .scoretable td.now > .cell-now{
   display:flex; align-items:center; justify-content:center;
   padding: var(--pad-cell-y-tight) var(--pad-cell-x-tight);
-
-  font-size: var(--fs-cell);
   line-height: 1;
-  min-height: calc(var(--fs-cell) * 2.6);   /* <<< igual aos sets */
-
+  min-height: 2.6em;                /* <- igual aos sets */
   min-width: var(--set-minw);
-  color:var(--now-fg);
+  color: var(--now-fg);
   background:linear-gradient(180deg, rgba(var(--now-glow), .18), rgba(var(--now-glow), .10));
   border:1px solid rgba(var(--now-glow), .45);
   box-shadow: 0 0 0 2px rgba(var(--now-glow), .20) inset, 0 0 24px rgba(var(--now-glow), .15);
   font-weight:900;
+  font-size: var(--fs-set);
   font-variant-numeric: tabular-nums;
-
   overflow: hidden;
-  position: relative;
 }
 
 
 /* O NÚMERO escala; a célula fica quieta */
 .scoretable .cell .num,
 .scoretable .cell-now .num{
-  position: absolute;
-  left: 50%; top: 50%;
-  transform: translate(-50%, -50%) scale(1);
-  transform-origin: center;
-
-  display: inline-block;
-  line-height: 1;
+  display:inline-block;
+  line-height:1;
+  transform-origin:center;
   will-change: transform;
-
-  /* baseline para cálculo; o “tamanho real” vem do scale() em JS */
-  font-size: 100px;
-  font-weight: 900;
-  font-variant-numeric: tabular-nums;
 }
 
 /* Transições suaves no “AGORA” sem reflow */
