@@ -1,6 +1,5 @@
 // public/js/filament/scoreboard.js (v53)
 // Fix: numbers & names never overflow their badges/tiles.
-// - New fitSetFonts(): shrinks --fs-set/--fs-now per tile until all cells fit.
 // - Called on resize, after build, and after in-place updates.
 // - Keeps the big look but respects the badge bounds.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -190,7 +189,7 @@ const setMinW = clamp(w * 0.22, 120, 320);   // ↑ largura mínima por coluna d
           requestAnimationFrame(() => {
             fitNames(el);
             fitBadges(el);
-            fitSetFonts(el);
+            fillSetFonts(el);
             fitTileVertically(el);
           });
         }
@@ -253,13 +252,13 @@ function fillSetFonts(el){
 
 
 
-  function calibrateTile(el){
-    fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el);
-    if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); });
-    }
-    setTimeout(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); }, 120);
+function calibrateTile(el){
+  fitNames(el); fitBadges(el); fitTableWidth?.(el); fillSetFonts(el); fitTileVertically(el);
+  if (document.fonts && document.fonts.ready){
+    document.fonts.ready.then(() => { fitNames(el); fitBadges(el); fitTableWidth?.(el); fillSetFonts(el); fitTileVertically(el); });
   }
+  setTimeout(() => { fitNames(el); fitBadges(el); fitTableWidth?.(el); fillSetFonts(el); fitTileVertically(el); }, 120);
+}
 
   function shrinkVars(el, factor = 0.94){
     const clamp = (v,min,max) => Math.max(min, Math.min(max, v));
@@ -571,7 +570,7 @@ function setCellVal(i, team){
     }
 
     // ensure numbers fit after updates
-    fitSetFonts(el);
+    fillSetFonts(el);
     fitTileVertically(el);
 
     return el;
@@ -795,28 +794,23 @@ function setCellVal(i, team){
   window.addEventListener('orientationchange', onResize);
 
 document.addEventListener('fullscreenchange', () => {
-  // re-aplica os números (sem rebuild global) e calibra depois do layout estabilizar
   tileEls.forEach((el, i) => {
-    if (!el || !el.isConnected) return;
     const game = currentSlots[i];
-    if (!game) return;
-
-    // 1º: re-escreve texto (garante que pró-set volta a ter dígitos)
-    const rep = updateTile(el, game);
+    if (!el || !game) return;
+    const rep = updateTile(el, game); // reescreve texto
     tileEls[i] = rep;
-
-    // 2º: após 1–2 frames, calibra fontes/larguras
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        if (rep && rep.isConnected) {
-          fitSetFonts(rep);
-          fitTableWidth?.(rep);      // se tens esta helper
+        if (rep && rep.isConnected){
+          fitTableWidth?.(rep);
+          fillSetFonts(rep);
           fitTileVertically(rep);
         }
       });
     });
   });
 });
+
 
 
 })();
