@@ -2,8 +2,9 @@
 
 import { setAppHeight, onFullscreenToggle, byId } from './utils.js';
 import { initSupabase, fetchScreen, fetchSlots, subscribeSelections, subscribeGames, subscribeScreenMeta } from './supabase-api.js';
-import { buildOrUpdateGrid, getTileEls, getCurrentSlots, setCurrentSlots } from './ui.js';
-import { scaleAllTiles } from './sizing.js';
+import { buildOrUpdateGrid, getCurrentSlots, setCurrentSlots } from './ui.js';
+import { scaleNumbersToFit } from './sizing.js';
+
 
 (async () => {
   setAppHeight();
@@ -26,7 +27,7 @@ import { scaleAllTiles } from './sizing.js';
   onFullscreenToggle(() => {
     if (fsBtn) fsBtn.style.display = document.fullscreenElement ? 'none' : '';
     // Recalibra números ao entrar/sair de fullscreen
-    requestAnimationFrame(scaleAllTiles);
+    requestAnimationFrame(rescaleAllTiles);
   });
 
   // Status clock
@@ -67,7 +68,7 @@ import { scaleAllTiles } from './sizing.js';
     subscribeGames(sb, () => getCurrentSlots(), (idx, game) => {
       // UI atualiza in-place; depois escalamos números
       buildOrUpdateGrid(grid, screen.positions || getCurrentSlots().length, getCurrentSlots(), { patchIndex: idx, patchGame: game });
-      requestAnimationFrame(scaleAllTiles);
+      requestAnimationFrame(rescaleAllTiles);
       touch('Atualizado', true);
     });
 
@@ -99,13 +100,13 @@ import { scaleAllTiles } from './sizing.js';
   window.addEventListener('resize', () => {
     requestAnimationFrame(() => {
       buildOrUpdateGrid(grid, screen?.positions || getCurrentSlots().length || 1, getCurrentSlots());
-      scaleAllTiles();
+      rescaleAllTiles();
     });
   });
   window.addEventListener('orientationchange', () => {
     requestAnimationFrame(() => {
       buildOrUpdateGrid(grid, screen?.positions || getCurrentSlots().length || 1, getCurrentSlots());
-      scaleAllTiles();
+      rescaleAllTiles();
     });
   });
 
