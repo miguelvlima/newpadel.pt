@@ -175,8 +175,8 @@ const setMinW = clamp(w * 0.22, 120, 320);   // ↑ largura mínima por coluna d
           const spacerW = clamp(w * 0.03, 12, 40);
 
           setVar(el, '--fs-name',  `${fsName}px`);
-          // setVar(el, '--fs-set',   `${fsSet}px`);
-          // setVar(el, '--fs-now',   `${fsNow}px`);
+          setVar(el, '--fs-set',   `${fsSet}px`);
+          setVar(el, '--fs-now',   `${fsNow}px`);
           setVar(el, '--fs-head',  `${fsHead}px`);
           setVar(el, '--fs-badge', `${fsBadge}px`);
           setVar(el, '--badge-pad-y', `${badgePadY}px`);
@@ -192,8 +192,6 @@ const setMinW = clamp(w * 0.22, 120, 320);   // ↑ largura mínima por coluna d
             fitBadges(el);
             fitSetFonts(el);
             fitTileVertically(el);
-            fitNumbersToCells(el);
-            scaleNumbers(el);
           });
         }
       })
@@ -219,118 +217,47 @@ const setMinW = clamp(w * 0.22, 120, 320);   // ↑ largura mínima por coluna d
     }
   }
 
-    // === SUBSTITUIR a função existente por esta ===
-function fitSetFonts(el){
-  // Todas as células com números (sets + "AGORA")
-  const cells = el.querySelectorAll('td.set .cell, td.now .cell-now');
-  if (!cells.length) return;
+    function fitSetFonts(el){
+    const cells = el.querySelectorAll('td.set .cell, td.now .cell-now');
+    if (!cells.length) return;
 
-  // Garante que já há layout (evita correr com larguras 0)
-  const r0 = cells[0].getBoundingClientRect();
-  if (!r0.width || !r0.height) return;
+    // ⬇⬇ Se ainda não há layout (larguras 0), não mexer
+    const firstRect = cells[0].getBoundingClientRect();
+    if (firstRect.width === 0 || firstRect.height === 0) return;
 
-  // Helper: há overflow?
-  const overflows = () => {
-    for (const c of cells){
-      if (c.scrollWidth  > c.clientWidth  + 0.5) return true;
-      if (c.scrollHeight > c.clientHeight + 0.5) return true;
+    let fs = getVar(el, '--fs-set') || 24;
+    let tries = 0;
+    const overflow = () => {
+        for (const c of cells){
+        const r = c.getBoundingClientRect();
+        if (r.width === 0 || r.height === 0) return false; // evita decisões com 0
+        if (c.scrollWidth > c.clientWidth + 0.5) return true;
+        if (c.scrollHeight > c.clientHeight + 0.5) return true;
+        }
+        return false;
+    };
+    while (overflow() && fs > 16 && tries < 40){
+        fs -= 1;
+        setVar(el, '--fs-set', `${fs}px`);
+        setVar(el, '--fs-now', `${fs}px`);
+        tries++;
     }
-    return false;
-  };
-
-  // Seed: parte do valor atual (ou 24) e cresce
-  let seed = Math.max(getVar(el,'--fs-set') || 24, 24);
-  //setVar(el,'--fs-set', `${seed}px`);
-  //setVar(el,'--fs-now', `${seed}px`); // "AGORA" sempre igual aos sets
-
-  // 1) Crescimento exponencial até tocar no limite
-  let lo = 16;              // cabe
-  let hi = seed;            // candidato
-  const MAX = 640;          // teto de segurança
-  while (!overflows() && hi < MAX){
-    lo = hi;
-    hi = Math.min(MAX, Math.round(hi * 1.35)); // cresce 35%
-    //setVar(el,'--fs-set', `${hi}px`);
-    //setVar(el,'--fs-now', `${hi}px`);
-  }
-
-  // 2) Busca binária entre lo (cabe) e hi (ultrapassa)
-  let best = lo;
-  while (lo <= hi){
-    const mid = (lo + hi) >> 1;
-    //setVar(el,'--fs-set', `${mid}px`);
-    //setVar(el,'--fs-now', `${mid}px`);
-    if (overflows()){
-      hi = mid - 1;
-    } else {
-      best = mid;
-      lo = mid + 1;
     }
-  }
-
-  // 3) Aplica o melhor valor (no limite da célula)
-  //setVar(el,'--fs-set', `${best}px`);
-  //setVar(el,'--fs-now', `${best}px`);
-}
-
-// Faz os números preencherem a célula sem ultrapassar (mesmo tamanho em todas)
-function fitNumbersToCells(el){
-  const cells = el.querySelectorAll('td.set .cell, td.now .cell-now');
-  if (!cells.length) return;
-
-  // probe para medir texto com a mesma fonte/peso
-  const probe = document.createElement('span');
-  probe.style.cssText = [
-    'position:absolute','visibility:hidden','white-space:nowrap',
-    'left:-9999px','top:-9999px','font-family:inherit','font-weight:900','line-height:1'
-  ].join(';');
-  document.body.appendChild(probe);
-
-  // usamos "88" como pior caso de largura/altura em dígitos
-  const SAMPLE = '88';
-  let best = Infinity;
-
-  cells.forEach(c => {
-    const boxW = c.clientWidth;
-    const boxH = c.clientHeight;
-    if (!boxW || !boxH) return;
-
-    // medir a relação px -> largura/altura do texto
-    probe.textContent = SAMPLE;
-    probe.style.fontSize = '100px';
-    const ratioW = probe.offsetWidth  / 100;   // largura por 1px de font
-    const ratioH = probe.offsetHeight / 100;   // altura  por 1px de font
-
-    // margem de 8% para respirar
-    const sizeByH = (boxH / ratioH) * 0.92;
-    const sizeByW = (boxW / ratioW) * 0.92;
-    const fitPx   = Math.floor(Math.min(sizeByH, sizeByW));
-
-    if (fitPx > 0 && fitPx < best) best = fitPx;
-  });
-
-  document.body.removeChild(probe);
-  if (!isFinite(best) || best <= 0) return;
-
-  const px = Math.max(12, Math.min(best, 999)); // sanidade
-  cells.forEach(c => { c.style.fontSize = px + 'px'; });
-}
-
 
 
   function calibrateTile(el){
-    fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); fitNumbersToCells(el); scaleNumbers(el);
+    fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el);
     if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); fitNumbersToCells(el); scaleNumbers(el); });
+      document.fonts.ready.then(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); });
     }
-    setTimeout(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); fitNumbersToCells(el); scaleNumbers(el); }, 120);
+    setTimeout(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); }, 120);
   }
 
   function shrinkVars(el, factor = 0.94){
     const clamp = (v,min,max) => Math.max(min, Math.min(max, v));
     const fsName = clamp(getVar(el,'--fs-name')*factor, 16, 160);
-    //const fsSet  = clamp(getVar(el,'--fs-set') *factor, 22, 170);
-    //const fsNow  = clamp(getVar(el,'--fs-now') *factor, 22, 170);
+    const fsSet  = clamp(getVar(el,'--fs-set') *factor, 22, 170);
+    const fsNow  = clamp(getVar(el,'--fs-now') *factor, 22, 170);
     const fsHead = clamp(getVar(el,'--fs-head')*factor, 10, 36);
     const gapV   = clamp(getVar(el,'--gap-v')   *factor, 6, 30);
     const padY   = clamp(getVar(el,'--pad-cell-y')*factor, 8, 32);
@@ -341,8 +268,8 @@ function fitNumbersToCells(el){
     const setMinW   = clamp(getVar(el,'--set-minw')*factor, 80, 260);
 
     setVar(el,'--fs-name',`${fsName}px`);
-    //setVar(el,'--fs-set', `${fsSet}px`);
-    //setVar(el,'--fs-now', `${fsNow}px`);
+    setVar(el,'--fs-set', `${fsSet}px`);
+    setVar(el,'--fs-now', `${fsNow}px`);
     setVar(el,'--fs-head',`${fsHead}px`);
     setVar(el,'--gap-v', `${gapV}px`);
     setVar(el,'--pad-cell-y',`${padY}px`);
@@ -370,50 +297,6 @@ function fitNumbersToCells(el){
     };
     requestAnimationFrame(step);
   }
-
-  // Garante que o conteúdo numérico está dentro de <span class="num">...</span>
-function ensureNumWrapper(container) {
-  if (!container) return null;
-  let span = container.querySelector('.num');
-  if (!span) {
-    span = document.createElement('span');
-    span.className = 'num';
-    // move o texto atual para dentro do span
-    span.textContent = container.textContent || '';
-    container.textContent = '';
-    container.appendChild(span);
-  }
-  return span;
-}
-
-// Escala um <span.num> para caber na célula SEM alterar a célula
-function scaleOneNumber(cell) {
-  const span = ensureNumWrapper(cell);
-  if (!span) return;
-
-  // reset para medir tamanho "natural"
-  span.style.transform = 'scale(1)';
-
-  // retardador de 1 frame para ter dimensões corretas após updates
-  const fit = () => {
-    const cw = cell.clientWidth;
-    const ch = cell.clientHeight;
-    const br = span.getBoundingClientRect();
-    // segurança de 2px contra bordas internas
-    const s = Math.max(0.1, Math.min((cw - 2) / Math.max(br.width, 1), (ch - 2) / Math.max(br.height, 1))) * 0.98;
-    span.style.transform = `scale(${s})`;
-  };
-  // mede já e mede de novo no próximo frame (evita “piscas”)
-  fit();
-  requestAnimationFrame(fit);
-}
-
-// Escala todos os números (sets + now) de um tile
-function scaleNumbers(tileEl) {
-  const cells = tileEl.querySelectorAll('td.set .cell, td.now .cell-now');
-  cells.forEach(scaleOneNumber);
-}
-
 
   /* ---------- shape/key ---------- */
   function computeShape(game){
@@ -544,11 +427,11 @@ function setCellVal(i, team){
 }
 
 
-const rowTopSets  = meta.cols.map(i => `<td class="set"><div class="cell"><span class="num">${setCellVal(i,1)}</span></div></td>`).join('');
-const rowBotSets  = meta.cols.map(i => `<td class="set"><div class="cell"><span class="num">${setCellVal(i,2)}</span></div></td>`).join('');
+    const rowTopSets  = meta.cols.map(i => `<td class="set"><div class="cell">${setCellVal(i,1)}</div></td>`).join('');
+    const rowBotSets  = meta.cols.map(i => `<td class="set"><div class="cell">${setCellVal(i,2)}</div></td>`).join('');
     const maybeNowHeader = meta.showNow ? `<th class="now">${meta.nowTitle}</th>` : '';
-const maybeNowTopTd  = meta.showNow ? `<td class="now"><div class="cell-now"><span class="num">${nowTop}</span></div></td>` : '';
-const maybeNowBotTd  = meta.showNow ? `<td class="now"><div class="cell-now"><span class="num">${nowBot}</span></div></td>` : '';
+    const maybeNowTopTd  = meta.showNow ? `<td class="now"><div class="cell-now">${nowTop}</div></td>` : '';
+    const maybeNowBotTd  = meta.showNow ? `<td class="now"><div class="cell-now">${nowBot}</div></td>` : '';
 
     wrap.innerHTML = `
       <div class="row">
@@ -590,7 +473,6 @@ const maybeNowBotTd  = meta.showNow ? `<td class="now"><div class="cell-now"><sp
 
     // final fit pass
     requestAnimationFrame(()=>calibrateTile(wrap));
-    requestAnimationFrame(() => scaleNumbers(wrap));
     return wrap;
   }
 
@@ -630,8 +512,8 @@ const maybeNowBotTd  = meta.showNow ? `<td class="now"><div class="cell-now"><sp
     if (nameLines[2]) nameLines[2].textContent = n2a;
     if (nameLines[3]) nameLines[3].textContent = n2b;
 
-    const nowNums  = el.querySelectorAll('td.now .cell-now .num');
-    if (nowNums.length){
+    const nowCells = el.querySelectorAll('td.now .cell-now');
+    if (nowCells.length){
       let nowTop='', nowBot='';
       if (meta.superTB){
         const base1 = Number(meta.sets?.[2]?.team1 || 0);
@@ -644,13 +526,13 @@ const maybeNowBotTd  = meta.showNow ? `<td class="now"><div class="cell-now"><sp
         nowTop = String(tennisPoint(p1, meta.cfg.isGP));
         nowBot = String(tennisPoint(p2, meta.cfg.isGP));
       }
-      if (nowNums[0]) nowNums[0].textContent = nowTop;
-      if (nowNums[1]) nowNums[1].textContent = nowBot;
+      if (nowCells[0]) nowCells[0].textContent = nowTop;
+      if (nowCells[1]) nowCells[1].textContent = nowBot;
       const thNow = el.querySelector('th.now');
       if (thNow) thNow.textContent = meta.superTB ? 'Super Tie-break' : (meta.normalTB ? 'Tie-break' : 'Jogo');
     }
 
-    const setNums  = el.querySelectorAll('td.set .cell .num');
+    const setCells = el.querySelectorAll('td.set .cell');
 
     function setCellVal(i, team){
     // PROSET — durante o jogo: mostrar JOGOS atuais; terminado: score final
@@ -674,8 +556,8 @@ const maybeNowBotTd  = meta.showNow ? `<td class="now"><div class="cell-now"><sp
     const n = meta.cols.length;
     for (let c = 0; c < n; c++) {
       const i = meta.cols[c];
-      const topEl = setNums[c];
-      const botEl = setNums[n + c];
+      const topEl = setCells[c];
+      const botEl = setCells[n + c];
       if (topEl) topEl.textContent = setCellVal(i, 1);
       if (botEl) botEl.textContent = setCellVal(i, 2);
     }
@@ -683,8 +565,6 @@ const maybeNowBotTd  = meta.showNow ? `<td class="now"><div class="cell-now"><sp
     // ensure numbers fit after updates
     fitSetFonts(el);
     fitTileVertically(el);
-    fitNumbersToCells(el);
-    scaleNumbers(el);
 
     return el;
   }
@@ -765,7 +645,6 @@ const maybeNowBotTd  = meta.showNow ? `<td class="now"><div class="cell-now"><sp
         const item = slots[i];
         const el = item ? buildTile(item) : emptyTile();
         grid.appendChild(el);
-        if (item) scaleNumbers(el);
         try { tileSizer.observe(el); } catch {}
         return el;
       });
@@ -787,7 +666,6 @@ const maybeNowBotTd  = meta.showNow ? `<td class="now"><div class="cell-now"><sp
       }
       if (!el || el.dataset.type === 'empty' || el.dataset.gameId !== item.id){
         const rep = buildTile(item);
-        if (rep) scaleNumbers(rep);
         if (el) copyVars(el, rep);
         if (el && el.parentNode) el.replaceWith(rep); else grid.appendChild(rep);
         try { tileSizer.observe(rep); } catch {}
@@ -807,7 +685,6 @@ const maybeNowBotTd  = meta.showNow ? `<td class="now"><div class="cell-now"><sp
     currentSlots = pack.slots;
     currentIds   = pack.ids;
     renderGridSlots(currentSlots, pack.positions);
-    requestAnimationFrame(() => tileEls.forEach(el => el && scaleNumbers(el)));
   }
 
   try {
@@ -905,8 +782,6 @@ const maybeNowBotTd  = meta.showNow ? `<td class="now"><div class="cell-now"><sp
     await resubscribe(currentIds);
   }
 
-
-
   let rAF; const onResize=()=>{ cancelAnimationFrame(rAF); rAF=requestAnimationFrame(()=> renderGridSlots(currentSlots, (screen?.positions)||currentSlots.length||1)); };
   window.addEventListener('resize', onResize);
   window.addEventListener('orientationchange', onResize);
@@ -929,8 +804,6 @@ document.addEventListener('fullscreenchange', () => {
           fitSetFonts(rep);
           fitTableWidth?.(rep);      // se tens esta helper
           fitTileVertically(rep);
-          fitNumbersToCells(rep);
-          scaleNumbers(rep);
         }
       });
     });
