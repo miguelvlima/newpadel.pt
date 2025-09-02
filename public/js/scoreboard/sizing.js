@@ -132,7 +132,7 @@ export function watchTile(tile){
   try { ro.observe(tile); } catch {}
 }
 
-function setRowHeightVar(tile){
+export function setRowHeightVar(tile){
   const table = tile.querySelector('.scoretable');
   if (!table) return;
 

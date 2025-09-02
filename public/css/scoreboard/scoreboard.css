@@ -100,8 +100,22 @@ main{
 .scoretable thead th{ font-size:var(--fs-head); letter-spacing:.08em; color:var(--muted); font-weight:700; text-align:center; padding-bottom:4px; }
 .scoretable thead th.names{ text-align:left; }
 .scoretable th, .scoretable td{ border-bottom:0; padding:0 10px; vertical-align:middle; background-clip:padding-box }
-.scoretable td.names{ font-size:var(--fs-name); line-height:1.07; padding-left: var(--names-pad-l); }
-.scoretable td.names .line{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.scoretable td.names{
+  height: var(--row-h);               /* <- mesma altura do resto */
+  display: flex;                      /* duas linhas empilhadas */
+  flex-direction: column;
+  justify-content: center;            /* centra verticalmente o bloco de nomes */
+  gap: 2px;                           /* pequeno respiro entre as duas linhas */
+  padding-left: var(--names-pad-l);   /* já tinhas */
+  overflow: hidden;                   /* não deixa o conteúdo aumentar a linha */
+}
+/* O line-height que queres para os nomes */
+.scoretable td.names .line{
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .scoretable th.flexfill, .scoretable td.flexfill{ width: var(--spacer-w); padding:0; }
 
 .scoretable td.set, .scoretable td.now{ padding:0 !important; }
@@ -132,7 +146,6 @@ main{
     /* altura fixa e sem crescer com o font-size */
   height: var(--row-h);
   min-height: 0;
-
   min-width: var(--set-minw);
   color: var(--now-fg);
   background:linear-gradient(180deg, rgba(var(--now-glow), .18), rgba(var(--now-glow), .10));

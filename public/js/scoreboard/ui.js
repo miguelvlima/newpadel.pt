@@ -1,6 +1,6 @@
 // /public/js/scoreboard/ui.js
 import { parseFormat, isSetConcluded, countWonSets, tennisPoint, isNormalTBActive, superTBActive } from './rules.js';
-import { fitNames, fitBadges, fitTileVertically, watchTile, ensureNumWrappers, scaleNumbersToFit } from './sizing.js';
+import { fitNames, fitBadges, fitTileVertically, watchTile, ensureNumWrappers, scaleNumbersToFit, setRowHeightVar } from './sizing.js';
 
 let TILE_ELS = [];
 let CURRENT_SLOTS = [];
