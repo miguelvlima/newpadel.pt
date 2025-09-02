@@ -107,6 +107,7 @@
       background:var(--set-bg); border:1px solid var(--set-br);
       font-weight:900; font-size:var(--fs-set); line-height:1; color:#fff;
       font-variant-numeric: tabular-nums;
+      overflow: hidden;
     }
 
     .scoretable td.now > .cell-now{
@@ -121,6 +122,15 @@
       box-shadow: 0 0 0 2px rgba(var(--now-glow), .20) inset, 0 0 24px rgba(var(--now-glow), .15);
       font-weight:900; font-size:var(--fs-set); line-height:1;
       font-variant-numeric: tabular-nums;
+      overflow: hidden;
+    }
+
+    .scoretable .cell .num,
+    .scoretable .cell-now .num{
+        display: inline-block;      /* necessário para medir e escalar */
+        line-height: 1;
+        transform-origin: center;
+        will-change: transform;
     }
 
     .placeholder{display:grid;place-items:center;color:#9b9b9b;font-size:18px}
@@ -192,6 +202,6 @@
     <div class="muted">© New Padel Solutions 2025</div>
   </footer>
 
-  <script type="module" src="/js/filament/scoreboard.js?v=75"></script>
+  <script type="module" src="/js/filament/scoreboard.js?v=76"></script>
 </body>
 </html>

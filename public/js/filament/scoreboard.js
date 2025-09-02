@@ -192,6 +192,8 @@ const setMinW = clamp(w * 0.22, 120, 320);   // ↑ largura mínima por coluna d
             fitBadges(el);
             fitSetFonts(el);
             fitTileVertically(el);
+            fitNumbersToCells(el);
+            scaleNumbersToFit(el);
           });
         }
       })
@@ -317,11 +319,11 @@ function fitNumbersToCells(el){
 
 
   function calibrateTile(el){
-    fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); fitNumbersToCells(el);
+    fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); fitNumbersToCells(el); scaleNumbersToFit(el);
     if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); fitNumbersToCells(el); });
+      document.fonts.ready.then(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); fitNumbersToCells(el); scaleNumbersToFit(el); });
     }
-    setTimeout(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); fitNumbersToCells(el); }, 120);
+    setTimeout(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); fitNumbersToCells(el); scaleNumbersToFit(el); }, 120);
   }
 
   function shrinkVars(el, factor = 0.94){
@@ -498,11 +500,11 @@ function setCellVal(i, team){
 }
 
 
-    const rowTopSets  = meta.cols.map(i => `<td class="set"><div class="cell">${setCellVal(i,1)}</div></td>`).join('');
-    const rowBotSets  = meta.cols.map(i => `<td class="set"><div class="cell">${setCellVal(i,2)}</div></td>`).join('');
+const rowTopSets  = meta.cols.map(i => `<td class="set"><div class="cell"><span class="num">${setCellVal(i,1)}</span></div></td>`).join('');
+const rowBotSets  = meta.cols.map(i => `<td class="set"><div class="cell"><span class="num">${setCellVal(i,2)}</span></div></td>`).join('');
     const maybeNowHeader = meta.showNow ? `<th class="now">${meta.nowTitle}</th>` : '';
-    const maybeNowTopTd  = meta.showNow ? `<td class="now"><div class="cell-now">${nowTop}</div></td>` : '';
-    const maybeNowBotTd  = meta.showNow ? `<td class="now"><div class="cell-now">${nowBot}</div></td>` : '';
+const maybeNowTopTd  = meta.showNow ? `<td class="now"><div class="cell-now"><span class="num">${nowTop}</span></div></td>` : '';
+const maybeNowBotTd  = meta.showNow ? `<td class="now"><div class="cell-now"><span class="num">${nowBot}</span></div></td>` : '';
 
     wrap.innerHTML = `
       <div class="row">
@@ -544,6 +546,7 @@ function setCellVal(i, team){
 
     // final fit pass
     requestAnimationFrame(()=>calibrateTile(wrap));
+    requestAnimationFrame(() => scaleNumbersToFit(wrap));
     return wrap;
   }
 
@@ -583,8 +586,8 @@ function setCellVal(i, team){
     if (nameLines[2]) nameLines[2].textContent = n2a;
     if (nameLines[3]) nameLines[3].textContent = n2b;
 
-    const nowCells = el.querySelectorAll('td.now .cell-now');
-    if (nowCells.length){
+    const nowNums  = el.querySelectorAll('td.now .cell-now .num');
+    if (nowNums.length){
       let nowTop='', nowBot='';
       if (meta.superTB){
         const base1 = Number(meta.sets?.[2]?.team1 || 0);
@@ -597,13 +600,13 @@ function setCellVal(i, team){
         nowTop = String(tennisPoint(p1, meta.cfg.isGP));
         nowBot = String(tennisPoint(p2, meta.cfg.isGP));
       }
-      if (nowCells[0]) nowCells[0].textContent = nowTop;
-      if (nowCells[1]) nowCells[1].textContent = nowBot;
+      if (nowNums[0]) nowNums[0].textContent = nowTop;
+      if (nowNums[1]) nowNums[1].textContent = nowBot;
       const thNow = el.querySelector('th.now');
       if (thNow) thNow.textContent = meta.superTB ? 'Super Tie-break' : (meta.normalTB ? 'Tie-break' : 'Jogo');
     }
 
-    const setCells = el.querySelectorAll('td.set .cell');
+    const setNums  = el.querySelectorAll('td.set .cell .num');
 
     function setCellVal(i, team){
     // PROSET — durante o jogo: mostrar JOGOS atuais; terminado: score final
@@ -627,8 +630,8 @@ function setCellVal(i, team){
     const n = meta.cols.length;
     for (let c = 0; c < n; c++) {
       const i = meta.cols[c];
-      const topEl = setCells[c];
-      const botEl = setCells[n + c];
+      const topEl = setNums[c];
+      const botEl = setNums[n + c];
       if (topEl) topEl.textContent = setCellVal(i, 1);
       if (botEl) botEl.textContent = setCellVal(i, 2);
     }
@@ -637,6 +640,7 @@ function setCellVal(i, team){
     fitSetFonts(el);
     fitTileVertically(el);
     fitNumbersToCells(el);
+    scaleNumbersToFit(el);
 
     return el;
   }
@@ -854,6 +858,35 @@ function setCellVal(i, team){
     await resubscribe(currentIds);
   }
 
+    // Faz os números preencherem a célula sem alterar o tamanho da própria célula
+    function scaleNumbersToFit(el){
+    const cells = el.querySelectorAll('td.set .cell, td.now .cell-now');
+    if (!cells.length) return;
+
+    cells.forEach(cell => {
+        const num = cell.querySelector('.num');
+        if (!num) return;
+
+        // reset para medir o tamanho "natural"
+        num.style.transform = 'scale(1)';
+
+        // espaço disponível na célula
+        const boxW = cell.clientWidth;
+        const boxH = cell.clientHeight;
+        if (!boxW || !boxH) return;
+
+        // tamanho natural do conteúdo (sem escala)
+        const w = num.offsetWidth;
+        const h = num.offsetHeight;
+        if (!w || !h) return;
+
+        // fator de escala (com pequena margem)
+        const s = Math.max(0.1, Math.min(boxW / w, boxH / h) * 0.98);
+        num.style.transform = `scale(${s})`;
+    });
+    }
+
+
   let rAF; const onResize=()=>{ cancelAnimationFrame(rAF); rAF=requestAnimationFrame(()=> renderGridSlots(currentSlots, (screen?.positions)||currentSlots.length||1)); };
   window.addEventListener('resize', onResize);
   window.addEventListener('orientationchange', onResize);
@@ -877,6 +910,7 @@ document.addEventListener('fullscreenchange', () => {
           fitTableWidth?.(rep);      // se tens esta helper
           fitTileVertically(rep);
           fitNumbersToCells(el);
+          scaleNumbersToFit(el);
         }
       });
     });
