@@ -175,8 +175,8 @@ const setMinW = clamp(w * 0.22, 120, 320);   // ↑ largura mínima por coluna d
           const spacerW = clamp(w * 0.03, 12, 40);
 
           setVar(el, '--fs-name',  `${fsName}px`);
-          setVar(el, '--fs-set',   `${fsSet}px`);
-          setVar(el, '--fs-now',   `${fsNow}px`);
+          // setVar(el, '--fs-set',   `${fsSet}px`);
+          // setVar(el, '--fs-now',   `${fsNow}px`);
           setVar(el, '--fs-head',  `${fsHead}px`);
           setVar(el, '--fs-badge', `${fsBadge}px`);
           setVar(el, '--badge-pad-y', `${badgePadY}px`);
@@ -240,8 +240,8 @@ function fitSetFonts(el){
 
   // Seed: parte do valor atual (ou 24) e cresce
   let seed = Math.max(getVar(el,'--fs-set') || 24, 24);
-  setVar(el,'--fs-set', `${seed}px`);
-  setVar(el,'--fs-now', `${seed}px`); // "AGORA" sempre igual aos sets
+  //setVar(el,'--fs-set', `${seed}px`);
+  //setVar(el,'--fs-now', `${seed}px`); // "AGORA" sempre igual aos sets
 
   // 1) Crescimento exponencial até tocar no limite
   let lo = 16;              // cabe
@@ -250,16 +250,16 @@ function fitSetFonts(el){
   while (!overflows() && hi < MAX){
     lo = hi;
     hi = Math.min(MAX, Math.round(hi * 1.35)); // cresce 35%
-    setVar(el,'--fs-set', `${hi}px`);
-    setVar(el,'--fs-now', `${hi}px`);
+    //setVar(el,'--fs-set', `${hi}px`);
+    //setVar(el,'--fs-now', `${hi}px`);
   }
 
   // 2) Busca binária entre lo (cabe) e hi (ultrapassa)
   let best = lo;
   while (lo <= hi){
     const mid = (lo + hi) >> 1;
-    setVar(el,'--fs-set', `${mid}px`);
-    setVar(el,'--fs-now', `${mid}px`);
+    //setVar(el,'--fs-set', `${mid}px`);
+    //setVar(el,'--fs-now', `${mid}px`);
     if (overflows()){
       hi = mid - 1;
     } else {
@@ -269,8 +269,8 @@ function fitSetFonts(el){
   }
 
   // 3) Aplica o melhor valor (no limite da célula)
-  setVar(el,'--fs-set', `${best}px`);
-  setVar(el,'--fs-now', `${best}px`);
+  //setVar(el,'--fs-set', `${best}px`);
+  //setVar(el,'--fs-now', `${best}px`);
 }
 
 // Faz os números preencherem a célula sem ultrapassar (mesmo tamanho em todas)
@@ -329,8 +329,8 @@ function fitNumbersToCells(el){
   function shrinkVars(el, factor = 0.94){
     const clamp = (v,min,max) => Math.max(min, Math.min(max, v));
     const fsName = clamp(getVar(el,'--fs-name')*factor, 16, 160);
-    const fsSet  = clamp(getVar(el,'--fs-set') *factor, 22, 170);
-    const fsNow  = clamp(getVar(el,'--fs-now') *factor, 22, 170);
+    //const fsSet  = clamp(getVar(el,'--fs-set') *factor, 22, 170);
+    //const fsNow  = clamp(getVar(el,'--fs-now') *factor, 22, 170);
     const fsHead = clamp(getVar(el,'--fs-head')*factor, 10, 36);
     const gapV   = clamp(getVar(el,'--gap-v')   *factor, 6, 30);
     const padY   = clamp(getVar(el,'--pad-cell-y')*factor, 8, 32);
@@ -341,8 +341,8 @@ function fitNumbersToCells(el){
     const setMinW   = clamp(getVar(el,'--set-minw')*factor, 80, 260);
 
     setVar(el,'--fs-name',`${fsName}px`);
-    setVar(el,'--fs-set', `${fsSet}px`);
-    setVar(el,'--fs-now', `${fsNow}px`);
+    //setVar(el,'--fs-set', `${fsSet}px`);
+    //setVar(el,'--fs-now', `${fsNow}px`);
     setVar(el,'--fs-head',`${fsHead}px`);
     setVar(el,'--gap-v', `${gapV}px`);
     setVar(el,'--pad-cell-y',`${padY}px`);
