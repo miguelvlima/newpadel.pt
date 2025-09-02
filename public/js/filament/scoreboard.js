@@ -313,7 +313,8 @@ const setMinW = clamp(w * 0.22, 120, 320);   // ↑ largura mínima por coluna d
     let cols = [];
     let titles = [];
     if (cfg.isProset){
-      if (setConcluded[0]) { cols.push(0); titles.push('Proset'); }
+        cols.push(0);
+        titles.push('Proset');
     } else {
       if (setConcluded[0] || (isRegularPlaying && currentIndex === 0) || (normalTB && currentIndex === 0)){
         cols.push(0); titles.push('1º Set');
@@ -399,14 +400,24 @@ const setMinW = clamp(w * 0.22, 120, 320);   // ↑ largura mínima por coluna d
     const headerSetTh = meta.titles.map(t => `<th class="set">${t}</th>`).join('');
 
     function setCellVal(i, team){
-      if (!cfg.isProset && meta.normalTB && i === meta.currentIndex) return '6';
-      if (!cfg.isProset && meta.isRegularPlaying && i === meta.currentIndex){
+    // PROSET: idêntico ao buildTile
+    if (meta.cfg.isProset){
+        const ss = meta.sets[i];
+        if (isSetConcluded(ss, meta.cfg, i)) {
+        return String(team === 1 ? (ss.team1 ?? '') : (ss.team2 ?? ''));
+        }
         return String(team === 1 ? g1 : g2);
-      }
-      const ss = sets[i];
-      if (!ss || !isSetConcluded(ss, cfg, i)) return '';
-      return String(team === 1 ? (ss.team1 ?? '') : (ss.team2 ?? ''));
     }
+
+    if (!meta.cfg.isProset && meta.normalTB && i === meta.currentIndex) return '6';
+    if (!meta.cfg.isProset && meta.isRegularPlaying && i === meta.currentIndex){
+        return String(team === 1 ? g1 : g2);
+    }
+    const ss = meta.sets[i];
+    if (!ss || !isSetConcluded(ss, meta.cfg, i)) return '';
+    return String(team === 1 ? (ss.team1 ?? '') : (ss.team2 ?? ''));
+    }
+
     const rowTopSets  = meta.cols.map(i => `<td class="set"><div class="cell">${setCellVal(i,1)}</div></td>`).join('');
     const rowBotSets  = meta.cols.map(i => `<td class="set"><div class="cell">${setCellVal(i,2)}</div></td>`).join('');
     const maybeNowHeader = meta.showNow ? `<th class="now">${meta.nowTitle}</th>` : '';
