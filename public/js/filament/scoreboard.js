@@ -193,7 +193,7 @@ const setMinW = clamp(w * 0.22, 120, 320);   // ↑ largura mínima por coluna d
             fitSetFonts(el);
             fitTileVertically(el);
             fitNumbersToCells(el);
-            scaleNumbersToFit(el);
+            scaleNumbers(el);
           });
         }
       })
@@ -319,11 +319,11 @@ function fitNumbersToCells(el){
 
 
   function calibrateTile(el){
-    fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); fitNumbersToCells(el); scaleNumbersToFit(el);
+    fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); fitNumbersToCells(el); scaleNumbers(el);
     if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); fitNumbersToCells(el); scaleNumbersToFit(el); });
+      document.fonts.ready.then(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); fitNumbersToCells(el); scaleNumbers(el); });
     }
-    setTimeout(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); fitNumbersToCells(el); scaleNumbersToFit(el); }, 120);
+    setTimeout(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); fitNumbersToCells(el); scaleNumbers(el); }, 120);
   }
 
   function shrinkVars(el, factor = 0.94){
@@ -370,6 +370,50 @@ function fitNumbersToCells(el){
     };
     requestAnimationFrame(step);
   }
+
+  // Garante que o conteúdo numérico está dentro de <span class="num">...</span>
+function ensureNumWrapper(container) {
+  if (!container) return null;
+  let span = container.querySelector('.num');
+  if (!span) {
+    span = document.createElement('span');
+    span.className = 'num';
+    // move o texto atual para dentro do span
+    span.textContent = container.textContent || '';
+    container.textContent = '';
+    container.appendChild(span);
+  }
+  return span;
+}
+
+// Escala um <span.num> para caber na célula SEM alterar a célula
+function scaleOneNumber(cell) {
+  const span = ensureNumWrapper(cell);
+  if (!span) return;
+
+  // reset para medir tamanho "natural"
+  span.style.transform = 'scale(1)';
+
+  // retardador de 1 frame para ter dimensões corretas após updates
+  const fit = () => {
+    const cw = cell.clientWidth;
+    const ch = cell.clientHeight;
+    const br = span.getBoundingClientRect();
+    // segurança de 2px contra bordas internas
+    const s = Math.max(0.1, Math.min((cw - 2) / Math.max(br.width, 1), (ch - 2) / Math.max(br.height, 1))) * 0.98;
+    span.style.transform = `scale(${s})`;
+  };
+  // mede já e mede de novo no próximo frame (evita “piscas”)
+  fit();
+  requestAnimationFrame(fit);
+}
+
+// Escala todos os números (sets + now) de um tile
+function scaleNumbers(tileEl) {
+  const cells = tileEl.querySelectorAll('td.set .cell, td.now .cell-now');
+  cells.forEach(scaleOneNumber);
+}
+
 
   /* ---------- shape/key ---------- */
   function computeShape(game){
@@ -546,7 +590,7 @@ const maybeNowBotTd  = meta.showNow ? `<td class="now"><div class="cell-now"><sp
 
     // final fit pass
     requestAnimationFrame(()=>calibrateTile(wrap));
-    requestAnimationFrame(() => scaleNumbersToFit(wrap));
+    requestAnimationFrame(() => scaleNumbers(wrap));
     return wrap;
   }
 
@@ -640,7 +684,7 @@ const maybeNowBotTd  = meta.showNow ? `<td class="now"><div class="cell-now"><sp
     fitSetFonts(el);
     fitTileVertically(el);
     fitNumbersToCells(el);
-    scaleNumbersToFit(el);
+    scaleNumbers(el);
 
     return el;
   }
@@ -721,6 +765,7 @@ const maybeNowBotTd  = meta.showNow ? `<td class="now"><div class="cell-now"><sp
         const item = slots[i];
         const el = item ? buildTile(item) : emptyTile();
         grid.appendChild(el);
+        if (item) scaleNumbers(el);
         try { tileSizer.observe(el); } catch {}
         return el;
       });
@@ -742,6 +787,7 @@ const maybeNowBotTd  = meta.showNow ? `<td class="now"><div class="cell-now"><sp
       }
       if (!el || el.dataset.type === 'empty' || el.dataset.gameId !== item.id){
         const rep = buildTile(item);
+        if (rep) scaleNumbers(rep);
         if (el) copyVars(el, rep);
         if (el && el.parentNode) el.replaceWith(rep); else grid.appendChild(rep);
         try { tileSizer.observe(rep); } catch {}
@@ -761,6 +807,7 @@ const maybeNowBotTd  = meta.showNow ? `<td class="now"><div class="cell-now"><sp
     currentSlots = pack.slots;
     currentIds   = pack.ids;
     renderGridSlots(currentSlots, pack.positions);
+    requestAnimationFrame(() => tileEls.forEach(el => el && scaleNumbers(el)));
   }
 
   try {
@@ -858,33 +905,6 @@ const maybeNowBotTd  = meta.showNow ? `<td class="now"><div class="cell-now"><sp
     await resubscribe(currentIds);
   }
 
-    // Faz os números preencherem a célula sem alterar o tamanho da própria célula
-    function scaleNumbersToFit(el){
-    const cells = el.querySelectorAll('td.set .cell, td.now .cell-now');
-    if (!cells.length) return;
-
-    cells.forEach(cell => {
-        const num = cell.querySelector('.num');
-        if (!num) return;
-
-        // reset para medir o tamanho "natural"
-        num.style.transform = 'scale(1)';
-
-        // espaço disponível na célula
-        const boxW = cell.clientWidth;
-        const boxH = cell.clientHeight;
-        if (!boxW || !boxH) return;
-
-        // tamanho natural do conteúdo (sem escala)
-        const w = num.offsetWidth;
-        const h = num.offsetHeight;
-        if (!w || !h) return;
-
-        // fator de escala (com pequena margem)
-        const s = Math.max(0.1, Math.min(boxW / w, boxH / h) * 0.98);
-        num.style.transform = `scale(${s})`;
-    });
-    }
 
 
   let rAF; const onResize=()=>{ cancelAnimationFrame(rAF); rAF=requestAnimationFrame(()=> renderGridSlots(currentSlots, (screen?.positions)||currentSlots.length||1)); };
@@ -909,8 +929,8 @@ document.addEventListener('fullscreenchange', () => {
           fitSetFonts(rep);
           fitTableWidth?.(rep);      // se tens esta helper
           fitTileVertically(rep);
-          fitNumbersToCells(el);
-          scaleNumbersToFit(el);
+          fitNumbersToCells(rep);
+          scaleNumbers(rep);
         }
       });
     });
