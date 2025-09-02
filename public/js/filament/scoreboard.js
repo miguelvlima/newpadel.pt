@@ -191,7 +191,6 @@ const setMinW = clamp(w * 0.22, 120, 320);   // ↑ largura mínima por coluna d
             fitNames(el);
             fitBadges(el);
             fitSetFonts(el);
-            fitTableWidth(el);
             fitTileVertically(el);
           });
         }
@@ -218,57 +217,40 @@ const setMinW = clamp(w * 0.22, 120, 320);   // ↑ largura mínima por coluna d
     }
   }
 
-  // NEW: ensure set numbers always fit inside their badges
-  function fitSetFonts(el){
+    function fitSetFonts(el){
     const cells = el.querySelectorAll('td.set .cell, td.now .cell-now');
     if (!cells.length) return;
+
+    // ⬇⬇ Se ainda não há layout (larguras 0), não mexer
+    const firstRect = cells[0].getBoundingClientRect();
+    if (firstRect.width === 0 || firstRect.height === 0) return;
+
     let fs = getVar(el, '--fs-set') || 24;
     let tries = 0;
     const overflow = () => {
-      for (const c of cells){
+        for (const c of cells){
+        const r = c.getBoundingClientRect();
+        if (r.width === 0 || r.height === 0) return false; // evita decisões com 0
         if (c.scrollWidth > c.clientWidth + 0.5) return true;
         if (c.scrollHeight > c.clientHeight + 0.5) return true;
-      }
-      return false;
+        }
+        return false;
     };
     while (overflow() && fs > 16 && tries < 40){
-      fs -= 1;
-      setVar(el, '--fs-set', `${fs}px`);
-      setVar(el, '--fs-now', `${fs}px`);
-      tries++;
-    }
-  }
-
-  function fitTableWidth(el){
-    const tbl = el.querySelector('.scoretable');
-    if (!tbl) return;
-
-    let tries = 0;
-    let setMinW = getVar(el,'--set-minw') || 140;  // largura mínima de cada badge de set
-    let padX    = getVar(el,'--pad-cell-x') || 16; // padding horizontal da badge
-
-    // encolhe só o necessário até caber no tile
-    while (tbl.scrollWidth > tbl.clientWidth && tries < 24){
-        setMinW = Math.max(76, setMinW * 0.92);   // limite inferior seguro
-        padX    = Math.max(8,  padX    * 0.94);
-
-        setVar(el, '--set-minw', `${setMinW}px`);
-        setVar(el, '--pad-cell-x', `${padX}px`);
-
-        // garantir que os números continuam a caber dentro das badges
-        fitSetFonts(el);
-
+        fs -= 1;
+        setVar(el, '--fs-set', `${fs}px`);
+        setVar(el, '--fs-now', `${fs}px`);
         tries++;
     }
     }
 
 
   function calibrateTile(el){
-    fitNames(el); fitBadges(el); fitSetFonts(el); fitTableWidth(el);  fitTileVertically(el);
+    fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el);
     if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTableWidth(el);  fitTileVertically(el); });
+      document.fonts.ready.then(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); });
     }
-    setTimeout(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTableWidth(el);  fitTileVertically(el); }, 120);
+    setTimeout(() => { fitNames(el); fitBadges(el); fitSetFonts(el); fitTileVertically(el); }, 120);
   }
 
   function shrinkVars(el, factor = 0.94){
@@ -424,34 +406,25 @@ const setMinW = clamp(w * 0.22, 120, 320);   // ↑ largura mínima por coluna d
 
     const headerSetTh = meta.titles.map(t => `<th class="set">${t}</th>`).join('');
 
-    function setCellVal(i, team){
-    // PROSET — durante o jogo: mostrar JOGOS atuais; terminado: score final
-    if (/* meta? cfg? depende do scope */ (meta?.cfg || cfg).isProset){
-        const isCfg = meta?.cfg || cfg;
-        const theSets = meta?.sets || sets;
-        const curG1 = Number((meta?.cur || cur)?.games_team1 || 0);
-        const curG2 = Number((meta?.cur || cur)?.games_team2 || 0);
-        const ss    = theSets[i];
+function setCellVal(i, team){
+  // PROSET — durante o jogo: mostrar JOGOS atuais; terminado: score final
+  if (cfg.isProset){
+    const ss = sets[i];
+    if (isSetConcluded(ss, cfg, i)) {
+      return String(team === 1 ? (ss?.team1 ?? g1) : (ss?.team2 ?? g2));
+    }
+    return String(team === 1 ? g1 : g2);
+  }
 
-        if (isSetConcluded(ss, isCfg, i)) {
-        return String(team === 1 ? (ss?.team1 ?? curG1) : (ss?.team2 ?? curG2));
-        }
-        return String(team === 1 ? curG1 : curG2);
-    }
-
-    // Best-of-3 / normal
-    if (!(meta?.cfg || cfg).isProset && (meta?.normalTB || normalTB) && i === (meta?.currentIndex ?? currentIndex)) return '6';
-    if (!(meta?.cfg || cfg).isProset && (meta?.isRegularPlaying || isRegularPlaying) && i === (meta?.currentIndex ?? currentIndex)){
-        const g1 = Number((meta?.cur || cur)?.games_team1 || 0);
-        const g2 = Number((meta?.cur || cur)?.games_team2 || 0);
-        return String(team === 1 ? g1 : g2);
-    }
-    const isCfg  = meta?.cfg || cfg;
-    const theSets= meta?.sets || sets;
-    const ss = theSets[i];
-    if (!ss || !isSetConcluded(ss, isCfg, i)) return '';
-    return String(team === 1 ? (ss.team1 ?? '') : (ss.team2 ?? ''));
-    }
+  // Best-of-3 / normal
+  if (meta.normalTB && i === meta.currentIndex) return '6';           // 6–6 em TB normal
+  if (meta.isRegularPlaying && i === meta.currentIndex){
+    return String(team === 1 ? g1 : g2);                               // jogos do set corrente
+  }
+  const ss = sets[i];
+  if (!ss || !isSetConcluded(ss, cfg, i)) return '';
+  return String(team === 1 ? (ss.team1 ?? '') : (ss.team2 ?? ''));
+}
 
 
     const rowTopSets  = meta.cols.map(i => `<td class="set"><div class="cell">${setCellVal(i,1)}</div></td>`).join('');
@@ -560,15 +533,26 @@ const setMinW = clamp(w * 0.22, 120, 320);   // ↑ largura mínima por coluna d
     }
 
     const setCells = el.querySelectorAll('td.set .cell');
+
     function setCellVal(i, team){
-      if (!meta.cfg.isProset && meta.normalTB && i === meta.currentIndex) return '6';
-      if (!meta.cfg.isProset && meta.isRegularPlaying && i === meta.currentIndex){
-          return String(team === 1 ? g1 : g2);
-      }
-      const ss = meta.sets[i];
-      if (!ss || !isSetConcluded(ss, meta.cfg, i)) return '';
-      return String(team === 1 ? (ss.team1 ?? '') : (ss.team2 ?? ''));
+    // PROSET — durante o jogo: mostrar JOGOS atuais; terminado: score final
+    if (meta.cfg.isProset){
+        const ss = meta.sets[i];
+        if (isSetConcluded(ss, meta.cfg, i)) {
+        return String(team === 1 ? (ss?.team1 ?? g1) : (ss?.team2 ?? g2));
+        }
+        return String(team === 1 ? g1 : g2);
     }
+
+    if (meta.normalTB && i === meta.currentIndex) return '6';
+    if (meta.isRegularPlaying && i === meta.currentIndex){
+        return String(team === 1 ? g1 : g2);
+    }
+    const ss = meta.sets[i];
+    if (!ss || !isSetConcluded(ss, meta.cfg, i)) return '';
+    return String(team === 1 ? (ss.team1 ?? '') : (ss.team2 ?? ''));
+    }
+
     const n = meta.cols.length;
     for (let c = 0; c < n; c++) {
       const i = meta.cols[c];
@@ -692,7 +676,6 @@ const setMinW = clamp(w * 0.22, 120, 320);   // ↑ largura mínima por coluna d
     }
   }
 
-
   let currentSlots = [];
   let currentIds = [];
   let screen = null;
@@ -803,24 +786,29 @@ const setMinW = clamp(w * 0.22, 120, 320);   // ↑ largura mínima por coluna d
   window.addEventListener('resize', onResize);
   window.addEventListener('orientationchange', onResize);
 
-    document.addEventListener('fullscreenchange', () => {
-    // re-aplica o conteúdo textual de cada tile (sem rebuild global)
-    tileEls.forEach((el, i) => {
-        if (!el || !el.isConnected) return;
-        const game = currentSlots[i];
-        if (!game) return;
-        const rep = updateTile(el, game);  // isto volta a escrever os números
-        tileEls[i] = rep;
-        // e recalibra tamanhos depois do browser acertar o layout
-        requestAnimationFrame(() => { if (rep && rep.isConnected) calibrateTile(rep); });
-    });
-    });
+document.addEventListener('fullscreenchange', () => {
+  // re-aplica os números (sem rebuild global) e calibra depois do layout estabilizar
+  tileEls.forEach((el, i) => {
+    if (!el || !el.isConnected) return;
+    const game = currentSlots[i];
+    if (!game) return;
 
-    if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(() => {
-        tileEls.forEach(el => el && el.isConnected && calibrateTile(el));
+    // 1º: re-escreve texto (garante que pró-set volta a ter dígitos)
+    const rep = updateTile(el, game);
+    tileEls[i] = rep;
+
+    // 2º: após 1–2 frames, calibra fontes/larguras
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (rep && rep.isConnected) {
+          fitSetFonts(rep);
+          fitTableWidth?.(rep);      // se tens esta helper
+          fitTileVertically(rep);
+        }
+      });
     });
-    }
+  });
+});
 
 
 })();
