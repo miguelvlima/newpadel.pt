@@ -159,7 +159,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
           const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
 const fsName = clamp(base * 0.34, 28, 200); // ↑ bem maior
-const fsSet  = clamp(base * 0.34, 36, 240);  // ↑ multiplicador, ↑ mínimos e máximos
+const fsSet  = clamp(base * 0.42, 44, 280);  // ↑ multiplicador, ↑ mínimos e máximos
 const fsHead = clamp(fsSet * 0.55, 12, 36);
           const fsNow  = fsSet;
 
@@ -168,8 +168,8 @@ const fsHead = clamp(fsSet * 0.55, 12, 36);
           const badgePadX = clamp(base * 0.085, 10, 40);
 
           const gapV = clamp(base * 0.03, 8, 28);
-          const padY = clamp(base * 0.06, 10, 30);
-          const padX = clamp(base * 0.085, 12, 38);
+const padY = clamp(base * 0.045, 8, 26);
+const padX = clamp(base * 0.085, 10, 40);
 
 const setMinW = clamp(w * 0.22, 120, 320);   // ↑ largura mínima por coluna de set
           const spacerW = clamp(w * 0.03, 12, 40);
@@ -217,32 +217,40 @@ const setMinW = clamp(w * 0.22, 120, 320);   // ↑ largura mínima por coluna d
     }
   }
 
-    function fitSetFonts(el){
-    const cells = el.querySelectorAll('td.set .cell, td.now .cell-now');
-    if (!cells.length) return;
+function fillSetFonts(el){
+  const cells = el.querySelectorAll('td.set .cell, td.now .cell-now');
+  if (!cells.length) return;
 
-    // ⬇⬇ Se ainda não há layout (larguras 0), não mexer
-    const firstRect = cells[0].getBoundingClientRect();
-    if (firstRect.width === 0 || firstRect.height === 0) return;
+  // se ainda não há layout neste frame, sai
+  const r0 = cells[0].getBoundingClientRect();
+  if (!r0.width || !r0.height) return;
 
-    let fs = getVar(el, '--fs-set') || 24;
-    let tries = 0;
-    const overflow = () => {
-        for (const c of cells){
-        const r = c.getBoundingClientRect();
-        if (r.width === 0 || r.height === 0) return false; // evita decisões com 0
-        if (c.scrollWidth > c.clientWidth + 0.5) return true;
-        if (c.scrollHeight > c.clientHeight + 0.5) return true;
-        }
-        return false;
-    };
-    while (overflow() && fs > 16 && tries < 40){
-        fs -= 1;
-        setVar(el, '--fs-set', `${fs}px`);
-        setVar(el, '--fs-now', `${fs}px`);
-        tries++;
+  const overflow = () => {
+    for (const c of cells){
+      // não usamos getComputedStyle; basta comparar scroll vs client box
+      if (c.scrollWidth > c.clientWidth + 0.5)  return true;
+      if (c.scrollHeight > c.clientHeight + 0.5) return true;
     }
-    }
+    return false;
+  };
+
+  // 1) cresce até “bater” no limite
+  let fs = getVar(el, '--fs-set') || 24;
+  let steps = 60;                         // trava de segurança
+  while (!overflow() && steps-- > 0){
+    fs += 1;
+    setVar(el, '--fs-set', `${fs}px`);
+    setVar(el, '--fs-now', `${fs}px`);
+  }
+
+  // 2) se passou o limite, recua um bocadinho
+  if (overflow()){
+    fs = Math.max(16, fs - 2);
+    setVar(el, '--fs-set', `${fs}px`);
+    setVar(el, '--fs-now', `${fs}px`);
+  }
+}
+
 
 
   function calibrateTile(el){
