@@ -158,10 +158,10 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           const base = Math.max(0, Math.min(w, h));
 
           const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
-          const fsName = clamp(base * 0.34, 28, 200);
-          const fsSet  = clamp(base * 0.42, 44, 280);
-          const fsHead = clamp(fsSet * 0.55, 12, 36);
-          const fsNow  = fsSet;
+          const fsName   = clamp(base * 0.12, 18, 72);
+          const fsHead   = clamp(base * 0.07, 12, 26);
+          const fsDigits = clamp(base * 0.20, 36, 160);
+
 
           const fsBadge   = clamp(base * 0.11, 12, 40);
           const badgePadY = clamp(base * 0.045, 4, 22);
@@ -175,9 +175,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           const spacerW = clamp(w * 0.03, 12, 40);
 
           setVar(el, '--fs-name',  `${fsName}px`);
-          setVar(el, '--fs-set',   `${fsSet}px`);
-          setVar(el, '--fs-now',   `${fsNow}px`);
           setVar(el, '--fs-head',  `${fsHead}px`);
+          setVar(el, '--fs-digits', `${fsDigits}px`);
           setVar(el, '--fs-badge', `${fsBadge}px`);
           setVar(el, '--badge-pad-y', `${badgePadY}px`);
           setVar(el, '--badge-pad-x', `${badgePadX}px`);
@@ -190,7 +189,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
           requestAnimationFrame(() => {
             fitNames(el);
             fitBadges(el);
-            fillSetFonts(el);
+            fillDigits(el);
             fitTileVertically(el);
           });
         }
@@ -217,76 +216,62 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     }
   }
 
-  function fillSetFonts(el){
+  function fillDigits(el){
+        // Ajusta UMA só variável (--fs-digits) para todas as células numéricas
     const cells = el.querySelectorAll('td.set .cell, td.now .cell-now');
     if (!cells.length) return;
 
-    const r0 = cells[0].getBoundingClientRect();
-    if (!r0.width || !r0.height) return;
-
     const overflows = () => {
-      for (const c of cells){
+        for (const c of cells){
         if (c.scrollWidth  > c.clientWidth  + 0.5) return true;
         if (c.scrollHeight > c.clientHeight + 0.5) return true;
-      }
-      return false;
+        }
+        return false;
     };
 
-    let seed = Math.max(getVar(el,'--fs-set') || 32, 32);
-    setVar(el,'--fs-set', `${seed}px`);
-    setVar(el,'--fs-now', `${seed}px`);
+    let seed = Math.max(getVar(el,'--fs-digits') || 32, 24);
+    setVar(el,'--fs-digits', `${seed}px`);
 
-    let lo = 16;
-    let hi = seed;
-    const MAX = 640;
+    // Crescimento exponencial até “bater no teto”
+    let lo = 16, hi = seed, MAX = 640;
     while (!overflows() && hi < MAX){
-      lo = hi;
-      hi = Math.min(MAX, Math.round(hi * 1.35));
-      setVar(el,'--fs-set', `${hi}px`);
-      setVar(el,'--fs-now', `${hi}px`);
+        lo = hi; hi = Math.min(MAX, Math.round(hi * 1.35));
+        setVar(el,'--fs-digits', `${hi}px`);
     }
 
+    // Busca binária para encher a caixa sem rebentar
     let best = lo;
     while (lo <= hi){
-      const mid = (lo + hi) >> 1;
-      setVar(el,'--fs-set', `${mid}px`);
-      setVar(el,'--fs-now', `${mid}px`);
-      if (overflows()){
-        hi = mid - 1;
-      } else {
-        best = mid;
-        lo = mid + 1;
-      }
+        const mid = (lo + hi) >> 1;
+        setVar(el,'--fs-digits', `${mid}px`);
+        if (overflows()) hi = mid - 1; else { best = mid; lo = mid + 1; }
     }
 
-    const final = Math.max(16, best - 1);
-    setVar(el,'--fs-set', `${final}px`);
-    setVar(el,'--fs-now', `${final}px`);
+    setVar(el,'--fs-digits', `${Math.max(16, best - 1)}px`);
   }
 
   function calibrateTile(el){
     fitNames(el);
     fitBadges(el);
     maybeFitTableWidth(el);
-    fillSetFonts(el);
+    fillDigits(el);
     fitTileVertically(el);
 
     if (document.fonts && document.fonts.ready){
       document.fonts.ready.then(() => {
-        fitNames(el); fitBadges(el); maybeFitTableWidth(el); fillSetFonts(el); fitTileVertically(el);
+        fitNames(el); fitBadges(el); maybeFitTableWidth(el); fillDigits(el); fitTileVertically(el);
       });
     }
     setTimeout(() => {
-      fitNames(el); fitBadges(el); maybeFitTableWidth(el); fillSetFonts(el); fitTileVertically(el);
+      fitNames(el); fitBadges(el); maybeFitTableWidth(el); fillDigits(el); fitTileVertically(el);
     }, 120);
   }
 
   function shrinkVars(el, factor = 0.94){
     const clamp = (v,min,max) => Math.max(min, Math.min(max, v));
     const fsName = clamp(getVar(el,'--fs-name')*factor, 16, 160);
-    const fsSet  = clamp(getVar(el,'--fs-set') *factor, 22, 170);
-    const fsNow  = clamp(getVar(el,'--fs-now') *factor, 22, 170);
     const fsHead = clamp(getVar(el,'--fs-head')*factor, 10, 36);
+    const fsDigits = clamp(getVar(el,'--fs-digits') * factor, 22, 170);
     const gapV   = clamp(getVar(el,'--gap-v')   *factor, 6, 30);
     const padY   = clamp(getVar(el,'--pad-cell-y')*factor, 8, 32);
     const padX   = clamp(getVar(el,'--pad-cell-x')*factor, 10, 40);
@@ -296,9 +281,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     const setMinW   = clamp(getVar(el,'--set-minw')*factor, 80, 260);
 
     setVar(el,'--fs-name',`${fsName}px`);
-    setVar(el,'--fs-set', `${fsSet}px`);
-    setVar(el,'--fs-now', `${fsNow}px`);
     setVar(el,'--fs-head',`${fsHead}px`);
+    setVar(el,'--fs-digits', `${fsDigits}px`);
     setVar(el,'--gap-v', `${gapV}px`);
     setVar(el,'--pad-cell-y',`${padY}px`);
     setVar(el,'--pad-cell-x',`${padX}px`);
@@ -388,7 +372,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
     return { cfg, sets, cur, setConcluded, currentIndex, w1, w2, matchOver, normalTB, superTB, isRegularPlaying, cols, titles, nowTitle, showNow, lastConcludedIndex, shapeKey };
   }
 
-  const CSS_VARS = ['--fs-name','--fs-set','--fs-now','--fs-head','--fs-badge','--badge-pad-y','--badge-pad-x','--gap-v','--pad-cell-y','--pad-cell-x','--set-minw','--spacer-w'];
+  const CSS_VARS = ['--fs-name','--fs-head','--fs-badge','--badge-pad-y','--badge-pad-x','--gap-v','--pad-cell-y','--pad-cell-x','--set-minw','--spacer-w'];
   function copyVars(src, dst){
     const cs = getComputedStyle(src);
     CSS_VARS.forEach(v => dst.style.setProperty(v, cs.getPropertyValue(v)));
@@ -585,7 +569,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
       if (botEl) botEl.textContent = setCellVal(i, 2);
     }
 
-    fillSetFonts(el);
+    fillDigits(el);
     fitTileVertically(el);
 
     return el;

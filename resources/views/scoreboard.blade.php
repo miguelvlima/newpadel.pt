@@ -25,7 +25,7 @@
       --app-h: 100vh;
       --now-glow: 159,206,100;   /* r,g,b */
 
-      --fs-name: 22px;  --fs-set: 26px;  --fs-now: 26px;  --fs-head: 12px;
+      --fs-name: 22px;  --fs-set: 26px;  --fs-now: 26px;  --fs-head: 12px; --fs-digits: 44px; /* tamanho base dos números */
       --fs-badge: 14px;
       --set-minw: 110px;
       --spacer-w: 18px;
@@ -100,7 +100,7 @@
       padding:var(--pad-cell-y) var(--pad-cell-x); min-height:2.6em;
       min-width: var(--set-minw);
       background:var(--set-bg); border:1px solid var(--set-br);
-      font-weight:900; font-size:var(--fs-set); line-height:1; color:#fff;
+font-weight:900; font-size:var(--fs-digits); line-height:1; color:#fff;
       font-variant-numeric: tabular-nums;
     }
 
@@ -112,7 +112,7 @@
       background:linear-gradient(180deg, rgba(var(--now-glow), .18), rgba(var(--now-glow), .10));
       border:1px solid rgba(var(--now-glow), .45);
       box-shadow: 0 0 0 2px rgba(var(--now-glow), .20) inset, 0 0 24px rgba(var(--now-glow), .15);
-      font-weight:900; font-size:var(--fs-set); line-height:1;
+font-weight:900; font-size:var(--fs-digits); line-height:1;
       font-variant-numeric: tabular-nums;
     }
 
@@ -185,6 +185,6 @@
     <div class="muted">© New Padel Solutions 2025</div>
   </footer>
 
-  <script type="module" src="/js/filament/scoreboard.js?v=70"></script>
+  <script type="module" src="/js/filament/scoreboard.js?v=71"></script>
 </body>
 </html>
