@@ -115,6 +115,7 @@ import { ensureNumWrappers, setRowHeights, fitNames, scaleNumbersToFit, fitBadge
             requestAnimationFrame(() => {
             document.querySelectorAll('.tile').forEach((tile) => {
                 // mesma ordem do teu pipeline
+                ensureNumWrappers(tile);
                 setRowHeights(tile);
                 fitNames(tile);
                 scaleNumbersToFit(tile);

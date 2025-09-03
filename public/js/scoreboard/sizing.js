@@ -1,38 +1,38 @@
 // /public/js/scoreboard/sizing.js
+// sizing.js
 export function fitNames(tile){
   const namesCell = tile.querySelector('td.names');
   if (!namesCell) return;
   const lines = namesCell.querySelectorAll('.line');
   if (!lines.length) return;
 
-  // Mede a caixa disponível para os nomes
-  const boxRect = namesCell.getBoundingClientRect();
-  const maxW = boxRect.width;
-  const maxH = boxRect.height;
+  const csTile = getComputedStyle(tile);
+  const csNames = getComputedStyle(namesCell);
 
-  // Helpers (com pequena folga para evitar “colar”)
-  const anyTooWide = () =>
-    [...lines].some(l => l.getBoundingClientRect().width > maxW - 1);
-  const tooTall = () =>
-    namesCell.scrollHeight > maxH + 0.5;
+  // Altura fixa da linha (já calculada por setRowHeights)
+  const rowH = parseFloat(csTile.getPropertyValue('--row-h')) || namesCell.clientHeight || 0;
 
-  const getVar = (name) => parseFloat(getComputedStyle(tile).getPropertyValue(name)) || 0;
-  let fs = getVar('--fs-name') || 22;
+  // Limite superior seguro para o font-size dos nomes (diacríticos incluídos)
+  const maxFsByRow = Math.max(12, rowH * 0.48);
 
-  let grew=0;
-  while ((!anyTooWide() && !tooTall()) && grew < 150){
-    fs += 1;
-    tile.style.setProperty('--fs-name', `${fs}px`);
-    grew++;
-  }
+  // Começa no valor atual mas NUNCA acima do permitido pela altura da linha
+  let fs = parseFloat(csTile.getPropertyValue('--fs-name')) || 22;
+  fs = Math.min(fs, maxFsByRow);
+  tile.style.setProperty('--fs-name', `${fs}px`);
 
+  // Helpers (usar dimensões ATUAIS do namesCell)
+  const tooWide = () => [...lines].some(l => l.scrollWidth > namesCell.clientWidth - 1);
+  const tooTall = () => namesCell.scrollHeight > namesCell.clientHeight + 0.5;
+
+  // Só encolhe até caber em largura/altura
   let tries = 0;
-  while ((anyTooWide() || tooTall()) && tries < 50){
+  while ((tooWide() || tooTall()) && fs > 12 && tries < 100){
     fs -= 1;
     tile.style.setProperty('--fs-name', `${fs}px`);
     tries++;
   }
 }
+
 
 
 export function fitBadges(tile){
