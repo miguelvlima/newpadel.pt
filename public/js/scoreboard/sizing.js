@@ -125,7 +125,7 @@ const ro = new ResizeObserver((entries) => {
     const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
 
     const fsName  = clamp(base * 0.28, 36, 120);
-    const fsSet   = clamp(base * 0.40, 36, 220);
+    const fsSet   = clamp(base * 0.40, 50, 220);
     const fsHead  = clamp(fsSet * 0.55, 12, 36);
     const fsBadge = clamp(base * 0.11, 12, 40);
 
