@@ -92,11 +92,7 @@ main{
 @keyframes pulse{0%{opacity:1}50%{opacity:.55}100%{opacity:1}}
 
 /* Right-aligned results block with small spacer */
-.scoretable{
-  height:100%;
-  table-layout: fixed;   /* <- importante em 2x2 */
-  width:100%;
-}
+.scoretable{ height:100%; }
 .scoretable tbody tr{
   height: var(--row-h, auto);
 }
