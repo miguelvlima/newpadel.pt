@@ -95,9 +95,9 @@ import { scaleNumbersToFit } from './sizing.js';
     const refitAll = () => {
     document.querySelectorAll('.tile').forEach(t => {
         ensureNumWrappers(t);
-        setRowHeightVar(t);
+        setRowHeights(t);       // <- primeiro fechamos a altura
+        scaleNumbersToFit(t);   // <- depois cabemos o número na célula
         fitNames(t);
-        scaleNumbersToFit(t);
         fitBadges(t);
     });
     };

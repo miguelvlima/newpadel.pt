@@ -83,31 +83,30 @@ export function scaleNumbersToFit(root){
   });
 }
 
+export function setRowHeights(tile){
+  const table = tile.querySelector('.scoretable');
+  if (!table) return;
 
+  const thead = table.tHead;
+  const tbody = table.tBodies && table.tBodies[0];
+  if (!tbody) return;
 
-/* altura: encolhe margens/padding antes de reduzir fontes */
-export function fitTileVertically(tile){
-  const getVar = (name) => parseFloat(getComputedStyle(tile).getPropertyValue(name)) || 0;
-  const setVar = (name,val) => tile.style.setProperty(name, val);
-  let safety = 18;
-  const step = () => {
-    if (tile.scrollHeight <= tile.clientHeight || safety-- <= 0) return;
-    const gap = getVar('--gap-v');
-    const py  = getVar('--pad-cell-y');
-    const px  = getVar('--pad-cell-x');
-    if (gap > 8 || py > 10 || px > 12){
-      setVar('--gap-v', `${Math.max(6, gap*0.96)}px`);
-      setVar('--pad-cell-y', `${Math.max(8, py*0.96)}px`);
-      setVar('--pad-cell-x', `${Math.max(10, px*0.96)}px`);
-      return requestAnimationFrame(step);
-    }
-    // último recurso: reduzir ligeiramente nomes/headers
-    const fsName = getVar('--fs-name'); const fsHead = getVar('--fs-head');
-    if (fsName > 16) setVar('--fs-name', `${fsName*0.98}px`);
-    if (fsHead > 10) setVar('--fs-head', `${fsHead*0.98}px`);
-    requestAnimationFrame(step);
-  };
-  requestAnimationFrame(step);
+  const rows = tbody.rows.length || 2;
+
+  // altura disponível na tabela
+  const tableH = table.clientHeight;
+  const headH  = thead ? thead.getBoundingClientRect().height : 0;
+
+  // gap vertical entre linhas (usa a tua var --gap-v)
+  const gap = parseFloat(getComputedStyle(tile).getPropertyValue('--gap-v')) || 0;
+
+  // altura útil para o tbody (desconta cabeçalho e gaps entre linhas)
+  const usable = Math.max(0, tableH - headH - gap * (rows - 1));
+  const rowH   = Math.floor(usable / rows);
+
+  // expõe para o CSS e aplica de imediato (evita jitter)
+  tile.style.setProperty('--row-h', `${rowH}px`);
+  [...tbody.rows].forEach(tr => tr.style.height = `${rowH}px`);
 }
 
 // --- ResizeObserver que repõe as variáveis por TILE ---
@@ -141,11 +140,11 @@ const ro = new ResizeObserver((entries) => {
     target.dataset.sizingLock = '1';
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        ensureNumWrappers(target); // garante <span class="num">
-        setRowHeightVar(target);   // fixa --row-h pela altura real do tile
-        fitNames(target);          // baixa fs dos nomes se ainda não couberem
-        scaleNumbersToFit(target); // números enchem célula (transform: scale)
-        fitBadges(target);         // ajusta badges se necessário
+        ensureNumWrappers(target);
+        setRowHeights(target);       // <- primeiro fechamos a altura
+        scaleNumbersToFit(target);   // <- depois cabemos o número na célula
+        fitNames(target);
+        fitBadges(target);
         delete target.dataset.sizingLock;
       });
     });

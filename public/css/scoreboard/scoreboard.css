@@ -95,7 +95,7 @@ main{
 /* Right-aligned results block with small spacer */
 .scoretable{ width:100%; table-layout:auto; border-collapse:separate; border-spacing:0; margin-top:8px; }
 .scoretable tbody tr{
-  height: var(--row-h);
+  height: var(--row-h, auto);
 }
 .scoretable thead th{ font-size:var(--fs-head); letter-spacing:.08em; color:var(--muted); font-weight:700; text-align:center; padding-bottom:4px; }
 .scoretable thead th.names{ text-align:left; }
@@ -121,7 +121,7 @@ main{
   padding: var(--pad-cell-y-tight) var(--pad-cell-x-tight);
   line-height: 1;
     /* altura fixa e sem crescer com o font-size */
-  height: var(--row-h);
+  height: 100%;
   min-height: 0;
   min-width: var(--set-minw);
   background: var(--set-bg);
@@ -139,7 +139,7 @@ main{
   padding: var(--pad-cell-y-tight) var(--pad-cell-x-tight);
   line-height: 1;
     /* altura fixa e sem crescer com o font-size */
-  height: var(--row-h);
+  height: 100%;
   min-height: 0;
 
   min-width: var(--set-minw);

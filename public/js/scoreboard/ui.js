@@ -1,6 +1,6 @@
 // /public/js/scoreboard/ui.js
 import { parseFormat, isSetConcluded, countWonSets, tennisPoint, isNormalTBActive, superTBActive } from './rules.js';
-import { fitNames, fitBadges, fitTileVertically, watchTile, ensureNumWrappers, scaleNumbersToFit, setRowHeightVar } from './sizing.js';
+import { fitNames, fitBadges, watchTile, ensureNumWrappers, scaleNumbersToFit, setRowHeights } from './sizing.js';
 
 let TILE_ELS = [];
 let CURRENT_SLOTS = [];
@@ -149,11 +149,11 @@ function buildTile(game){
 
   // ajustes finais
     requestAnimationFrame(() => {
-        ensureNumWrappers(wrap);   // 1) garante <span class="num">…</span>
-        setRowHeightVar(wrap);     // 2) fixa a altura da linha pelo espaço do tile
-        fitNames(wrap);            // 4) nomes cabem sem estourar (altura/ largura)
-        scaleNumbersToFit(wrap);   // 3) números crescem dentro da célula
-        fitBadges(wrap);           // 5) badges ajustam
+        ensureNumWrappers(wrap);
+        setRowHeights(wrap);       // <- primeiro fechamos a altura
+        scaleNumbersToFit(wrap);   // <- depois cabemos o número na célula
+        fitNames(wrap);
+        fitBadges(wrap);
         watchTile(wrap);           // 6) passa a observar alterações de tamanho
     });
 
@@ -221,11 +221,11 @@ function updateTile(el, game){
   }
 
     requestAnimationFrame(() => {
-        ensureNumWrappers(el);   // 1) garante <span class="num">…</span>
-        setRowHeightVar(el);     // 2) fixa a altura da linha pelo espaço do tile
-        fitNames(el);            // 4) nomes cabem sem estourar (altura/ largura)
-        scaleNumbersToFit(el);   // 3) números crescem dentro da célula
-        fitBadges(el);           // 5) badges ajustam
+        ensureNumWrappers(el);
+        setRowHeights(el);       // <- primeiro fechamos a altura
+        scaleNumbersToFit(el);   // <- depois cabemos o número na célula
+        fitNames(el);
+        fitBadges(el);
     });
   return el;
 }
