@@ -64,21 +64,28 @@ export function ensureNumWrappers(root){
   });
 }
 
+// sizing.js
 export function scaleNumbersToFit(root){
   const cells = root.querySelectorAll('td.set .cell, td.now .cell-now');
   cells.forEach(cell => {
     const num = cell.querySelector('.num');
     if (!num) return;
 
+    // reset p/ medir
     num.style.transform = 'scale(1)';
 
     const { width: cw, height: ch } = cell.getBoundingClientRect();
     const { width: nw, height: nh } = num.getBoundingClientRect();
     if (!cw || !ch || !nw || !nh) return;
 
-    // só encolhe; pequena margem 0.96 para não colar na borda/glow
-    const shrink = 0.90 * Math.min(cw / nw, ch / nh);
-    const s = Math.min(1, shrink);
+    // margem para não colar nas bordas/glow
+    const ratio = 0.96 * Math.min(cw / nw, ch / nh);
+
+    // agora PODE crescer: até 1.6 (ajusta se quiseres)
+    const MAX_GROW   = 1.6;
+    const MIN_SHRINK = 0.60;
+
+    const s = Math.max(MIN_SHRINK, Math.min(MAX_GROW, ratio));
     num.style.transform = `translateZ(0) scale(${s})`;
   });
 }
