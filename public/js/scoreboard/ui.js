@@ -151,8 +151,8 @@ function buildTile(game){
     requestAnimationFrame(() => {
         ensureNumWrappers(wrap);   // 1) garante <span class="num">…</span>
         setRowHeightVar(wrap);     // 2) fixa a altura da linha pelo espaço do tile
-        scaleNumbersToFit(wrap);   // 3) números crescem dentro da célula
         fitNames(wrap);            // 4) nomes cabem sem estourar (altura/ largura)
+        scaleNumbersToFit(wrap);   // 3) números crescem dentro da célula
         fitBadges(wrap);           // 5) badges ajustam
         watchTile(wrap);           // 6) passa a observar alterações de tamanho
     });
@@ -223,8 +223,8 @@ function updateTile(el, game){
     requestAnimationFrame(() => {
         ensureNumWrappers(el);   // 1) garante <span class="num">…</span>
         setRowHeightVar(el);     // 2) fixa a altura da linha pelo espaço do tile
-        scaleNumbersToFit(el);   // 3) números crescem dentro da célula
         fitNames(el);            // 4) nomes cabem sem estourar (altura/ largura)
+        scaleNumbersToFit(el);   // 3) números crescem dentro da célula
         fitBadges(el);           // 5) badges ajustam
     });
   return el;

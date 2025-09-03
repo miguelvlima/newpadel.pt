@@ -96,8 +96,8 @@ import { scaleNumbersToFit } from './sizing.js';
     document.querySelectorAll('.tile').forEach(t => {
         ensureNumWrappers(t);
         setRowHeightVar(t);
-        scaleNumbersToFit(t);
         fitNames(t);
+        scaleNumbersToFit(t);
         fitBadges(t);
     });
     };

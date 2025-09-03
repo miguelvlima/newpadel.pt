@@ -5,12 +5,19 @@ export function fitNames(tile){
 
   const getVar = (name) => parseFloat(getComputedStyle(tile).getPropertyValue(name)) || 0;
   let fs = getVar('--fs-name') || 22;
-  const min = 16; let tries = 0;
 
   const tooWide = () => [...lines].some(l => l.scrollWidth > l.clientWidth);
   const tooTall = () => tile.scrollHeight > tile.clientHeight;
 
-  while ((tooWide() || tooTall()) && fs > min && tries < 60){
+  let grew=0;
+  while ((!tooWide() || !tooTall()) && grew < 150){
+    fs += 1;
+    tile.style.setProperty('--fs-name', `${fs}px`);
+    grew++;
+  }
+
+  let tries = 0;
+  while ((tooWide() || tooTall()) && tries < 10){
     fs -= 1;
     tile.style.setProperty('--fs-name', `${fs}px`);
     tries++;
@@ -55,18 +62,14 @@ export function scaleNumbersToFit(root){
 
     num.style.transform = 'scale(1)';
 
-    const availW = Math.max(1, cell.clientWidth  - 2);
-    const availH = Math.max(1, cell.clientHeight - 2);
-    const r      = num.getBoundingClientRect();
+    const { width: cw, height: ch } = cell.getBoundingClientRect();
+    const { width: nw, height: nh } = num.getBoundingClientRect();
+    if (!cw || !ch || !nw || !nh) return;
 
-    const needW  = r.width  > 0 ? (availW / r.width)  : 1;
-    const needH  = r.height > 0 ? (availH / r.height) : 1;
-
-    let s = 0.96 * Math.min(needW, needH);
-    // Limite superior para não “estourar”
-    s = Math.max(0.60, Math.min(2.50, s));  // ← podes afinar 2.2–2.8
-
-    num.style.transform = `scale(${s})`;
+    // só encolhe; pequena margem 0.96 para não colar na borda/glow
+    const shrink = 0.96 * Math.min(cw / nw, ch / nh);
+    const s = Math.min(1, shrink);
+    num.style.transform = `translateZ(0) scale(${s})`;
   });
 }
 
@@ -104,8 +107,8 @@ const ro = new ResizeObserver((entries) => {
     const base = Math.max(0, Math.min(w, h));
     const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
 
-    const fsName  = clamp(base * 0.30, 36, 120);
-    const fsSet   = clamp(base * 0.42, 36, 240);
+    const fsName  = clamp(base * 0.28, 36, 160);
+    const fsSet   = clamp(base * 0.40, 36, 220);
     const fsHead  = clamp(fsSet * 0.55, 12, 36);
     const fsBadge = clamp(base * 0.11, 12, 40);
 
@@ -130,8 +133,8 @@ const ro = new ResizeObserver((entries) => {
       requestAnimationFrame(() => {
         ensureNumWrappers(target); // garante <span class="num">
         setRowHeightVar(target);   // fixa --row-h pela altura real do tile
-        scaleNumbersToFit(target); // números enchem célula (transform: scale)
         fitNames(target);          // baixa fs dos nomes se ainda não couberem
+        scaleNumbersToFit(target); // números enchem célula (transform: scale)
         fitBadges(target);         // ajusta badges se necessário
         delete target.dataset.sizingLock;
       });
