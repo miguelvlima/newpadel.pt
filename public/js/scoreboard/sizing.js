@@ -17,7 +17,7 @@ export function fitNames(tile){
   }
 
   let tries = 0;
-  while ((tooWide() || tooTall()) && tries < 100){
+  while ((tooWide() || tooTall()) && tries < 50){
     fs -= 1;
     tile.style.setProperty('--fs-name', `${fs}px`);
     tries++;
@@ -67,7 +67,7 @@ export function scaleNumbersToFit(root){
     if (!cw || !ch || !nw || !nh) return;
 
     // só encolhe; pequena margem 0.96 para não colar na borda/glow
-    const shrink = 0.96 * Math.min(cw / nw, ch / nh);
+    const shrink = 0.90 * Math.min(cw / nw, ch / nh);
     const s = Math.min(1, shrink);
     num.style.transform = `translateZ(0) scale(${s})`;
   });
