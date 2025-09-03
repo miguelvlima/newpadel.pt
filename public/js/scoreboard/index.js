@@ -106,4 +106,22 @@ import { ensureNumWrappers, setRowHeights, fitNames, scaleNumbersToFit, fitBadge
     document.addEventListener('fullscreenchange', refitAll);
     if (document.fonts?.ready) document.fonts.ready.then(refitAll);
 
+    document.addEventListener('fullscreenchange', () => {
+        // garante que --app-h acompanha a nova altura da janela
+        if (typeof setAppHeight === 'function') setAppHeight();
+
+        // dois RAFs para deixar o browser fechar o layout
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+            document.querySelectorAll('.tile').forEach((tile) => {
+                // mesma ordem do teu pipeline
+                setRowHeights(tile);
+                fitNames(tile);
+                scaleNumbersToFit(tile);
+                fitBadges(tile);
+            });
+            });
+        });
+    });
+
 })();

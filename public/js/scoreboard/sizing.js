@@ -83,33 +83,39 @@ export function scaleNumbersToFit(root){
   });
 }
 
+// sizing.js
 export function setRowHeights(tile){
-    const table = tile.querySelector('.scoretable');
-    if (!table) return;
+  const table = tile.querySelector('.scoretable');
+  if (!table) return;
 
-    // Altura disponível *dentro da própria tabela*
-    const tableH = table.clientHeight;
+  // 1) mede header (badges) e paddings do tile
+  const headerH = tile.querySelector('.row')?.getBoundingClientRect().height || 0;
+  const csTile  = getComputedStyle(tile);
+  const padTop  = parseFloat(csTile.paddingTop)  || 0;
+  const padBot  = parseFloat(csTile.paddingBottom) || 0;
 
-    const thead = table.tHead;
-    const headH = thead ? thead.getBoundingClientRect().height : 0;
+  // 2) mede margens da tabela (contam para dentro do tile)
+  const csTable = getComputedStyle(table);
+  const mt = parseFloat(csTable.marginTop)  || 0;
+  const mb = parseFloat(csTable.marginBottom) || 0;
 
-    const rowsEl = table.tBodies[0]?.rows;
-    const rows   = rowsEl?.length || 2;
+  // 3) altura total do tile e do cabeçalho da tabela
+  const tileH  = tile.getBoundingClientRect().height;
+  const headH  = table.tHead?.getBoundingClientRect().height || 0;
 
-    // gap vertical entre as 2 linhas (vem do :root / do tile)
-    const gapV   = parseFloat(getComputedStyle(tile).getPropertyValue('--gap-v')) || 0;
+  // 4) linhas e gaps
+  const rowsEl = table.tBodies[0]?.rows;
+  const rows   = rowsEl?.length || 2;
+  const gapV   = parseFloat(csTile.getPropertyValue('--gap-v')) || 0;
 
-    // Altura útil do tbody = altura da tabela – cabeçalho – gaps
-    const tbodyUsable = Math.max(0, tableH - headH - gapV * (rows - 1));
+  // 5) altura útil para o tbody
+  const usable = Math.max(0, tileH - headerH - padTop - padBot - mt - mb - headH - gapV*(rows-1));
+  const rowH   = Math.max(44, Math.floor(usable / rows)); // margem p/ diacríticos
 
-    // Altura por linha, com pequena margem para não cortar acentos
-    const rowH = Math.max(44, Math.floor(tbodyUsable / rows) + 2);
-
-    tile.style.setProperty('--row-h', `${rowH}px`);
-
-    // aplica já (evita jitter)
-    if (rowsEl) [...rowsEl].forEach(tr => tr.style.height = `${rowH}px`);
+  tile.style.setProperty('--row-h', `${rowH}px`);
+  if (rowsEl) [...rowsEl].forEach(tr => tr.style.height = `${rowH}px`);
 }
+
 
 // --- ResizeObserver que repõe as variáveis por TILE ---
 const ro = new ResizeObserver((entries) => {

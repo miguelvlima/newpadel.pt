@@ -92,7 +92,11 @@ main{
 @keyframes pulse{0%{opacity:1}50%{opacity:.55}100%{opacity:1}}
 
 /* Right-aligned results block with small spacer */
-.scoretable{ height:100%; }
+.scoretable{
+  height:100%;
+  width:100%;
+  table-layout: fixed; /* mantém colunas previsíveis quando o tile é pequeno */
+}
 .scoretable tbody tr{
   height: var(--row-h, auto);
 }
