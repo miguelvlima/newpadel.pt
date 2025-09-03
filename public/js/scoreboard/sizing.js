@@ -131,7 +131,7 @@ const ro = new ResizeObserver((entries) => {
     const base = Math.max(0, Math.min(w, h));
     const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
 
-    const setW = clamp(contentRect.width * 0.20, 90, 180);
+    const setW = clamp(contentRect.width * 0.20, 90, 250);
     const fsName  = clamp(base * 0.28, 36, 120);
     const fsSet   = clamp(base * 0.40, 50, 220);
     const fsHead  = clamp(fsSet * 0.55, 12, 36);
