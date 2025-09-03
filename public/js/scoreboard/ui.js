@@ -151,8 +151,8 @@ function buildTile(game){
     requestAnimationFrame(() => {
         ensureNumWrappers(wrap);
         setRowHeights(wrap);       // <- primeiro fechamos a altura
-        scaleNumbersToFit(wrap);   // <- depois cabemos o número na célula
         fitNames(wrap);
+        scaleNumbersToFit(wrap);   // <- depois cabemos o número na célula
         fitBadges(wrap);
         watchTile(wrap);           // 6) passa a observar alterações de tamanho
     });
@@ -223,8 +223,8 @@ function updateTile(el, game){
     requestAnimationFrame(() => {
         ensureNumWrappers(el);
         setRowHeights(el);       // <- primeiro fechamos a altura
-        scaleNumbersToFit(el);   // <- depois cabemos o número na célula
         fitNames(el);
+        scaleNumbersToFit(el);   // <- depois cabemos o número na célula
         fitBadges(el);
     });
   return el;

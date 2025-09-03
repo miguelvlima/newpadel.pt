@@ -87,26 +87,44 @@ export function setRowHeights(tile){
   const table = tile.querySelector('.scoretable');
   if (!table) return;
 
-  const thead = table.tHead;
-  const tbody = table.tBodies && table.tBodies[0];
-  if (!tbody) return;
+  // 1) medir o header do tile (a .row com badges)
+  const header = tile.querySelector('.row');
+  const headerH = header ? header.getBoundingClientRect().height : 0;
 
-  const rows = tbody.rows.length || 2;
+  // 2) medir paddings do tile (para não contares espaço que não é útil)
+  const csTile = getComputedStyle(tile);
+  const padTop = parseFloat(csTile.paddingTop)  || 0;
+  const padBot = parseFloat(csTile.paddingBottom) || 0;
 
-  // altura disponível na tabela
-  const tableH = table.clientHeight;
-  const headH  = thead ? thead.getBoundingClientRect().height : 0;
+  // 3) margens da própria tabela contam para dentro do tile
+  const csTable = getComputedStyle(table);
+  const mt = parseFloat(csTable.marginTop)  || 0;
+  const mb = parseFloat(csTable.marginBottom) || 0;
 
-  // gap vertical entre linhas (usa a tua var --gap-v)
-  const gap = parseFloat(getComputedStyle(tile).getPropertyValue('--gap-v')) || 0;
+  // 4) altura disponível para a tabela
+  const tileH   = tile.clientHeight;                            // área interna do tile
+  const tableH  = Math.max(0, tileH - headerH - padTop - padBot - mt - mb);
 
-  // altura útil para o tbody (desconta cabeçalho e gaps entre linhas)
-  const usable = Math.max(0, tableH - headH - gap * (rows - 1));
-  const rowH   = Math.floor(usable / rows);
+  // 5) dentro da tabela, desconta o thead e os gaps entre as 2 linhas
+  const thead   = table.tHead;
+  const headH   = thead ? thead.getBoundingClientRect().height : 0;
 
-  // expõe para o CSS e aplica de imediato (evita jitter)
+  const rowsEl  = table.tBodies[0]?.rows;
+  const rows    = rowsEl?.length || 2;
+
+  const gapV = parseFloat(csTile.getPropertyValue('--gap-v')) || 0;
+  const tbodyUsable = Math.max(0, tableH - headH - gapV * (rows - 1));
+
+  // 6) altura por linha + pequena folga para diacríticos (~, ç, etc.)
+  const baseRowH = Math.floor(tbodyUsable / rows);
+  const rowH     = Math.max(44, baseRowH + 2); // +2 px de segurança
+
   tile.style.setProperty('--row-h', `${rowH}px`);
-  [...tbody.rows].forEach(tr => tr.style.height = `${rowH}px`);
+
+  // aplica imediatamente no DOM para evitar jitter visual
+  if (rowsEl){
+    [...rowsEl].forEach(tr => { tr.style.height = `${rowH}px`; });
+  }
 }
 
 // --- ResizeObserver que repõe as variáveis por TILE ---
@@ -142,8 +160,8 @@ const ro = new ResizeObserver((entries) => {
       requestAnimationFrame(() => {
         ensureNumWrappers(target);
         setRowHeights(target);       // <- primeiro fechamos a altura
-        scaleNumbersToFit(target);   // <- depois cabemos o número na célula
         fitNames(target);
+        scaleNumbersToFit(target);   // <- depois cabemos o número na célula
         fitBadges(target);
         delete target.dataset.sizingLock;
       });

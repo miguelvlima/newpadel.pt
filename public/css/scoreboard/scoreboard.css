@@ -73,10 +73,9 @@ main{
 }
 
 .tile{
-  height:100%;
-  border:1px solid rgba(255,255,255,.10);
-  background:linear-gradient(135deg,var(--tile),var(--tile-grad));
-  padding:var(--tile-pad); display:flex; flex-direction:column; min-height:0; overflow:hidden;
+  display:grid;              /* <- se estiveres com flex, troca */
+  grid-template-rows:auto 1fr;
+  min-height:0;              /* evita overflow por filhos */
 }
 
 .row{ display:grid; grid-template-columns: 1fr auto; align-items:center; }
@@ -93,7 +92,7 @@ main{
 @keyframes pulse{0%{opacity:1}50%{opacity:.55}100%{opacity:1}}
 
 /* Right-aligned results block with small spacer */
-.scoretable{ width:100%; table-layout:auto; border-collapse:separate; border-spacing:0; margin-top:8px; }
+.scoretable{ height:100%; }
 .scoretable tbody tr{
   height: var(--row-h, auto);
 }
