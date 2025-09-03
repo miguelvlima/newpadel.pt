@@ -3,7 +3,7 @@
 import { setAppHeight, onFullscreenToggle, byId } from './utils.js';
 import { initSupabase, fetchScreen, fetchSlots, subscribeSelections, subscribeGames, subscribeScreenMeta } from './supabase-api.js';
 import { buildOrUpdateGrid, getCurrentSlots, setCurrentSlots } from './ui.js';
-import { scaleNumbersToFit } from './sizing.js';
+import { ensureNumWrappers, setRowHeights, fitNames, scaleNumbersToFit, fitBadges } from './sizing.js';
 
 
 (async () => {

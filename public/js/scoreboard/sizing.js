@@ -176,27 +176,3 @@ export function watchTile(tile){
   ro.observe(tile);
   tile.dataset.observed = '1';
 }
-
-export function setRowHeightVar(tile){
-  const table = tile.querySelector('.scoretable');
-  if (!table) return;
-
-  const csTile  = getComputedStyle(tile);
-  const gapV    = parseFloat(csTile.getPropertyValue('--gap-v')) || 0;
-
-  const thead   = table.tHead;
-  const headH   = thead ? thead.offsetHeight : 0;
-
-  // altura total do tile disponível
-  const tileH   = tile.clientHeight;
-
-  // margem-top da tabela (se existir, ex.: 8px)
-  const mt      = parseFloat(getComputedStyle(table).marginTop || 0);
-
-  // 2 linhas no tbody → 1 gap vertical entre elas
-  const available = Math.max(0, tileH - headH - gapV - mt);
-
-  const rowH = Math.max(44, Math.floor(available / 2)); // 44px mínimo por linha
-  tile.style.setProperty('--row-h', `${rowH}px`);
-}
-
