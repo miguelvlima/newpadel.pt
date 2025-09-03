@@ -10,7 +10,7 @@ export function fitNames(tile){
   const tooTall = () => tile.scrollHeight > tile.clientHeight;
 
   let grew=0;
-  while ((!tooWide() || !tooTall()) && grew < 150){
+  while ((!tooWide() && !tooTall()) && grew < 150){
     fs += 1;
     tile.style.setProperty('--fs-name', `${fs}px`);
     grew++;
