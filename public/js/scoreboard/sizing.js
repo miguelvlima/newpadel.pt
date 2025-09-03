@@ -20,7 +20,7 @@ export function fitNames(tile){
   let fs = getVar('--fs-name') || 22;
 
   let grew=0;
-  while ((!tooWide() && !tooTall()) && grew < 150){
+  while ((!anyTooWide() && !tooTall()) && grew < 150){
     fs += 1;
     tile.style.setProperty('--fs-name', `${fs}px`);
     grew++;
