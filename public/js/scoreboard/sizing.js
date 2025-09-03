@@ -1,13 +1,23 @@
 // /public/js/scoreboard/sizing.js
 export function fitNames(tile){
-  const lines = tile.querySelectorAll('td.names .line');
+  const namesCell = tile.querySelector('td.names');
+  if (!namesCell) return;
+  const lines = namesCell.querySelectorAll('.line');
   if (!lines.length) return;
+
+  // Mede a caixa disponível para os nomes
+  const boxRect = namesCell.getBoundingClientRect();
+  const maxW = boxRect.width;
+  const maxH = boxRect.height;
+
+  // Helpers (com pequena folga para evitar “colar”)
+  const anyTooWide = () =>
+    [...lines].some(l => l.getBoundingClientRect().width > maxW - 1);
+  const tooTall = () =>
+    namesCell.scrollHeight > maxH + 0.5;
 
   const getVar = (name) => parseFloat(getComputedStyle(tile).getPropertyValue(name)) || 0;
   let fs = getVar('--fs-name') || 22;
-
-  const tooWide = () => [...lines].some(l => l.scrollWidth > l.clientWidth);
-  const tooTall = () => tile.scrollHeight > tile.clientHeight;
 
   let grew=0;
   while ((!tooWide() && !tooTall()) && grew < 150){
