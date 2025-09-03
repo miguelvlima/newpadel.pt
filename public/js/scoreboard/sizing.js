@@ -27,7 +27,7 @@ export function fitNames(tile){
   }
 
   let tries = 0;
-  while ((anyTooWide() || tooTall()) && tries < 50){
+  while ((tooWide() || tooTall()) && tries < 50){
     fs -= 1;
     tile.style.setProperty('--fs-name', `${fs}px`);
     tries++;
