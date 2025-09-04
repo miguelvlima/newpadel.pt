@@ -6,7 +6,10 @@
   --app-h: 100vh;
   --now-glow: 159,206,100;   /* r,g,b */
 
-  --fs-name: 22px;  --fs-set: 26px;  --fs-head: 12px;
+  --fs-name: 22px;
+  --fs-set: 26px;
+  --fs-set-max: 220px;
+  --fs-head: 12px;
   --fs-badge: 14px;
 
   --set-minw: 110px;
@@ -78,6 +81,11 @@ main{
   display:grid;              /* <- se estiveres com flex, troca */
   grid-template-rows:auto 1fr;
   min-height:0;              /* evita overflow por filhos */
+    padding: var(--tile-pad);
+  border: 1px solid rgba(255,255,255,.10);
+  background: linear-gradient(135deg,var(--tile),var(--tile-grad));
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .row{ display:grid; grid-template-columns: 1fr auto; align-items:center; }
@@ -98,11 +106,25 @@ main{
   height:100%;
   width:100%;
   table-layout: fixed; /* mantém colunas previsíveis quando o tile é pequeno */
+  margin-top: 8px;
 }
 .scoretable tbody tr{
   height: var(--row-h, auto);
 }
-.scoretable thead th{ font-size:var(--fs-head); letter-spacing:.08em; color:var(--muted); font-weight:700; text-align:center; padding-bottom:4px; }
+.scoretable tbody td{
+  height: var(--row-h, auto);
+}
+.scoretable thead th{
+    font-size:var(--fs-head);
+    letter-spacing:.08em;
+    color:var(--muted);
+    font-weight:700;
+    text-align:center;
+    padding-bottom:4px;
+    white-space: nowrap;          /* títulos curtos, sem quebrar */
+    overflow: hidden;             /* não sai da célula */
+    text-overflow: ellipsis;      /* ... se não couber (ex: "Super Tie-break") */
+}
 .scoretable thead th.names{ text-align:left; }
 .scoretable th, .scoretable td{ border-bottom:0; padding:0 10px; vertical-align:middle; background-clip:padding-box }
 .scoretable td.names{

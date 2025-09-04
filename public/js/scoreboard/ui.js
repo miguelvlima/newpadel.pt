@@ -45,7 +45,7 @@ function computeShape(game){
     if (!cfg.isSuper) {
       if (setConcluded[2] || (isRegularPlaying && currentIndex === 2) || (normalTB && currentIndex === 2)) { cols.push(2); titles.push('3º Set'); }
     } else {
-      if (setConcluded[2]) { cols.push(2); titles.push('Super Tie-break'); }
+      if (setConcluded[2]) { cols.push(2); titles.push('Super TB'); }
     }
   }
 
@@ -57,12 +57,12 @@ function computeShape(game){
       outCols.push(cols[k]); outTitles.push(titles[k]);
     }
     outCols.push(lastConcludedIndex);
-    outTitles.push(cfg.isProset ? 'Proset' : (lastConcludedIndex===0?'1º Set':lastConcludedIndex===1?'2º Set':(cfg.isSuper?'Super Tie-break':'3º Set')));
+    outTitles.push(cfg.isProset ? 'Proset' : (lastConcludedIndex===0?'1º Set':lastConcludedIndex===1?'2º Set':(cfg.isSuper?'Super TB':'3º Set')));
     cols = outCols; titles = outTitles;
   }
 
   const showNow  = !matchOver;
-  const nowTitle = superTB ? 'Super Tie-break' : (normalTB ? 'Tie-break' : 'Jogo');
+  const nowTitle = superTB ? 'Super TB' : (normalTB ? 'Tie-break' : 'Jogo');
   const shapeKey = [cfg.isProset?'P':'N', titles.join('|')||'-', `NOW=${showNow?1:0}`].join('#');
 
   return { cfg, sets, cur, setConcluded, currentIndex, matchOver, normalTB, superTB, isRegularPlaying, cols, titles, nowTitle, showNow, shapeKey };
@@ -198,7 +198,7 @@ function updateTile(el, game){
 
   // NOW header + values (se existir)
   const thNow = el.querySelector('th.now');
-  if (thNow) thNow.textContent = meta.superTB ? 'Super Tie-break' : (meta.normalTB ? 'Tie-break' : 'Jogo');
+  if (thNow) thNow.textContent = meta.superTB ? 'Super TB' : (meta.normalTB ? 'Tie-break' : 'Jogo');
   const nowNums = el.querySelectorAll('td.now .cell-now .num');
   if (nowNums.length){
     let top='', bot='';
@@ -249,6 +249,13 @@ export function buildOrUpdateGrid(grid, positions, slots, patch){
   const [cols, rows] = computeGridFromPositions(positions);
   grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
   grid.style.gridTemplateRows    = `repeat(${rows}, 1fr)`;
+
+  const fsMax =
+  positions >= 3 ? 90 :      // 2x2 (4 tiles) → números com teto ~110px
+  positions === 2 ? 160 :     // 1x2 ou 2x1 (2 tiles)
+  220;                        // 1 tile (full-screen) → máximo
+
+    grid.style.setProperty('--fs-set-max', `${fsMax}px`);
 
   // patch update (evita flicker)
   if (patch && TILE_ELS.length === positions){

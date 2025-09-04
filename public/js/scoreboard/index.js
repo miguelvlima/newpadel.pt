@@ -92,37 +92,36 @@ import { ensureNumWrappers, setRowHeights, fitNames, scaleNumbersToFit, fitBadge
     touch('Erro inicial', false);
   }
 
-    const refitAll = () => {
-    document.querySelectorAll('.tile').forEach(t => {
+  const refit = (allowGrow = false) => {
+    document.querySelectorAll('.tile').forEach(tile => {
+    if (allowGrow) {
+      // solta a largura fixa para permitir recalcular maior se for preciso
+      tile.style.removeProperty('--set-w');
+    }
         ensureNumWrappers(t);
         setRowHeights(t);       // <- primeiro fechamos a altura
         fitNames(t);
         scaleNumbersToFit(t);   // <- depois cabemos o número na célula
         fitBadges(t);
     });
-    };
-    window.addEventListener('resize', refitAll);
-    window.addEventListener('orientationchange', refitAll);
-    document.addEventListener('fullscreenchange', refitAll);
-    if (document.fonts?.ready) document.fonts.ready.then(refitAll);
+  };
 
-    document.addEventListener('fullscreenchange', () => {
-        // garante que --app-h acompanha a nova altura da janela
-        if (typeof setAppHeight === 'function') setAppHeight();
-
-        // dois RAFs para deixar o browser fechar o layout
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-            document.querySelectorAll('.tile').forEach((tile) => {
-                // mesma ordem do teu pipeline
-                ensureNumWrappers(tile);
-                setRowHeights(tile);
-                fitNames(tile);
-                scaleNumbersToFit(tile);
-                fitBadges(tile);
-            });
-            });
-        });
+  // 2) pequena fila com duplo rAF (garante layout estabilizado)
+    let rafId = null;
+    const queueRefit = (allowGrow = false) => {
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(() => {
+        requestAnimationFrame(() => refit(allowGrow));
     });
+    };
+
+    // 3) eventos globais
+    window.addEventListener('resize', () => queueRefit(false));
+    window.addEventListener('orientationchange', () => queueRefit(false));
+    document.addEventListener('fullscreenchange', () => {
+    if (typeof setAppHeight === 'function') setAppHeight(); // atualiza --app-h
+    queueRefit(true);  // em FS, deixa crescer: limpa --set-w e refaz
+    });
+    if (document.fonts?.ready) document.fonts.ready.then(() => queueRefit(false));
 
 })();
