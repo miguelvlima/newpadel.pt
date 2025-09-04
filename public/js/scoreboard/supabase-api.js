@@ -6,26 +6,65 @@ export function initSupabase(url, anon){
   return createClient(url, anon, { realtime: { params: { eventsPerSecond: 5 } } });
 }
 
-export async function fetchScreen(sb, key, brand){
-  const { data, error } = await sb.from('scoreboards')
+export async function fetchScreen(sb, key, brand) {
+  const { data, error } = await sb
+    .from('scoreboards')
     .select('id, key, title, layout, kiosk, positions, logo_url')
     .eq('key', key)
     .maybeSingle();
   if (error) throw error;
-  const screen = data || { key };
 
-  // Aplica branding
+  const screen = data || { key, title: key };
   const { logoEl, titleEl } = brand || {};
-  document.title = screen.title || key || 'Scoreboard';
-  if (screen.logo_url && logoEl){
-    logoEl.src = screen.logo_url; logoEl.style.display=''; if (titleEl) titleEl.style.display='none';
-  } else if (titleEl){
-    titleEl.textContent = screen.title || key || 'Scoreboard';
-    titleEl.style.display='';
-  }
+
+  const title = screen.title || key || 'Scoreboard';
+  document.title = title;
+
+  // Kiosk
   if (screen.kiosk) document.body.classList.add('hide-cursor');
+  else document.body.classList.remove('hide-cursor');
+
+  // Branding robusto: título visível por defeito; logo só após onload
+  if (logoEl && titleEl) {
+    // limpar handlers antigos
+    logoEl.onload = null;
+    logoEl.onerror = null;
+
+    // estado inicial (fallback = título)
+    titleEl.textContent = title;
+    titleEl.style.display = '';
+    logoEl.style.display = 'none';
+
+    if (screen.logo_url) {
+      // requestId para ignorar callbacks “antigos”
+      const reqId = (fetchScreen._rid = (fetchScreen._rid || 0) + 1);
+
+      logoEl.onload = () => {
+        if (reqId !== fetchScreen._rid) return;
+        logoEl.style.display = 'inline-block';
+        titleEl.style.display = 'none';
+      };
+      logoEl.onerror = () => {
+        if (reqId !== fetchScreen._rid) return;
+        logoEl.style.display = 'none';
+        titleEl.style.display = '';
+      };
+
+      // definir src no fim, já com handlers activos
+      logoEl.alt = title;
+      logoEl.decoding = 'async';
+      logoEl.loading = 'eager';
+      logoEl.src = screen.logo_url; // tem de ser https e público
+    }
+  } else if (titleEl) {
+    // sem logoEl → fica título
+    titleEl.textContent = title;
+    titleEl.style.display = '';
+  }
+
   return screen;
 }
+
 
 export async function fetchSlots(sb, screen){
   const { data: rows, error } = await sb.from('scoreboard_selections')
