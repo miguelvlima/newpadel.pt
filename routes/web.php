@@ -28,3 +28,7 @@ Route::get('/ementa', function () {
 Route::get('/scoreboard/{screen?}', function (string $screen = 'default') {
     return view('scoreboard', ['screen' => $screen]); // o Blade já usa $screen
 })->where('screen', '[A-Za-z0-9_-]+');
+
+Route::get('/scoreboard/{screen}/gallery', function (string $screen) {
+    return view('scoreboard_gallery', ['screen' => $screen]);
+})->name('scoreboard.gallery');
