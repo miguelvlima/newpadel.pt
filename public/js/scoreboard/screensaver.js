@@ -1,3 +1,4 @@
+// /public/js/scoreboard/screensaver.js
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const cfg = window.__SB || {};
@@ -12,6 +13,38 @@ let timer  = null;
 let idx    = 0;
 let screen = null;
 
+/* ---------- viewport height css var ---------- */
+function setAppHeight(){
+  document.documentElement.style.setProperty('--app-h', `${window.innerHeight}px`);
+}
+setAppHeight();
+window.addEventListener('resize', setAppHeight);
+window.addEventListener('orientationchange', setAppHeight);
+document.addEventListener('fullscreenchange', setAppHeight);
+
+/* ---------- fullscreen helpers (best-effort auto FS) ---------- */
+async function tryFullscreen() {
+  const el = document.documentElement;
+  if (!document.fullscreenElement && el.requestFullscreen) {
+    try { await el.requestFullscreen(); } catch (_) {}
+  }
+}
+function armUserGestureFullscreenOnce(){
+  const once = async () => {
+    cleanup();
+    await tryFullscreen();
+  };
+  const cleanup = () => {
+    document.removeEventListener('click', once);
+    document.removeEventListener('keydown', once);
+    document.removeEventListener('touchend', once);
+  };
+  document.addEventListener('click', once, { once: true });
+  document.addEventListener('keydown', once, { once: true });
+  document.addEventListener('touchend', once, { once: true });
+}
+
+/* ---------- utils ---------- */
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 async function fetchScreenByKey(key){
@@ -72,12 +105,10 @@ function renderSlides(list){
 function startLoop(){
   stopLoop();
   if (!slides.length) return;
-  const step = async () => {
+  const step = () => {
     const cur = slides[idx];
     const nextIdx = (idx + 1) % slides.length;
     const next = slides[nextIdx];
-
-    // avança após duração
     timer = setTimeout(() => {
       if (cur?.el) cur.el.classList.remove('is-active');
       if (next?.el) next.el.classList.add('is-active');
@@ -89,11 +120,18 @@ function startLoop(){
 }
 function stopLoop(){ if (timer) { clearTimeout(timer); timer=null; } }
 
+/* ---------- boot ---------- */
 async function boot(){
+  // tenta fullscreen logo de início (alguns browsers deixam, outros não)
+  await tryFullscreen();
+  // se ainda não entrou, prepara 1º gesto do utilizador para forçar FS
+  setTimeout(() => {
+    if (!document.fullscreenElement) armUserGestureFullscreenOnce();
+  }, 250);
+
   screen = await fetchScreenByKey(cfg.screen);
   if (!screen) return;
 
-  // carrega media
   const pack = await fetchMedia(screen.id);
   setImg(headerEl, pack.header?.url || screen.logo_url || '');
   setImg(footerEl, pack.footer?.url || '');
@@ -103,10 +141,10 @@ async function boot(){
   // live update às imagens
   supabase.channel('media-live')
     .on('postgres_changes', { event:'*', schema:'public', table:'scoreboard_media', filter:`scoreboard_id=eq.${screen.id}` }, async () => {
-      const pack = await fetchMedia(screen.id);
-      setImg(headerEl, pack.header?.url || screen.logo_url || '');
-      setImg(footerEl, pack.footer?.url || '');
-      renderSlides(pack.slides);
+      const p = await fetchMedia(screen.id);
+      setImg(headerEl, p.header?.url || screen.logo_url || '');
+      setImg(footerEl, p.footer?.url || '');
+      renderSlides(p.slides);
       startLoop();
     })
     .subscribe();
@@ -122,7 +160,15 @@ async function boot(){
     .subscribe();
 }
 
+/* ---------- page lifecycle ---------- */
 window.addEventListener('pageshow', boot);
 window.addEventListener('visibilitychange', () => {
   if (document.hidden) stopLoop(); else startLoop();
+});
+// também tenta reentrar em FS se o user sair dele
+document.addEventListener('fullscreenchange', async () => {
+  if (!document.fullscreenElement) {
+    // arma novamente o “one-shot” para o próximo gesto
+    armUserGestureFullscreenOnce();
+  }
 });
