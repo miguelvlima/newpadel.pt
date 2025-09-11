@@ -19,7 +19,8 @@ import {
   setRowHeights,
   fitNames,
   scaleNumbersToFit,
-  fitBadges
+  fitBadges,
+  fitHeadings,
 } from './sizing.js';
 
 (async () => {
@@ -36,7 +37,7 @@ import {
   const SUPABASE_ANON = grid?.dataset?.sbAnon || '';
   const SCREEN_KEY    = grid?.dataset?.screen || 'default';
 
-  // Helpers de redirecionamento para a galeria quando não há jogos
+  // Helpers: detetar jogos e redirecionar p/ galeria
   const hasAnyGame = (slots) => Array.isArray(slots) && slots.some(Boolean);
   const redirectToGallery = () => {
     const key = SCREEN_KEY || 'default';
@@ -48,13 +49,13 @@ import {
     if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
     else document.exitFullscreen?.();
   });
+  if (fsBtn) fsBtn.style.display = document.fullscreenElement ? 'none' : '';
 
-  // Ao entrar/sair de Fullscreen, oculta botão e recalibra
+  // Ao entrar/sair de Fullscreen, oculta botão e recalibra (permitindo crescer)
   onFullscreenToggle(() => {
     if (fsBtn) fsBtn.style.display = document.fullscreenElement ? 'none' : '';
-    // Atualiza --app-h e pede recalibração permitindo crescer em FS
     document.documentElement.style.setProperty('--app-h', `${window.innerHeight}px`);
-    queueRefit(true);
+    queueRefit(true); // allowGrow=true → limpa --set-w e deixa recalcular mais largo
   });
 
   // Relógio de estado
@@ -76,6 +77,34 @@ import {
   const sb = initSupabase(SUPABASE_URL, SUPABASE_ANON);
   let screen = null;
 
+  // === Refit pipeline (em ordem) ===
+  const refit = (allowGrow = false) => {
+    document.querySelectorAll('.tile').forEach((tile) => {
+
+        ensureNumWrappers(tile);
+
+        // PASSO 1
+        setRowHeights(tile);
+        fitHeadings(tile);
+        fitBadges(tile);
+
+        // PASSO 2
+        requestAnimationFrame(() => {
+        setRowHeights(tile);
+        fitNames(tile);
+        scaleNumbersToFit(tile);
+        });
+    });
+    };
+
+    let rafId = null;
+    const queueRefit = (allowGrow = false) => {
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(() => {
+        requestAnimationFrame(() => refit(allowGrow));
+    });
+    };
+
   // Bootstrap
   try {
     screen = await fetchScreen(sb, SCREEN_KEY, { logoEl, titleEl });
@@ -89,6 +118,9 @@ import {
     buildOrUpdateGrid(grid, pack.positions, pack.slots);
     touch('Ligado', true);
 
+    // Recalibração inicial após o primeiro render
+    queueRefit(false);
+
     // Live: alterações nas seleções (add/move/remove)
     subscribeSelections(sb, screen.id, async () => {
       const p = await fetchSlots(sb, screen);
@@ -98,13 +130,11 @@ import {
 
       buildOrUpdateGrid(grid, p.positions, p.slots);
       touch('Seleções atualizadas', true);
-      // recalibra após rebuild
       queueRefit(false);
     });
 
     // Live: atualizações de jogos (pontuação em tempo real)
     subscribeGames(sb, () => getCurrentSlots(), (idx, game) => {
-      // UI atualiza in-place; depois escalamos números (sem crescer layout)
       buildOrUpdateGrid(
         grid,
         screen.positions || getCurrentSlots().length,
@@ -140,38 +170,17 @@ import {
     touch('Erro inicial', false);
   }
 
-  // === Refit pipeline (em ordem) ===
-  const refit = (allowGrow = false) => {
-    document.querySelectorAll('.tile').forEach((tile) => {
-      if (allowGrow) {
-        // em FS permitimos largar a largura fixa dos sets
-        tile.style.removeProperty('--set-w');
-      }
-      ensureNumWrappers(tile);
-      setRowHeights(tile);       // fecha a altura das linhas
-      fitNames(tile);            // encolhe nomes se necessário
-      scaleNumbersToFit(tile);   // faz os números caberem na célula
-      fitBadges(tile);           // ajusta badges do topo
-    });
-  };
-
-  // Debounce via duplo rAF para esperar layout estabilizar
-  let rafId = null;
-  const queueRefit = (allowGrow = false) => {
-    if (rafId) cancelAnimationFrame(rafId);
-    rafId = requestAnimationFrame(() => {
-      requestAnimationFrame(() => refit(allowGrow));
-    });
-  };
-
   // Eventos globais
   window.addEventListener('resize',            () => queueRefit(false));
   window.addEventListener('orientationchange', () => queueRefit(false));
-  document.addEventListener('fullscreenchange', () => {
-    // fallback: atualiza --app-h e refit com crescimento permitido
+    document.addEventListener('fullscreenchange', () => {
     document.documentElement.style.setProperty('--app-h', `${window.innerHeight}px`);
+    // limpar por prevenção (entra/sai)
+    document.querySelectorAll('.tile').forEach((tile) => {
+        tile.style.removeProperty('--set-w');
+        delete tile.dataset.lastSetW;
+    });
     queueRefit(true);
-  });
-  if (document.fonts?.ready) document.fonts.ready.then(() => queueRefit(false));
+    });
 
 })();

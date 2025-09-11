@@ -4,11 +4,11 @@
   --set-bg:rgba(255,255,255,.08); --set-br:rgba(255,255,255,.16);
   --live:#9fce64; --now-fg:#9fce64;
   --app-h: 100vh;
-  --now-glow: 159,206,100;   /* r,g,b */
+  --now-glow: 159,206,100;
 
   --fs-name: 22px;
   --fs-set: 26px;
-  --fs-set-max: 220px;
+  --fs-set-max: 220px;          /* teto dinâmico (RO respeita) */
   --fs-head: 12px;
   --fs-badge: 14px;
 
@@ -25,195 +25,150 @@
   --pad-cell-y-tight: calc(var(--pad-cell-y) * .66);
   --pad-cell-x-tight: calc(var(--pad-cell-x) * .80);
 
-  --set-w: 120px;
+  --set-w: 120px;               /* RO aumenta se precisar */
 }
 
-*{box-sizing:border-box}
-html,body{ height: var(--app-h); overflow:hidden; }
+*{ box-sizing:border-box }
+html,body{ height:var(--app-h); overflow:hidden; }
 body{
   margin:0; background:var(--bg); color:var(--fg);
   -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
   font-family:'Bebas Neue', system-ui,-apple-system,'Segoe UI',Roboto,Ubuntu,Cantarell,'Noto Sans',sans-serif;
-  letter-spacing:.02em;
+  letter-spacing:.02em; text-transform:uppercase;
   display:flex; flex-direction:column;
-  text-transform:uppercase;
 }
 
-header, footer { padding:12px 16px; flex: 0 0 auto; }
+/* header */
+header, footer { padding:12px 16px; flex:0 0 auto; }
 footer{ border-top:1px solid rgba(255,255,255,.12); text-align:center }
 .muted{color:var(--muted)} .status-ok{color:#5ee87b} .status-bad{color:#ff8a8a}
 button{ background:rgba(255,255,255,.08); color:#fff; border:0; padding:8px 12px; cursor:pointer; font-family:inherit }
 button:hover{background:rgba(255,255,255,.16)}
 
-/* Header com logo centrado */
 .app-header{
-  display:grid;
-  grid-template-columns: 1fr auto 1fr; /* status | logo/title | botão */
-  align-items:center;
-  gap:12px;
-  padding:12px 16px;
+  display:grid; grid-template-columns:1fr auto 1fr;
+  align-items:center; gap:12px; padding:12px 16px;
   border-bottom:1px solid rgba(255,255,255,.12);
 }
-.app-header .left { justify-self:start; min-width:0; }
-.app-header .center { justify-self:center; text-align:center; min-width:0; }
-.app-header .right { justify-self:end; }
+.app-header .left{ justify-self:start; min-width:0 }
+.app-header .center{ justify-self:center; text-align:center; min-width:0 }
+.app-header .right{ justify-self:end; }
 #screen-logo{
-  max-height: var(--header-logo-h);
-  max-width: min(50vw, 320px);
-  object-fit: contain;
-  display:none;                      /* mostrado via JS */
-  vertical-align:middle;
+  max-height:var(--header-logo-h); max-width:min(50vw,320px);
+  object-fit:contain; display:none; vertical-align:middle;
 }
-#screen-title{
-  display:inline-block;              /* fallback quando não há logo */
-  font-size: 18px;
-  letter-spacing:.14em;
-}
+#screen-title{ display:inline-block; font-size:18px; letter-spacing:.14em }
 
+/* grid de tiles */
 main{
-  flex:1 1 auto; min-height:0;
+  flex:1 1 auto; min-height:0; overflow:hidden;
   padding:var(--grid-pad); display:grid; gap:var(--grid-gap);
   grid-template-columns:repeat(2,1fr); grid-template-rows:repeat(2,1fr);
-  place-items:stretch; overflow:hidden;
+  place-items:stretch;
 }
-
 .tile{
-  display:grid;              /* <- se estiveres com flex, troca */
-  grid-template-rows:auto 1fr;
-  min-height:0;              /* evita overflow por filhos */
-    padding: var(--tile-pad);
-  border: 1px solid rgba(255,255,255,.10);
-  background: linear-gradient(135deg,var(--tile),var(--tile-grad));
-  border-radius: 12px;
-  overflow: hidden;
+  display:grid; grid-template-rows:auto 1fr; min-height:0; overflow:hidden;
+  padding:var(--tile-pad);
+  border:1px solid rgba(255,255,255,.10);
+  background:linear-gradient(135deg,var(--tile),var(--tile-grad));
+  border-radius:12px;
 }
 
-.row{ display:grid; grid-template-columns: 1fr auto; align-items:center; }
-.row .left{ min-width:0; overflow:hidden; } .row .right{ justify-self:end; }
-
-.badge{ display:inline-flex; align-items:center; justify-content:center; font-size: var(--fs-badge);
-  letter-spacing:.08em; padding: var(--badge-pad-y) var(--badge-pad-x);
+/* barra com badges */
+.row{ display:grid; grid-template-columns:1fr auto; align-items:center; min-height:0 }
+.row .left{ min-width:0; overflow:hidden }
+.row .right{ min-width:0; justify-self:end; overflow:hidden }
+.badge{
+  display:inline-flex; align-items:center; justify-content:center;
+  font-size:var(--fs-badge); letter-spacing:.08em;
+  padding:var(--badge-pad-y) var(--badge-pad-x);
   border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.06);
-  line-height:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 100%;
+  line-height:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;
 }
-.row .badge.court{ margin-left: var(--names-pad-l); }
-.row .badge.status{ border-color: rgba(255,255,255,.22); }
+.row .badge.court{ margin-left:var(--names-pad-l) }
+.row .badge.status{ border-color:rgba(255,255,255,.22) }
 .pulse{ animation:pulse 1s infinite; color:var(--live); font-weight:800 }
 @keyframes pulse{0%{opacity:1}50%{opacity:.55}100%{opacity:1}}
 
-/* Right-aligned results block with small spacer */
+/* Tabela de resultados */
 .scoretable{
-  height:100%;
-  width:100%;
-  table-layout: fixed; /* mantém colunas previsíveis quando o tile é pequeno */
-  margin-top: 8px;
-}
-.scoretable tbody tr{
-  height: var(--row-h, auto);
-}
-.scoretable tbody td{
-  height: var(--row-h, auto);
+  width:100%; height:100%;
+  table-layout:fixed;
+  margin-top:0;                         /* sem folga → não “corta” a 2.ª linha */
 }
 .scoretable thead th{
-    font-size:var(--fs-head);
-    letter-spacing:.08em;
-    color:var(--muted);
-    font-weight:700;
-    text-align:center;
-    padding-bottom:4px;
-    white-space: nowrap;          /* títulos curtos, sem quebrar */
-    overflow: hidden;             /* não sai da célula */
-    text-overflow: ellipsis;      /* ... se não couber (ex: "Super Tie-break") */
+  font-size:var(--fs-head); letter-spacing:.08em; color:var(--muted);
+  font-weight:700; text-align:center; padding-bottom:4px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
-.scoretable thead th.names{ text-align:left; }
-.scoretable th, .scoretable td{ border-bottom:0; padding:0 10px; vertical-align:middle; background-clip:padding-box }
+.scoretable thead th.names{ text-align:left }
+.scoretable th, .scoretable td{
+  border-bottom:0; padding:0 10px; vertical-align:middle; background-clip:padding-box;
+}
+
+/* Alturas das linhas controladas por var (aplicadas também às <td>) */
+.scoretable tbody tr{ height:var(--row-h, auto) }
+.scoretable tbody td{ height:var(--row-h, auto) }
+
+/* Nomes (duas linhas) */
 .scoretable td.names{
-    font-size:var(--fs-name);
-  height: var(--row-h);               /* <- mesma altura do resto */
-  display: flex;                      /* duas linhas empilhadas */
-  flex-direction: column;
-  justify-content: center;            /* centra verticalmente o bloco de nomes */
-  gap: 2px;                           /* pequeno respiro entre as duas linhas */
-  padding-left: var(--names-pad-l);   /* já tinhas */
-  overflow: hidden;                   /* não deixa o conteúdo aumentar a linha */
+  font-size:var(--fs-name);
+  height:var(--row-h);
+  display:flex; flex-direction:column; justify-content:center; gap:2px;
+  padding-left:var(--names-pad-l); overflow:hidden;
 }
 .scoretable td.names .line{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
-.scoretable th.flexfill, .scoretable td.flexfill{ width: var(--spacer-w); padding:0; }
 
-.scoretable td.set, .scoretable td.now{ padding:0 !important; }
+/* Espaçador */
+.scoretable th.flexfill, .scoretable td.flexfill{ width:var(--spacer-w); padding:0 }
 
-.scoretable th.set,
-.scoretable td.set,
-.scoretable th.now,
-.scoretable td.now{
-  width: var(--set-w);   /* controla a largura real da coluna */
-  padding: 0;            /* já não precisamos de padding aqui */
+/* Colunas de resultado – largura fixa via --set-w */
+.scoretable td.set, .scoretable td.now{ padding:0 !important }
+.scoretable th.set, .scoretable td.set,
+.scoretable th.now, .scoretable td.now{
+  width:var(--set-w); padding:0;
 }
 
-/* === SETS (célula com baseline fixa) === */
-.scoretable td.set > .cell{
-  display:flex; align-items:center; justify-content:center;
-  padding: var(--pad-cell-y-tight) var(--pad-cell-x-tight);
-  line-height: 1;
-    /* altura fixa e sem crescer com o font-size */
-  height: 100%;
-  min-height: 0;
-  background: var(--set-bg);
-  border:1px solid var(--set-br);
-  font-weight:900;                   /* font-size base fica como estava */
-  font-size: var(--fs-set);
-  color:#fff;
-  font-variant-numeric: tabular-nums;
-  overflow: hidden;                  /* corta o que passar */
-    width: 100%;    /* << antes tinhas min-width */
-  min-width: 0;          /* garante que não cresce por conteúdo */
-}
-
-/* === AGORA (mesma baseline) === */
+/* Células de set / agora: a célula não cresce; o número é que escala */
+.scoretable td.set > .cell,
 .scoretable td.now > .cell-now{
   display:flex; align-items:center; justify-content:center;
-  padding: var(--pad-cell-y-tight) var(--pad-cell-x-tight);
-  line-height: 1;
-    /* altura fixa e sem crescer com o font-size */
-  height: 100%;
-  min-height: 0;
-  color: var(--now-fg);
+  padding:var(--pad-cell-y-tight) var(--pad-cell-x-tight);
+  line-height:1; height:100%; min-height:0; width:100%; min-width:0;
+  font-weight:900; font-size:var(--fs-set); font-variant-numeric:tabular-nums;
+  overflow:hidden;
+}
+.scoretable td.set > .cell{
+  background:var(--set-bg); border:1px solid var(--set-br); color:#fff;
+}
+.scoretable td.now > .cell-now{
+  color:var(--now-fg);
   background:linear-gradient(180deg, rgba(var(--now-glow), .18), rgba(var(--now-glow), .10));
   border:1px solid rgba(var(--now-glow), .45);
-  box-shadow: 0 0 0 2px rgba(var(--now-glow), .20) inset, 0 0 24px rgba(var(--now-glow), .15);
-  font-weight:900;
-  font-size: var(--fs-set);
-  font-variant-numeric: tabular-nums;
-  overflow: hidden;
-    width: 100%;    /* << antes tinhas min-width */
-  min-width: 0;          /* garante que não cresce por conteúdo */
+  box-shadow:0 0 0 2px rgba(var(--now-glow), .20) inset, 0 0 24px rgba(var(--now-glow), .15);
 }
 
-
-/* O NÚMERO escala; a célula fica quieta */
+/* Wrapper do número (o que efetivamente escala) */
 .scoretable .cell .num,
 .scoretable .cell-now .num{
-  display:inline-block;
-  line-height:1;
-  transform-origin:center;
-  will-change: transform;
+  display:inline-block; line-height:.92;
+  transform-origin:center; will-change:transform;
 }
 
-/* Transições suaves no “AGORA” sem reflow */
-.scoretable th.now,
-.scoretable td.now { transition: opacity .25s ease; }
-.scoretable .now.is-hidden     { opacity: 0; }
-.scoretable .now.is-hidden .cell-now {
-  opacity: 0; box-shadow: none; border-color: transparent; background: transparent;
+/* transição do “AGORA” */
+.scoretable th.now, .scoretable td.now{ transition:opacity .25s ease }
+.scoretable .now.is-hidden     { opacity:0 }
+.scoretable .now.is-hidden .cell-now{
+  opacity:0; box-shadow:none; border-color:transparent; background:transparent;
 }
 
-.placeholder{display:grid;place-items:center;color:#9b9b9b;font-size:18px}
-.hide-cursor *{cursor:none !important}
+.placeholder{ display:grid; place-items:center; color:#9b9b9b; font-size:18px }
+.hide-cursor *{ cursor:none !important }
 
-#status { font-variant-numeric: tabular-nums; }
+#status{ font-variant-numeric:tabular-nums }
 
-@media (max-width: 900px){
-  main{gap:12px; padding:12px}
-  .tile{padding:10px}
-  .scoretable th, .scoretable td{ padding:6px 8px; }
+@media (max-width:900px){
+  main{ gap:12px; padding:12px }
+  .tile{ padding:10px }
+  .scoretable th, .scoretable td{ padding:6px 8px }
 }
