@@ -83,8 +83,50 @@ function setCellVal(meta, i, team){
   return String(team===1?(ss.team1 ?? ''):(ss.team2 ?? ''));
 }
 
+// ——— PROSET helpers ————————————————————————————————————————
+
+function getProsetDisplay(meta){
+  const s = meta?.sets?.[0];
+  const a = Number(s?.team1 || 0);
+  const b = Number(s?.team2 || 0);
+  if (a || b) return [a, b]; // já fechado ou já com valores
+  // fallback enquanto está a decorrer
+  return [Number(meta?.cur?.games_team1 || 0), Number(meta?.cur?.games_team2 || 0)];
+}
+
+function isProsetFormat(game, meta){
+  const f1 = String(game?.format || '').toLowerCase();
+  const f2 = String(meta?.cfg?.format || meta?.cfg?.name || '').toLowerCase();
+  if (f1.includes('proset') || f2.includes('proset')) return true;
+  const t0 = (meta?.titles && meta.titles[0]) ? String(meta.titles[0]).toLowerCase() : '';
+  return t0.includes('proset');
+}
+
+function isProsetTieBreak(game, meta){
+  if (!isProsetFormat(game, meta)) return false;
+  const g1 = Number(meta?.cur?.games_team1 || 0);
+  const g2 = Number(meta?.cur?.games_team2 || 0);
+  // TB em PROSET só existe quando o set está empatado a 8
+  return g1 === 8 && g2 === 8 && !meta?.matchOver;
+}
+
+function isProsetFinished(game, meta){
+  if (!isProsetFormat(game, meta)) return false;
+  const s = meta?.sets?.[0] || {};
+  const a = Number(s.team1 || 0);
+  const b = Number(s.team2 || 0);
+  // PROSET termina quando alguém tem pelo menos 9 e está à frente.
+  // (ex.: 9–8 depois do TB)
+  return (a >= 9 || b >= 9) && a !== b;
+}
+
+
+
+
+
 function buildTile(game){
   const meta = computeShape(game);
+
   const pair1a = escapeHtml(game.player1||''), pair1b=escapeHtml(game.player2||'');
   const pair2a = escapeHtml(game.player3||''), pair2b=escapeHtml(game.player4||'');
   const courtName = game.court_name ? `${escapeHtml(game.court_name)}` : (game.court_id ? `CAMPO ${escapeHtml(String(game.court_id)).slice(0,8)}` : '');
@@ -93,27 +135,60 @@ function buildTile(game){
   const g1 = Number(cur.games_team1||0), g2 = Number(cur.games_team2||0);
   const tb1= Number(cur.tb_team1||0),    tb2= Number(cur.tb_team2||0);
   const p1 = Number(cur.points_team1||0),p2 = Number(cur.points_team2||0);
+
+  // PROSET estado
+  const prosetTB        = isProsetTieBreak(game, meta);
+  const prosetFinished  = isProsetFinished(game, meta);
+
+  // **decidimos localmente** se mostramos a coluna do "agora"
+  const showNow = meta.superTB ? true : (prosetTB ? true : (!prosetFinished && !meta.matchOver));
+
   let nowTop='', nowBot='';
-  if (meta.superTB){ const base1=Number(sets?.[2]?.team1||0), base2=Number(sets?.[2]?.team2||0); nowTop=String(tb1||base1); nowBot=String(tb2||base2); }
-  else if (meta.normalTB){ nowTop=String(tb1); nowBot=String(tb2); }
-  else { nowTop=String(tennisPoint(p1, cfg.isGP)); nowBot=String(tennisPoint(p2, cfg.isGP)); }
+  if (meta.superTB){
+    const base1=Number(sets?.[2]?.team1||0), base2=Number(sets?.[2]?.team2||0);
+    nowTop=String(tb1||base1); nowBot=String(tb2||base2);
+  } else if (prosetTB || meta.normalTB){
+    nowTop=String(tb1); nowBot=String(tb2);
+  } else {
+    nowTop=String(tennisPoint(p1, cfg.isGP)); nowBot=String(tennisPoint(p2, cfg.isGP));
+  }
 
   const anySetFinished = meta.setConcluded.some(Boolean);
-  const anySetFilled   = sets.some(ss => (Number(ss?.team1||0)+Number(ss?.team2||0))>0);
+  const anySetFilled   = meta.sets.some(ss => (Number(ss?.team1||0)+Number(ss?.team2||0))>0);
   const hasCurrent     = (g1+g2+p1+p2+tb1+tb2)>0;
   const started        = anySetFinished || anySetFilled || hasCurrent;
-  const statusText     = meta.matchOver ? 'TERMINADO' : (started ? 'AO VIVO' : 'PRÉ-JOGO');
-  const statusInner    = (started && !meta.matchOver) ? '<span class="pulse">AO VIVO</span>' : statusText;
+
+  // se prosetFinished, força TERMINADO
+  const isOver         = meta.matchOver || prosetFinished;
+  const statusText     = isOver ? 'TERMINADO' : (started ? 'AO VIVO' : 'PRÉ-JOGO');
+  const statusInner    = (!isOver && started) ? '<span class="pulse">AO VIVO</span>' : statusText;
+
+  const nowLabel = meta.superTB ? 'Super TB' : (prosetTB || meta.normalTB ? 'TB' : 'JOGO');
 
   const wrap = document.createElement('div');
-  wrap.className='tile'; wrap.dataset.gameId=game.id; wrap.dataset.shapeKey=meta.shapeKey;
+  wrap.className='tile';
+  wrap.dataset.gameId=game.id;
+  wrap.dataset.shapeKey=meta.shapeKey + (showNow ? ':now' : ':nonow'); // bloqueia “shape” quando entra/sai NOW
+  wrap.classList.toggle('is-tb', (prosetTB || meta.normalTB));
 
   const headerSetTh = meta.titles.map(t => `<th class="set">${t}</th>`).join('');
-  const rowTopSets  = meta.cols.map(i => `<td class="set"><div class="cell"><span class="num">${setCellVal(meta,i,1)}</span></div></td>`).join('');
-  const rowBotSets  = meta.cols.map(i => `<td class="set"><div class="cell"><span class="num">${setCellVal(meta,i,2)}</span></div></td>`).join('');
-  const maybeNowHeader = meta.showNow ? `<th class="now">${meta.nowTitle}</th>` : '';
-  const maybeNowTopTd  = meta.showNow ? `<td class="now"><div class="cell-now"><span class="num">${nowTop}</span></div></td>` : '';
-  const maybeNowBotTd  = meta.showNow ? `<td class="now"><div class="cell-now"><span class="num">${nowBot}</span></div></td>` : '';
+
+  let rowTopSets = '';
+  let rowBotSets = '';
+  if (isProsetFormat(game, meta)) {
+    // PROSET: escreve sempre o valor do set (fechado ou corrente)
+    const [ps1, ps2] = getProsetDisplay(meta);
+    rowTopSets = `<td class="set"><div class="cell"><span class="num">${ps1}</span></div></td>`;
+    rowBotSets = `<td class="set"><div class="cell"><span class="num">${ps2}</span></div></td>`;
+  } else {
+    // restantes formatos: como tinhas
+    rowTopSets = meta.cols.map(i => `<td class="set"><div class="cell"><span class="num">${setCellVal(meta,i,1)}</span></div></td>`).join('');
+    rowBotSets = meta.cols.map(i => `<td class="set"><div class="cell"><span class="num">${setCellVal(meta,i,2)}</span></div></td>`).join('');
+  }
+
+  const maybeNowHeader = showNow ? `<th class="now">${nowLabel}</th>` : '';
+  const maybeNowTopTd  = showNow ? `<td class="now"><div class="cell-now"><span class="num">${nowTop}</span></div></td>` : '';
+  const maybeNowBotTd  = showNow ? `<td class="now"><div class="cell-now"><span class="num">${nowBot}</span></div></td>` : '';
 
   wrap.innerHTML = `
     <div class="row">
@@ -147,22 +222,31 @@ function buildTile(game){
     </table>
   `;
 
-  // ajustes finais
-    requestAnimationFrame(() => {
-        ensureNumWrappers(wrap);
-        setRowHeights(wrap);       // <- primeiro fechamos a altura
-        fitNames(wrap);
-        scaleNumbersToFit(wrap);   // <- depois cabemos o número na célula
-        fitBadges(wrap);
-        watchTile(wrap);           // 6) passa a observar alterações de tamanho
-    });
+  requestAnimationFrame(() => {
+    ensureNumWrappers(wrap);
+    setRowHeights(wrap);
+    fitNames(wrap);
+    scaleNumbersToFit(wrap);
+    fitBadges(wrap);
+    watchTile(wrap);
+  });
 
   return wrap;
 }
 
+
+
+
 function updateTile(el, game){
   const meta = computeShape(game);
-  if (el.dataset.shapeKey !== meta.shapeKey){
+
+  // mesma “shapeKey” + decisão local sobre NOW (evita layout marado)
+  const prosetTB       = isProsetTieBreak(game, meta);
+  const prosetFinished = isProsetFinished(game, meta);
+  const showNow        = meta.superTB ? true : (prosetTB ? true : (!prosetFinished && !meta.matchOver));
+  const newShapeKey    = meta.shapeKey + (showNow ? ':now' : ':nonow');
+
+  if (el.dataset.shapeKey !== newShapeKey){
     const rep = buildTile(game);
     el.replaceWith(rep);
     watchTile(rep);
@@ -170,6 +254,7 @@ function updateTile(el, game){
   }
 
   el.dataset.gameId = game.id;
+
   // court
   const row = el.querySelector('.row');
   const courtBadge = row?.querySelector('.badge.court');
@@ -184,9 +269,11 @@ function updateTile(el, game){
   const p1 = Number(meta.cur.points_team1||0),p2 = Number(meta.cur.points_team2||0);
   const hasCurrent = (g1+g2+p1+p2+tb1+tb2)>0;
   const started    = anySetFinished || anySetFilled || hasCurrent;
-  const statusText = meta.matchOver ? 'TERMINADO' : (started ? 'AO VIVO' : 'PRÉ-JOGO');
+
+  const isOver     = meta.matchOver || prosetFinished;
+  const statusText = isOver ? 'TERMINADO' : (started ? 'AO VIVO' : 'PRÉ-JOGO');
   const statusBadge = row?.querySelector('.badge.status');
-  if (statusBadge) statusBadge.innerHTML = (started && !meta.matchOver) ? '<span class="pulse">AO VIVO</span>' : statusText;
+  if (statusBadge) statusBadge.innerHTML = (!isOver && started) ? '<span class="pulse">AO VIVO</span>' : statusText;
 
   // nomes
   const [n1a,n1b,n2a,n2b] = [game.player1||'', game.player2||'', game.player3||'', game.player4||''].map(escapeHtml);
@@ -198,37 +285,57 @@ function updateTile(el, game){
 
   // NOW header + values (se existir)
   const thNow = el.querySelector('th.now');
-  if (thNow) thNow.textContent = meta.superTB ? 'Super TB' : (meta.normalTB ? 'Tie-break' : 'Jogo');
+  if (thNow){
+    const wantLabel = meta.superTB ? 'Super TB' : (prosetTB || meta.normalTB ? 'TB' : 'JOGO');
+    if (thNow.textContent !== wantLabel) thNow.textContent = wantLabel;
+  }
   const nowNums = el.querySelectorAll('td.now .cell-now .num');
   if (nowNums.length){
     let top='', bot='';
-    if (meta.superTB){ const base1=Number(meta.sets?.[2]?.team1||0), base2=Number(meta.sets?.[2]?.team2||0); top=String(tb1||base1); bot=String(tb2||base2); }
-    else if (meta.normalTB){ top=String(tb1); bot=String(tb2); }
-    else { top=String(tennisPoint(p1, meta.cfg.isGP)); bot=String(tennisPoint(p2, meta.cfg.isGP)); }
+    if (meta.superTB){
+      const base1=Number(meta.sets?.[2]?.team1||0), base2=Number(meta.sets?.[2]?.team2||0);
+      top=String(tb1||base1); bot=String(tb2||base2);
+    } else if (prosetTB || meta.normalTB){
+      top=String(tb1); bot=String(tb2);
+    } else {
+      top=String(tennisPoint(Number(meta.cur.points_team1||0), meta.cfg.isGP));
+      bot=String(tennisPoint(Number(meta.cur.points_team2||0), meta.cfg.isGP));
+    }
     if (nowNums[0]) nowNums[0].textContent = top;
     if (nowNums[1]) nowNums[1].textContent = bot;
   }
 
   // sets
   const setNums = el.querySelectorAll('td.set .cell .num');
-  const n = meta.cols.length;
-  for (let c = 0; c < n; c++) {
-    const i = meta.cols[c];
-    const topEl = setNums[c];
-    const botEl = setNums[n + c];
-    if (topEl) topEl.textContent = setCellVal(meta, i, 1);
-    if (botEl) botEl.textContent = setCellVal(meta, i, 2);
+  const n = meta.cols.length || 1;
+
+  if (isProsetFormat(game, meta)) {
+    // PROSET tem 1 coluna: índice 0 (top) e n+0 (bottom)
+    const [ps1, ps2] = getProsetDisplay(meta);
+    if (setNums[0]) setNums[0].textContent = ps1;
+    if (setNums[n]) setNums[n].textContent = ps2;
+  } else {
+    for (let c = 0; c < n; c++) {
+      const i = meta.cols[c];
+      const topEl = setNums[c];
+      const botEl = setNums[n + c];
+      if (topEl) topEl.textContent = setCellVal(meta, i, 1);
+      if (botEl) botEl.textContent = setCellVal(meta, i, 2);
+    }
   }
 
-    requestAnimationFrame(() => {
-        ensureNumWrappers(el);
-        setRowHeights(el);       // <- primeiro fechamos a altura
-        fitNames(el);
-        scaleNumbersToFit(el);   // <- depois cabemos o número na célula
-        fitBadges(el);
-    });
+  requestAnimationFrame(() => {
+    ensureNumWrappers(el);
+    setRowHeights(el);
+    fitNames(el);
+    scaleNumbersToFit(el);
+    fitBadges(el);
+  });
   return el;
 }
+
+
+
 
 /* placeholders */
 function emptyTile(){
