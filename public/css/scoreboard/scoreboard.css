@@ -73,7 +73,18 @@ main{
   background:linear-gradient(135deg,var(--tile),var(--tile-grad));
   border-radius:12px;
 }
+.tile > .row{
+  position: relative;
+  z-index: 2;
+  padding-bottom: 6px; /* respiro entre header e a tabela */
+}
 
+.tile > .scoretable{
+  position: relative;
+  z-index: 1;
+  margin-top: 6px; /* respiro entre header e a tabela */
+  min-height: 0;
+}
 /* barra com badges */
 .row{ display:grid; grid-template-columns:1fr auto; align-items:center; min-height:0 }
 .row .left{ min-width:0; overflow:hidden }

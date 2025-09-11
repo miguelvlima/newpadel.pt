@@ -27,43 +27,56 @@ export function fitNames(tile){
 }
 
 /* ================== Títulos do thead ================== */
+// sizing.js
 export function fitHeadings(tile){
-  const ths = tile.querySelectorAll('thead th.set, thead th.now');
-  if (!ths.length) return;
+  const thead = tile.querySelector('.scoretable thead');
+  if (!thead) return;
 
-  const getVar = (n) => parseFloat(getComputedStyle(tile).getPropertyValue(n)) || 0;
-  let fs = getVar('--fs-head') || 12;
-
-  const over = () => [...ths].some(th => th.scrollWidth > th.clientWidth);
+  let fs = parseFloat(getComputedStyle(tile).getPropertyValue('--fs-head')) || 12;
   let tries = 0;
-  while (over() && fs > 10 && tries < 30){
+
+  const overflow = () => {
+    const ths = thead.querySelectorAll('th');
+    return [...ths].some(th => th.scrollWidth > th.clientWidth || th.scrollHeight > th.clientHeight);
+  };
+
+  // só encolhe o necessário
+  while (overflow() && fs > 10 && tries < 40){
     fs -= 1;
     tile.style.setProperty('--fs-head', `${fs}px`);
     tries++;
   }
 }
 
+
 /* ================== Badges do header ================== */
 export function fitBadges(tile){
-  const left = tile.querySelector('.row .left');
-  const right = tile.querySelector('.row .right');
+  const row = tile.querySelector('.row');
+  if (!row) return;
+
+  const left   = row.querySelector('.left');
+  const right  = row.querySelector('.right');
+  const court  = row.querySelector('.badge.court');
+  const status = row.querySelector('.badge.status');
   if (!left || !right) return;
-  const court = tile.querySelector('.badge.court');
-  const status = tile.querySelector('.badge.status');
 
   const getVar = (n) => parseFloat(getComputedStyle(tile).getPropertyValue(n)) || 0;
   let fs = getVar('--fs-badge') || 14;
-  let tries = 0;
-  const over = () =>
-    (court && court.scrollWidth > left.clientWidth) ||
+
+  const overW = () =>
+    (court  && court.scrollWidth  > left.clientWidth) ||
     (status && status.scrollWidth > right.clientWidth);
 
-  while (over() && fs > 10 && tries < 24){
+  const overH = () => row.scrollHeight > row.clientHeight && row.clientHeight > 0;
+
+  let tries = 0;
+  while ((overW() || overH()) && fs > 10 && tries < 40){
     fs -= 1;
     tile.style.setProperty('--fs-badge', `${fs}px`);
     tries++;
   }
 }
+
 
 /* ================== Garantir <span class="num"> ================== */
 export function ensureNumWrappers(root){
@@ -251,9 +264,9 @@ const ro = new ResizeObserver((entries) => {
 
     // PASSO 1: fecha altura e encolhe topo (headings/badges)
     requestAnimationFrame(() => {
-      setRowHeights(target);
-      fitHeadings(target);
+
       fitBadges(target);
+      fitHeadings(target);
 
       // PASSO 2: fecha altura de novo, nomes e números
       requestAnimationFrame(() => {
