@@ -44,6 +44,12 @@ import {
     window.location.assign(`/scoreboard/${encodeURIComponent(key)}/gallery`);
   };
 
+  const enterFullscreen = () => {
+    if (document.fullscreenElement || document.webkitFullscreenElement) return;
+    const el = document.documentElement;
+    (el.requestFullscreen || el.webkitRequestFullscreen)?.call(el);
+    };
+
   // Botão de Fullscreen
   fsBtn?.addEventListener('click', () => {
     if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
@@ -181,6 +187,14 @@ import {
         delete tile.dataset.lastSetW;
     });
     queueRefit(true);
+    });
+
+    // qualquer clique/pointer em qualquer sítio entra em fullscreen (se ainda não estiver)
+    document.addEventListener('pointerdown', () => enterFullscreen(), { passive: true });
+
+    // opcional: tecla "f" também entra em fullscreen
+    document.addEventListener('keydown', (e) => {
+    if ((e.key === 'f' || e.key === 'F') && !document.fullscreenElement) enterFullscreen();
     });
 
 })();

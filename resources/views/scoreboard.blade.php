@@ -20,18 +20,7 @@
   <link rel="stylesheet" href="/css/scoreboard/scoreboard.css?v=1.0">
 </head>
 <body>
-  <header class="app-header">
-    <div class="left">
-      <div id="status" class="muted">—</div>
-    </div>
-    <div class="center">
-      <img id="screen-logo" alt="logo" style="display:none" />
-      <strong id="screen-title">—</strong>
-    </div>
-    <div class="right">
-      <button id="fs" title="Ecrã inteiro">Ecrã inteiro</button>
-    </div>
-  </header>
+
 
   <main id="grid"
         data-sb-url="{{ $sbUrl }}"
@@ -40,9 +29,6 @@
     <div class="tile placeholder">Sem jogos configurados para este ecrã.</div>
   </main>
 
-  <footer>
-    <div class="muted">© New Padel Solutions 2025</div>
-  </footer>
 
   <!-- JS modular (ESM) -->
   <script type="module" src="/js/scoreboard/index.js?v=2"></script>
