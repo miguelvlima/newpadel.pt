@@ -66,59 +66,45 @@
                                 </ul>
                             </li>
                             </br>
-                            <li style="text-align: left;"><b><font style="opacity:0.5;">CALENDÁRIO FASE 1</font></b>
+                            <li style="text-align: left;"><b><font style="opacity:0.5;">CALENDÁRIO FASE 2</font></b>
                                 <div class="tabs-container">
                                     </br>
                                     <ul class="tabs">
                                         <li class="active">
-                                            <a href=""><font style="color:black;">FEVEREIRO</font></a>
+                                            <a href=""><font style="color:black;">SETEMBRO</font></a>
                                         </li>
                                         <li>
-                                            <a href=""><font style="color:black;">MARÇO</font></a>
+                                            <a href=""><font style="color:black;">OUTUBRO</font></a>
                                         </li>
                                         <li>
-                                            <a href=""><font style="color:black;">ABRIL</font></a>
+                                            <a href=""><font style="color:black;">NOVEMBRO</font></a>
                                         </li>
                                         <li>
-                                            <a href=""><font style="color:black;">MAIO</font></a>
-                                        </li>
-                                        <li>
-                                            <a href=""><font style="color:black;">JUNHO</font></a>
-                                        </li>
-                                        <li>
-                                            <a href=""><font style="color:black;">JULHO</font></a>
+                                            <a href=""><font style="color:black;">DEZEMBRO</font></a>
                                         </li>
                                     </ul>
                                     <div class="tabs-content">
                                         <div class="tabs-panel active" data-index="0">
-                                            <p><img style="margin-left:10px; width:300px;" class="calendarimage" src="/images/FEV.png" alt="New Padel Tour - Calendário Fase 1 - Fevereiro" onclick="window.open(this.src, '_blank');"></p>
+                                            <p><img style="margin-left:10px; width:300px;" class="calendarimage" src="/images/SET.png" alt="New Padel Tour - Calendário Fase 2 - Setembro" onclick="window.open(this.src, '_blank');"></p>
                                             <p><font size="2" color="white">* O calendário apresentado é meramente indicativo e pode sofrer alterações em qualquer altura.</font></p>
                                         </div>
                                         <div class="tabs-panel" data-index="1">
-                                            <p><img style="margin-left:10px; width:300px;" class="calendarimage" src="/images/MAR.png" alt="New Padel Tour - Calendário Fase 1 - Março" onclick="window.open(this.src, '_blank');"></p>
+                                            <p><img style="margin-left:10px; width:300px;" class="calendarimage" src="/images/OUT.png" alt="New Padel Tour - Calendário Fase 2 - Outubro" onclick="window.open(this.src, '_blank');"></p>
                                             <p><font size="2" color="white">* O calendário apresentado é meramente indicativo e pode sofrer alterações em qualquer altura.</font></p>
                                         </div>
                                         <div class="tabs-panel" data-index="2">
-                                            <p><img style="margin-left:10px; width:300px;" class="calendarimage" src="/images/ABR.png" alt="New Padel Tour - Calendário Fase 1 - Abril" onclick="window.open(this.src, '_blank');"></p>
+                                            <p><img style="margin-left:10px; width:300px;" class="calendarimage" src="/images/NOV.png" alt="New Padel Tour - Calendário Fase 2 - Novembro" onclick="window.open(this.src, '_blank');"></p>
                                             <p><font size="2" color="white">* O calendário apresentado é meramente indicativo e pode sofrer alterações em qualquer altura.</font></p>
                                         </div>
                                         <div class="tabs-panel" data-index="3">
-                                            <p><img style="margin-left:10px; width:300px;" class="calendarimage" src="/images/MAI.png" alt="New Padel Tour - Calendário Fase 1 - Maio" onclick="window.open(this.src, '_blank');"></p>
-                                            <p><font size="2" color="white">* O calendário apresentado é meramente indicativo e pode sofrer alterações em qualquer altura.</font></p>
-                                        </div>
-                                        <div class="tabs-panel" data-index="4">
-                                            <p><img style="margin-left:10px; width:300px;" class="calendarimage" src="/images/JUN.png" alt="New Padel Tour - Calendário Fase 1 - Junho" onclick="window.open(this.src, '_blank');"></p>
-                                            <p><font size="2" color="white">* O calendário apresentado é meramente indicativo e pode sofrer alterações em qualquer altura.</font></p>
-                                        </div>
-                                        <div class="tabs-panel" data-index="5">
-                                            <p><img style="margin-left:10px; width:300px;" class="calendarimage" src="/images/JUL.png" alt="New Padel Tour - Calendário Fase 1 - Julho" onclick="window.open(this.src, '_blank');"></p>
+                                            <p><img style="margin-left:10px; width:300px;" class="calendarimage" src="/images/DEZ.png" alt="New Padel Tour - Calendário Fase 2 - Dezembro" onclick="window.open(this.src, '_blank');"></p>
                                             <p><font size="2" color="white">* O calendário apresentado é meramente indicativo e pode sofrer alterações em qualquer altura.</font></p>
                                         </div>
                                     </div>
                                 </div>
                             </li>
                             </br>
-                            <li style="text-align: left;"><b><font style="opacity:0.5;">RANKING FASE 1</font></b>
+                            <li style="text-align: left;"><b><font style="opacity:0.5;">RANKING FASE 2</font></b>
                                 <div class="tabsRank-container">
                                     <ul class="tabsRank">
                                         @foreach($rankLinks as $title => $rankLink)

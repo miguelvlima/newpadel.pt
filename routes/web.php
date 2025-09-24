@@ -5,15 +5,15 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
 
     $rankLinks = [
-        "M2" => "https://www.tiepadel.com/Rankings/7a803300-c54f-49d5-96b5-2cbd6a6bbcbd",
-        "M3" => "https://www.tiepadel.com/Rankings/dc32d083-b423-4df2-bc5e-08057dc171d7",
-        "M4" => "https://www.tiepadel.com/Rankings/79981824-7532-494e-b236-3fb378c0990d",
-        "M5" => "https://www.tiepadel.com/Rankings/8f366b80-88bd-48fc-8de0-a36c653e8b2b",
-        "F3" => "https://www.tiepadel.com/Rankings/b6fb781a-060c-4cc9-9219-f8b2697c085d",
-        "F4" => "https://www.tiepadel.com/Rankings/6f7b7f5e-f68b-4ae7-9562-d25ccf9634c3",
-        "F5" => "https://www.tiepadel.com/Rankings/6518768b-b43c-40cf-8b11-ab6b24b108fb",
-        "MX3" => "https://www.tiepadel.com/Rankings/282d8a4e-31ec-466e-b8e4-d18426ecee42",
-        "MX4" => "https://www.tiepadel.com/Rankings/32c9148a-214b-4de5-ad95-ef6b6a9dd9c4",
+        "M2" => "https://www.tiepadel.com/Rankings/514f428f-d845-49d1-8b9e-28e6cab2d7b0",
+        "M3" => "https://www.tiepadel.com/Rankings/033580d9-777f-4f95-8e02-bc1d494e6614",
+        "M4" => "https://www.tiepadel.com/Rankings/e566b977-9ce2-485d-ae3e-a966c86b297d",
+        "M5" => "https://www.tiepadel.com/Rankings/7ebfc2c2-eeda-40a1-8f8d-5c14694d3a4e",
+        "F3" => "https://www.tiepadel.com/Rankings/2d59a44e-aa80-4f07-97cb-5714bba2f2d8",
+        "F4" => "https://www.tiepadel.com/Rankings/ff77831e-9fe3-4b1a-b62a-0a5ee1650922",
+        "F5" => "https://www.tiepadel.com/Rankings/eaac73f1-3381-4e72-bf4f-f32a24a68bc9",
+        "MX3" => "https://www.tiepadel.com/Rankings/b8696ed2-4974-4a7a-9418-e0a83477be8b",
+        "MX4" => "https://www.tiepadel.com/Rankings/d11e5723-7213-44c7-a49a-740d5ec84370",
     ];
 
     return view('welcome', [
