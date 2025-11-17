@@ -451,18 +451,18 @@
                         </a>
                     </div>
                     <div>
-                        <a target="_blank" href="https://www.feitonumoito.pt/">
-                            <img style="width:170px" src="/images/partners/oficial_fn8_sdw.svg" alt="Feito Num Oito">
+                        <a target="_blank" href="">
+                            <img style="width:170px" src="/images/partners/permedia.png" alt="Permedia">
+                        </a>
+                    </div>
+                    <div>
+                        <a target="_blank" href="">
+                            <img style="width:170px" src="/images/partners/dietmed.png" alt="Dietmed">
                         </a>
                     </div>
                     <div>
                         <a target="_blank" href="https://instagram.com/heinekenpt">
                             <img style="width:250px" src="/images/partners/oficial_heineken.svg" alt="Heineken">
-                        </a>
-                    </div>
-                    <div>
-                        <a target="_blank" href="">
-                            <img style="width:170px" src="/images/partners/Porsche2.png" alt="Centro Porsche Leiria">
                         </a>
                     </div>
 
@@ -471,11 +471,6 @@
                     <div>
                         <a target="_blank" href="https://instagram.com/heinekenpt">
                             <img src="/images/partners/oficial_bandida.png" alt="Bandida do Pomar">
-                        </a>
-                    </div>
-                    <div>
-                        <a target="_blank" href="https://www.fury.pt">
-                            <img style="width:170px" src="/images/partners/oficial_fury.svg" alt="Fury">
                         </a>
                     </div>
                     <div>
@@ -488,29 +483,13 @@
                             <img style="width:300px" src="/images/partners/CN_quintaperpita.svg" alt="Quinta da Perpita">
                         </a>
                     </div>
-                </div>
-                <div class="partners_table">
-                    <div>
-                        <a target="_blank" href="">
-                            <img src="/images/partners/oficial_pirales.svg" alt="Pirales">
-                        </a>
-                    </div>
-                    <div>
-                        <a target="_blank" href="">
-                            <img src="/images/partners/oficial_proteu.svg" alt="Proteu">
-                        </a>
-                    </div>
-                    <div>
-                        <a target="_blank" href="">
-                            <img style="width:170px" src="/images/partners/Habidecor.png" alt="Abyss & Habidecor">
-                        </a>
-                    </div>
                     <div>
                         <a target="_blank" href="">
                             <img src="/images/partners/Protectvis.png" alt="Protectvis">
                         </a>
                     </div>
                 </div>
+                
             </div>
         </section>
         <!-- Contactos -->
