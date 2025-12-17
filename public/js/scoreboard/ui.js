@@ -18,6 +18,15 @@ function computeGridFromPositions(n){
 
 function escapeHtml(s=''){return s.replace(/[&<>\"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 
+function applyServerIndicator(rootEl, server) {
+  const lines = rootEl.querySelectorAll('td.names .line');
+  const s = Number(server); // 1..4
+  lines.forEach((ln, idx) => {
+    ln.classList.toggle('is-serving', s === (idx + 1));
+  });
+}
+
+
 function computeShape(game){
   const cfg = parseFormat(game.format);
   const s   = game.score || {};
@@ -247,6 +256,8 @@ function buildTile(game){
     </table>
   `;
 
+  applyServerIndicator(wrap, game.server);
+
   requestAnimationFrame(() => {
     ensureNumWrappers(wrap);
     setRowHeights(wrap);
@@ -307,6 +318,8 @@ function updateTile(el, game){
   if (nameLines[1]) nameLines[1].textContent = n1b;
   if (nameLines[2]) nameLines[2].textContent = n2a;
   if (nameLines[3]) nameLines[3].textContent = n2b;
+
+  applyServerIndicator(wrap, game.server);
 
   // NOW header + values (se existir)
   const thNow = el.querySelector('th.now');

@@ -89,7 +89,7 @@ export async function fetchSlots(sb, screen){
 export async function fetchGames(sb, ids){
   if (!ids.length) return [];
   const { data, error } = await sb.from('games')
-    .select('id,player1,player2,player3,player4,format,score,court_id,created_at')
+    .select('id,player1,player2,player3,player4,format,score,server,court_id,created_at')
     .in('id', ids);
   if (error) throw error;
   const games = data || [];

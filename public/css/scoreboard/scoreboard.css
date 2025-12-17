@@ -183,3 +183,24 @@ main{
   .tile{ padding:10px }
   .scoretable th, .scoretable td{ padding:6px 8px }
 }
+
+/* Indicador de serviço: bola amarela atrás do nome */
+.scoretable td.names .line{
+  position: relative;
+  padding-left: 18px; /* espaço para a bola */
+}
+
+.scoretable td.names .line.is-serving::before{
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: #FFD400;
+  z-index: -1;           /* “atrás” do texto */
+  opacity: 0.95;
+}
+
