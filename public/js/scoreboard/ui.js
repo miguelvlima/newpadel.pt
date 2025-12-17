@@ -319,7 +319,7 @@ function updateTile(el, game){
   if (nameLines[2]) nameLines[2].textContent = n2a;
   if (nameLines[3]) nameLines[3].textContent = n2b;
 
-  applyServerIndicator(wrap, game.server);
+  applyServerIndicator(el, game.server);
 
   // NOW header + values (se existir)
   const thNow = el.querySelector('th.now');

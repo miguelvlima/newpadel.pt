@@ -187,7 +187,7 @@ main{
 /* Indicador de serviço: bola amarela atrás do nome */
 .scoretable td.names .line{
   position: relative;
-  padding-left: 18px; /* espaço para a bola */
+  padding-left: 32px; /* espaço para a bola */
 }
 
 .scoretable td.names .line.is-serving::before{
@@ -196,10 +196,10 @@ main{
   left: 0;
   top: 50%;
   transform: translateY(-50%);
-  width: 14px;
-  height: 14px;
+  width: 25px;
+  height: 25px;
   border-radius: 999px;
-  background: #FFD400;
+  background: #9fce64;
   z-index: -1;           /* “atrás” do texto */
   opacity: 0.95;
 }
