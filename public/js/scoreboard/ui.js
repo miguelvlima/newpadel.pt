@@ -40,10 +40,35 @@ function computeShape(game){
   if (cfg.isProset){
     cols.push(0); titles.push('Proset');
   } else {
-    if (setConcluded[0] || (isRegularPlaying && currentIndex === 0) || (normalTB && currentIndex === 0)){ cols.push(0); titles.push('1º Set'); }
-    if (setConcluded[0] && (setConcluded[1] || (isRegularPlaying && currentIndex === 1) || (normalTB && currentIndex === 1))){ cols.push(1); titles.push('2º Set'); }
+    const canShowLive = !matchOver; // ✅ não mostrar “set corrente” se já terminou
+
+    if (
+      setConcluded[0] ||
+      (canShowLive && isRegularPlaying && currentIndex === 0) ||
+      (canShowLive && normalTB && currentIndex === 0)
+    ){
+      cols.push(0); titles.push('1º Set');
+    }
+
+    if (
+      setConcluded[0] &&
+      (
+        setConcluded[1] ||
+        (canShowLive && isRegularPlaying && currentIndex === 1) ||
+        (canShowLive && normalTB && currentIndex === 1)
+      )
+    ){
+      cols.push(1); titles.push('2º Set');
+    }
+
     if (!cfg.isSuper) {
-      if (setConcluded[2] || (isRegularPlaying && currentIndex === 2) || (normalTB && currentIndex === 2)) { cols.push(2); titles.push('3º Set'); }
+      if (
+        setConcluded[2] ||
+        (canShowLive && isRegularPlaying && currentIndex === 2) ||
+        (canShowLive && normalTB && currentIndex === 2)
+      ) {
+        cols.push(2); titles.push('3º Set');
+      }
     } else {
       if (setConcluded[2]) { cols.push(2); titles.push('Super TB'); }
     }
