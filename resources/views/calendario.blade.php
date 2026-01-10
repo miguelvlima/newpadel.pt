@@ -70,7 +70,25 @@
     .banner img{width:100%;height:100%;object-fit:cover;display:block;opacity:.95;}
     .badge{position:absolute;left:10px;top:10px;font-size:11px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background: rgba(11,18,32,.55);backdrop-filter: blur(6px);color: rgba(232,238,252,.95);}
     .card-top{padding:14px 14px 10px;display:flex;gap:10px;align-items:flex-start;}
-    .logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg, rgba(125,211,252,.25), rgba(52,211,153,.18));border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex:none;font-weight:800;}
+    .logo{
+      width:42px;
+      height:42px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.04);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+      flex:none;
+    }
+
+    .logo img{
+      width:100%;
+      height:100%;
+      object-fit:contain; /* 👈 importante para logos */
+      background:#0b1220;
+    }
     .card h3{margin:0;font-size:14px;line-height:1.25}
     .meta{margin:6px 0 0;color:var(--muted);font-size:12px;line-height:1.35}
     .chips{padding:0 14px 12px;display:flex;flex-wrap:wrap;gap:6px}
@@ -90,7 +108,7 @@
   <div class="wrap">
     <header>
       <div class="title">
-        <h1 id="calendarTitle">Circuito Regional Social de Padel</h1>
+        <h1 id="calendarTitle">Circuito Social Regionalde Padel</h1>
       </div>
 
       <div class="controls controls-left">
@@ -243,7 +261,16 @@
             </div>
 
             <div class="card-top">
-              <div class="logo" aria-hidden="true">${escapeHtml(logoText)}</div>
+              <div class="logo">
+                ${
+                  ev.clube_logo_url
+                    ? `<img src="${escapeHtml(ev.clube_logo_url)}"
+                            alt="Logo do clube ${escapeHtml(ev.clube)}"
+                            loading="lazy"
+                            onerror="this.style.display='none'">`
+                    : escapeHtml(logoText)
+                }
+              </div>
               <div>
                 <h3>${escapeHtml(ev.nome ?? "Torneio")}</h3>
                 <div class="meta"><b>Clube:</b> ${escapeHtml(ev.clube ?? "—")}</div>

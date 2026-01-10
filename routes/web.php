@@ -65,13 +65,13 @@ Route::get('/api/calendario', function (Request $request) {
 
     // Em vez de params duplicados, vamos montar query manualmente (mais claro)
     $query = http_build_query([
-        'select' => 'id,nome,clube,data_inicio,data_fim,preco_publico,preco_socio,categorias,banner_path,url_inscricao',
+        'select' => 'id,nome,clube,clube_logo_path,data_inicio,data_fim,preco_publico,preco_socio,categorias,banner_path,url_inscricao',
         'data_inicio' => "gte.$start",
         'data_inicio' => "gte.$start",
     ]);
 
     // Laravel não gosta de keys repetidas em arrays; fazemos query string manual:
-    $query = 'select=' . rawurlencode('id,nome,clube,data_inicio,data_fim,preco_publico,preco_socio,categorias,banner_path,url_inscricao')
+    $query = 'select=' . rawurlencode('id,nome,clube,clube_logo_path,data_inicio,data_fim,preco_publico,preco_socio,categorias,banner_path,url_inscricao')
            . '&data_inicio=gte.' . rawurlencode($start)
            . '&data_inicio=lte.' . rawurlencode($end)
            . '&order=' . rawurlencode('data_inicio.asc');
@@ -110,7 +110,10 @@ Route::get('/api/calendario', function (Request $request) {
     $base = $url . '/storage/v1/object/public/';
     foreach ($data as &$ev) {
         $path = $ev['banner_path'] ?? null;
-        $ev['banner_url'] = $path ? ($base . ltrim($path, '/')) : null;
+        $ev['banner_url'] = $path ? $path : null;
+
+        $logo = $ev['clube_logo_path'] ?? null;
+        $ev['clube_logo_url'] = $logo ? $logo : null;
     }
     unset($ev);
 
