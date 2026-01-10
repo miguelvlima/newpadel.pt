@@ -40,4 +40,9 @@ return [
         'anon' => 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZkeXFrZ3ByeHRpbGV5aGN0a2duIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU0MzQzODMsImV4cCI6MjA3MTAxMDM4M30.PvHpyPt7Ksjpgj0xfVIK1D6PwGlmVDGbKWO4aB0mEpk',
     ],
 
+    'padel_calendar_supabase' => [
+        'url'  => 'https://kjtkqbisuuhbxjatbaoj.supabase.co',
+        'anon' => 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqdGtxYmlzdXVoYnhqYXRiYW9qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgwMjkwMTYsImV4cCI6MjA4MzYwNTAxNn0.-2csT07fSlLDAYOypC_-HB5T0gZBa2zpUTRum5NtCts',
+    ],
+
 ];
