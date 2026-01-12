@@ -92,6 +92,29 @@ Route::get('/api/calendario', function (Request $request) {
 
     $data = $res->json() ?? [];
 
+    // buscar anos disponíveis (datas de todos os torneios)
+    $yearsUrl = $base . '/rest/v1/torneios';
+    $yearsQuery = 'select=' . rawurlencode('data_inicio') . '&limit=10000';
+
+    $yearsRes = \Illuminate\Support\Facades\Http::withHeaders([
+    'apikey' => $key,
+    'Authorization' => 'Bearer ' . $key,
+    'Accept' => 'application/json',
+    ])->get($yearsUrl . '?' . $yearsQuery);
+
+    $years = [];
+    if ($yearsRes->ok()) {
+    foreach (($yearsRes->json() ?? []) as $r) {
+        $d = $r['data_inicio'] ?? null;
+        if ($d && preg_match('/^\d{4}-\d{2}-\d{2}$/', $d)) {
+        $years[(int)substr($d, 0, 4)] = true;
+        }
+    }
+    }
+    $years = array_keys($years);
+    sort($years);
+
+
     // Pesquisa simples no backend (opcional) — nome/clube/categorias
     if ($q !== '') {
         $qq = mb_strtolower($q);
@@ -120,6 +143,7 @@ Route::get('/api/calendario', function (Request $request) {
     // devolve
     return response()->json([
         'year' => $year,
+        'years' => $years,
         'count' => count($data),
         'events' => $data,
     ]);

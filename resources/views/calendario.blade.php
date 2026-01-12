@@ -216,24 +216,14 @@
       return keys.map(k => ({ key:k, items: map.get(k).sort((a,b)=>a.data_inicio.localeCompare(b.data_inicio)) }));
     }
 
-    function fillYearSelectFromEvents(events, selectedYear) {
-      const yearsSet = new Set();
+    function fillYearSelectFromApiYears(years, selectedYear) {
+      const ys = (Array.isArray(years) && years.length) ? years.slice().sort((a,b)=>a-b) : [selectedYear];
 
-      for (const ev of events) {
-        if (ev.data_inicio) {
-          yearsSet.add(Number(ev.data_inicio.slice(0, 4)));
-        }
-      }
-
-      const years = Array.from(yearsSet).sort((a, b) => a - b);
-
-      // fallback de segurança
-      if (!years.length) years.push(selectedYear);
-
-      elYear.innerHTML = years
-        .map(y => `<option value="${y}" ${y === selectedYear ? "selected" : ""}>${y}</option>`)
+      elYear.innerHTML = ys
+        .map(y => `<option value="${y}" ${Number(y) === selectedYear ? "selected" : ""}>${y}</option>`)
         .join("");
     }
+
 
 
     function renderMonthBoard(key, items){
@@ -329,8 +319,8 @@
       const payload = await res.json();
       const events = payload.events || [];
 
-      // 👉 atualizar dropdown com base nos eventos reais
-      fillYearSelectFromEvents(events, year);
+      fillYearSelectFromApiYears(payload.years, year);
+
 
 
       if (!events.length){
