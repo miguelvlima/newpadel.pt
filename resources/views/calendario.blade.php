@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Calendário do Circuito Regional</title>
+  <title>Calendário do Circuito Social Regional de Padel</title>
   <style>
     :root{
       --bg:#0b1220;
@@ -108,7 +108,7 @@
   <div class="wrap">
     <header>
       <div class="title">
-        <h1 id="calendarTitle">Circuito Social Regionalde Padel</h1>
+        <h1 id="calendarTitle">Circuito Social Regional de Padel</h1>
       </div>
 
       <div class="controls controls-left">
@@ -308,7 +308,7 @@
       const year = Number(elYear.value) || INITIAL_YEAR;
 
       document.getElementById("calendarTitle").textContent =
-          `Circuito Regional Social de Padel · ${year}`;
+          `Circuito Social Regional de Padel · ${year}`;
 
       const q = normalize(elQ.value);
 
