@@ -114,9 +114,11 @@ a{ color:inherit; }
   width:152px;
   height:152px;
   border-radius:14px;
+  padding:7px;
   object-fit:contain;
-    /* ajuste fino */
-  margin-top:-100px;   /* puxa o logo para cima */
+
+  /* ajuste fino */
+  margin-top:-8px;   /* puxa o logo para cima */
 }
 
 .hero-intro{
