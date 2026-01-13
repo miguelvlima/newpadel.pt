@@ -1,527 +1,434 @@
 @extends('layouts.app')
 
+@section('title', 'New Padel')
+
 @section('content')
+@php
+  $circuitoUrl = 'https://www.circuitosocialregionaldepadel.pt/';
+@endphp
 
-    <!-- Page Wrapper -->
-    <div id="page-wrapper">
-        <!-- Header -->
-        <header id="header" class="alt">
-            <h1>
-                <a href="index.html">
-                    <div>
-                        <img class="headerimage" src="/images/LOGO_WhiteStripes.png" alt="New Padel" style="margin-top:3px;vertical-align:top;">
-                    </div>
-                </a>
-            </h1>
-            <nav id="nav">
-                <ul>
-                    <li class="special">
-                        <a href="#menu" class="menuToggle"><span>Menu</span></a>
-                        <div id="menu">
-                            <ul>
-                                <li><a href="#newpadeltour" class="more scrolly">NEW PADEL TOUR 2025</a></li>
-                                <li><a href="#campanha" class="more scrolly">SÓCIO NEW PADEL</a></li>
-                                <li><a href="#academia" class="more scrolly">ACADEMIA</a></li>
-                                <li><a href="#reservas" class="more scrolly">RESERVAS</a></li>
-                                <li><a href="#parcerias" class="more scrolly">PARCERIAS</a></li>
-                                <li><a href="#contactos" class="more scrolly">CONTACTOS</a></li>
-                            </ul>
-                        </div>
-                    </li>
-                </ul>
-            </nav>
-        </header>
-        <!-- Banner -->
-        <section id="banner">
-            <div class="inner">
+<div class="wrap">
 
-                <img id="newpadelset2023" src="/images/LOGO_WhiteStripes.png" alt="New Padel">
-                <ul class="icons">
-                    <li><a target="_blank" href="https://www.facebook.com/newpadelcdfviseu" class="icon brands fa-facebook-f" style="font-size: 30pt;color:white;"><span class="label">Facebook</span></a></li>
-                    <li><a target="_blank" href="https://www.instagram.com/newpadelcdfviseu" class="icon brands fa-instagram" style="font-size: 30pt;color:white;"><span class="label">Instagram</span></a></li>
-                    <li><a target="_blank" href="https://web.whatsapp.com/send?phone=00351910715689" class="icon brands fa-whatsapp" style="font-size: 30pt;color:white;"><span class="label">WhatsApp</span></a></li>
+  <div class="top">
 
-                </ul>
+    <nav class="nav" aria-label="Navegação">
+      <a class="chip" href="#socio">Sócio</a>
+      <a class="chip" href="#academia">Academia</a>
+      <a class="chip" href="#reservas">Reservas</a>
+      <a class="chip" href="#patrocinadores">Patrocinadores Oficiais</a>
+      <a class="chip" href="#contactos">Contactos</a>
+      <a class="chip" href="{{ $circuitoUrl }}" target="_blank" rel="noopener">Circuito Social Regional de Padel</a>
+    </nav>
+  </div>
 
-            </div>
-        </section>
+  <section class="hero">
+    <div class="hero-grid">
+      <div>
+        <img class="hero-logo" src="/images/LOGO_WhiteStripes.png" alt="New Padel">
 
-        <!-- New Padel Tour -->
-        <section id="newpadeltour" class="wrapper style2 special">
-            <div class="inner">
-                <header class="major">
-                    <img id="NPT2025logo" src="/images/NPT2025.png" alt="New Padel Tour 2025">
-                </header>
-            </div>
-            <div class="inner">
-                <h4>
-                    <p>
-                        <b>A edição de 2025 do NEW PADEL TOUR está dividida em duas duas fases: a primeira, entre Fevereiro e Julho, e a segunda, entre Agosto e Dezembro, dando ambas, de forma independente, acesso ao <b>NEW PADEL MASTERS 2025</b>, em Janeiro de 2026.
-                    </p>
-                    <div class="comments">
-                        <ul>
-                            <li style="text-align: left;"><font style="opacity:0.5;">REGULAMENTO</font>
-                                <ul>
-                                    <li style="text-align: left;">Consulta o regulamento do NEW PADEL TOUR 2025 <a href="docs/NEW PADEL TOUR 2025 - REGULAMENTO.pdf" target="_blank">AQUI</a>.</li>
-                                </ul>
-                            </li>
-                            </br>
-                            <li style="text-align: left;"><b><font style="opacity:0.5;">CALENDÁRIO FASE 2</font></b>
-                                <div class="tabs-container">
-                                    </br>
-                                    <ul class="tabs">
-                                        <li class="active">
-                                            <a href=""><font style="color:black;">SETEMBRO</font></a>
-                                        </li>
-                                        <li>
-                                            <a href=""><font style="color:black;">OUTUBRO</font></a>
-                                        </li>
-                                        <li>
-                                            <a href=""><font style="color:black;">NOVEMBRO</font></a>
-                                        </li>
-                                        <li>
-                                            <a href=""><font style="color:black;">DEZEMBRO</font></a>
-                                        </li>
-                                    </ul>
-                                    <div class="tabs-content">
-                                        <div class="tabs-panel active" data-index="0">
-                                            <p><img style="margin-left:10px; width:300px;" class="calendarimage" src="/images/SET.png" alt="New Padel Tour - Calendário Fase 2 - Setembro" onclick="window.open(this.src, '_blank');"></p>
-                                            <p><font size="2" color="white">* O calendário apresentado é meramente indicativo e pode sofrer alterações em qualquer altura.</font></p>
-                                        </div>
-                                        <div class="tabs-panel" data-index="1">
-                                            <p><img style="margin-left:10px; width:300px;" class="calendarimage" src="/images/OUT.png" alt="New Padel Tour - Calendário Fase 2 - Outubro" onclick="window.open(this.src, '_blank');"></p>
-                                            <p><font size="2" color="white">* O calendário apresentado é meramente indicativo e pode sofrer alterações em qualquer altura.</font></p>
-                                        </div>
-                                        <div class="tabs-panel" data-index="2">
-                                            <p><img style="margin-left:10px; width:300px;" class="calendarimage" src="/images/NOV.png" alt="New Padel Tour - Calendário Fase 2 - Novembro" onclick="window.open(this.src, '_blank');"></p>
-                                            <p><font size="2" color="white">* O calendário apresentado é meramente indicativo e pode sofrer alterações em qualquer altura.</font></p>
-                                        </div>
-                                        <div class="tabs-panel" data-index="3">
-                                            <p><img style="margin-left:10px; width:300px;" class="calendarimage" src="/images/DEZ.png" alt="New Padel Tour - Calendário Fase 2 - Dezembro" onclick="window.open(this.src, '_blank');"></p>
-                                            <p><font size="2" color="white">* O calendário apresentado é meramente indicativo e pode sofrer alterações em qualquer altura.</font></p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            </br>
-                            <li style="text-align: left;"><b><font style="opacity:0.5;">RANKING FASE 2</font></b>
-                                <div class="tabsRank-container">
-                                    <ul class="tabsRank">
-                                        @foreach($rankLinks as $title => $rankLink)
-                                            <li class="active">
-                                                <a href="{{ $rankLink }}" target="_blank">
-                                                    <font style="color:black;">{{ $title }}</font>
-                                                </a>
-                                            </li>
-                                        @endforeach
-                                    </ul>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </h4>
-            </div>
-        </section>
-        <!-- Campanha sócio fundador -->
-        <section id="campanha" class="wrapper style2 special">
-            <div class="inner">
-                <header class="major">
-                    <h2>SÓCIO NEW PADEL</h2>
-                </header>
-            </div>
-            <div class="inner">
-                <h3>
-                    Junta-te a nós e torna-te sócio do clube:
-                </h3>
-                <table class="table table-striped w-auto">
-                    <tbody>
-                    <tr>
-                        <th scope="row">
-                            BLACK
-                            </br>
-                            <ul>
-                                <li style="text-align: left;">Desconto de 1 € em cada reserva de campo.</li>
-                                <li style="text-align: left;">Desconto de 5% na inscrição em aulas.</li>
-                                <li style="text-align: left;">Desconto na inscrição em torneios realizados no clube.</li>
-                                <li style="text-align: left;">Oferta (pessoal e intransmissível) de um jogo de 1h30m no dia de aniversário.</li>
+        <h1>New Padel Chão da Fonte - Viseu</h1>
 
-                            </ul>
-                        </th>
-                        <td>60 € / ANO</td>
-                    </tr>
-                    <tr class="table-info">
-                        <th scope="row">
-                            WHITE
-                            </br>
-                            <ul>
-                                <li style="text-align: left;">Livre-trânsito para marcação e realização de jogos (mediante disponibilidade dos campos).</li>
-                                <li style="text-align: left;">Desconto de 5% na inscrição em aulas.</li>
-                                <li style="text-align: left;">Desconto na inscrição em torneios realizados no clube.</li>
-                                <li style="text-align: left;">Oferta de um campo por 1h30m no dia de aniversário.</li>
+        <div class="hero-stats" aria-label="Destaques">
+          <div class="stat">
+            <div class="stat__k">4</div>
+            <div class="stat__v">CAMPOS COBERTOS</div>
+          </div>
+          <div class="stat">
+            <div class="stat__k">150m²</div>
+            <div class="stat__v">ESPLANADA</div>
+          </div>
+          <div class="stat">
+            <div class="stat__k">EV</div>
+            <div class="stat__v">CARREGADORES</div>
+          </div>
+        </div>
 
-                            </ul>
-                        </th>
-                        <td>
-                            1000 € / ANO
-                            </br>
-                            OU
-                            </br>
-                            100 € / mês (fidelização de 1 ano)
+        <div class="features" aria-label="Comodidades">
+          <div class="feature"><span class="ico">🅿️</span><span>Estacionamento privativo</span></div>
+          <div class="feature"><span class="ico">⚡</span><span>Carregadores para carros elétricos</span></div>
+          <div class="feature"><span class="ico">☕</span><span>Cafetaria</span></div>
+          <div class="feature"><span class="ico">🛍️</span><span>Loja de produtos de padel</span></div>
+          <div class="feature"><span class="ico">🌿</span><span>Esplanada com 150 m²</span></div>
+          <div class="feature"><span class="ico">🧸</span><span>Parque infantil</span></div>
+          <div class="feature"><span class="ico">🚿</span><span>Balneários completos</span></div>
+        </div>
+      </div>
 
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-                <div class="comments">
-                    <ul>
-                        <li style="text-align: left;">Contacta o 910715689 para mais informações.</li>
-                        <li style="text-align: left;">Os valores apresentados incluem IVA à taxa legal em vigor.</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
-        <!-- Academia -->
-        <section id="academia" class="wrapper style2 special">
-            <div class="inner">
-                <header class="major">
-                    <h2>ACADEMIA</h2>
-                </header>
 
-                <h3>
-                    MATRÍCULA MENSAL ADULTOS
-                </h3>
-                <!-- TABELA MENSALIDADE -->
-                <table class="table table-striped w-auto">
-                    <thead>
-                    <tr>
-                        <th></th>
-                        <th class="center">1 x semana</th>
-                        <th class="center">2 x semana</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr class="table-info">
-                        <th scope="row">Light Sócio</th>
-                        <td>42 €</td>
-                        <td>71 €</td>
-                    </tr>
-                    <tr class="table-info">
-                        <th scope="row">Light Não Sócio</th>
-                        <td>45 €</td>
-                        <td>75 €</td>
-                    </tr>
-                    <tr class="table-info">
-                        <th scope="row">Prime Sócio</th>
-                        <td>52 €</td>
-                        <td>90 €</td>
-                    </tr>
-                    <tr class="table-info">
-                        <th scope="row">Prime Não Sócio</th>
-                        <td>55 €</td>
-                        <td>95 €</td>
-                    </tr>
-                    </tbody>
-                </table>
-                <h3>
-                    MATRÍCULA MENSAL CRIANÇAS
-                </h3>
-                <!-- TABELA MENSALIDADE -->
-                <table class="table table-striped w-auto">
-                    <thead>
-                    <tr>
-                        <th></th>
-                        <th class="center">1 x semana</th>
-                        <th class="center">2 x semana</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr class="table-info">
-                        <th scope="row">Light Sócio</th>
-                        <td>33 €</td>
-                        <td>52 €</td>
-                    </tr>
-                    <tr class="table-info">
-                        <th scope="row">Light Não Sócio</th>
-                        <td>35 €</td>
-                        <td>55 €</td>
-                    </tr>
-                    <tr class="table-info">
-                        <th scope="row">Prime Sócio</th>
-                        <td>42 €</td>
-                        <td>61 €</td>
-                    </tr>
-                    <tr class="table-info">
-                        <th scope="row">Prime Não Sócio</th>
-                        <td>45 €</td>
-                        <td>65 €</td>
-                    </tr>
-                    </tbody>
-                </table>
-                <h3>
-                    PACK AULAS 1 ADULTO
-                </h3>
-                <table class="table table-striped w-auto">
-                    <thead>
-                    <tr>
-                        <th></th>
-                        <th class="center">1 aula</th>
-                        <th class="center">4 aulas</th>
-                        <th class="center">10 aulas</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr class="table-info">
-                        <th scope="row">Light Sócio</th>
-                        <td>36 €</td>
-                        <td>131 €</td>
-                        <td>273 €</td>
-                    </tr>
-                    <tr class="table-info">
-                        <th scope="row">Light Não Sócio</th>
-                        <td>38 €</td>
-                        <td>138 €</td>
-                        <td>288 €</td>
-                    </tr>
-                    <tr class="table-info">
-                        <th scope="row">Prime Sócio</th>
-                        <td>40 €</td>
-                        <td>150 €</td>
-                        <td>306 €</td>
-                    </tr>
-                    <tr class="table-info">
-                        <th scope="row">Prime Não Sócio</th>
-                        <td>43 €</td>
-                        <td>158 €</td>
-                        <td>323 €</td>
-                    </tr>
-                    </tbody>
-                </table>
-                <h3>
-                    PACK AULAS 2 ADULTOS
-                </h3>
-                <table class="table table-striped w-auto">
-                    <thead>
-                    <tr>
-                        <th></th>
-                        <th class="center">1 aula</th>
-                        <th class="center">4 aulas</th>
-                        <th class="center">10 aulas</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr class="table-info">
-                        <th scope="row">Light Sócio</th>
-                        <td>21 €</td>
-                        <td>69 €</td>
-                        <td>154 €</td>
-                    </tr>
-                    <tr class="table-info">
-                        <th scope="row">Light Não Sócio</th>
-                        <td>23 €</td>
-                        <td>73 €</td>
-                        <td>165 €</td>
-                    </tr>
-                    <tr class="table-info">
-                        <th scope="row">Prime Sócio</th>
-                        <td>26 €</td>
-                        <td>93 €</td>
-                        <td>173 €</td>
-                    </tr>
-                    <tr class="table-info">
-                        <th scope="row">Prime Não Sócio</th>
-                        <td>28 €</td>
-                        <td>98 €</td>
-                        <td>183 €</td>
-                    </tr>
-                    </tbody>
-                </table>
-                <h3>
-                    PACK AULAS 1 CRIANÇA
-                </h3>
-                <table class="table table-striped w-auto">
-                    <thead>
-                    <tr>
-                        <th></th>
-                        <th class="center">1 aula</th>
-                        <th class="center">4 aulas</th>
-                        <th class="center">10 aulas</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr class="table-info">
-                        <th scope="row">Light Sócio</th>
-                        <td>32 €</td>
-                        <td>121 €</td>
-                        <td>259 €</td>
-                    </tr>
-                    <tr class="table-info">
-                        <th scope="row">Light Não Sócio</th>
-                        <td>35 €</td>
-                        <td>128 €</td>
-                        <td>273 €</td>
-                    </tr>
-                    <tr class="table-info">
-                        <th scope="row">Prime Sócio</th>
-                        <td>37 €</td>
-                        <td>135 €</td>
-                        <td>287 €</td>
-                    </tr>
-                    <tr class="table-info">
-                        <th scope="row">Prime Não Sócio</th>
-                        <td>39 €</td>
-                        <td>143 €</td>
-                        <td>303 €</td>
-                    </tr>
-                    </tbody>
-                </table>
-                <div class="comments">
-                    <ul>
-                        <li style="text-align: left;">LIGHT - Segunda a sexta, 9h - 17h.</li>
-                        <li style="text-align: left;">PRIME - Segunda a sexta, 17h - 24h / Sábados, domingos e feriados, 9h - 24h.</li>
-                        <li style="text-align: left;">Os valores apresentados são por pessoa e incluem IVA à taxa legal em vigor.</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
-
-        <!-- Reservas -->
-        <section id="reservas" class="wrapper style2 special">
-            <div class="inner">
-                <header class="major">
-                    <h2>RESERVAS</h2>
-                </header>
-            </div>
-            <div class="inner">
-                <h3>
-                    Para efetuares reservas no clube, segue as instruções:
-                </h3>
-                <img class="posterimage" src="/images/tie_sports_poster.png" alt="Connect to New Padel Chão da Fonte - Viseu">
-                <!-- TABELA RESERVA DE CAMPO -->
-                <table class="table table-striped w-auto">
-                    <thead>
-                    <tr>
-                        <th></th>
-                        <th class="center">1h</th>
-                        <th class="center">1h30m</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr class="table-info">
-                        <th scope="row">LIGHT SÓCIO</th>
-                        <td>3,5 €</td>
-                        <td>5,5 €</td>
-                    </tr>
-                    <tr class="table-info">
-                        <th scope="row">LIGHT NÃO SÓCIO</th>
-                        <td>4,5 €</td>
-                        <td>6,5 €</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">PRIME SÓCIO</th>
-                        <td>5,5 €</td>
-                        <td>7,5 €</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">PRIME NÃO SÓCIO</th>
-                        <td>6,5 €</td>
-                        <td>8,5 €</td>
-                    </tr>
-                    </tbody>
-                </table>
-                <div class="comments">
-                    <ul>
-                        <li style="text-align: left;">LIGHT - Segunda a sexta, 9h - 17h.</li>
-                        <li style="text-align: left;">PRIME - Segunda a sexta, 17h - 24h / Sábados, domingos e feriados, 9h - 24h.</li>
-                        <li style="text-align: left;">Os valores apresentados são por pessoa e incluem IVA à taxa legal em vigor.</li>
-                        <li style="text-align: left;">Deve ser considerado um mínimo de 4 pessoas por reserva de campo.</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
-        <!-- Patrocinadores oficiais -->
-        <section id="parcerias" class="wrapper style2 special">
-            <div class="inner">
-                <header class="major">
-                    <h2>PATROCINADORES OFICIAIS</h2>
-                </header>
-                <div class="partners_table">
-                    <div>
-                        <a target="_blank" href="https://www.remax.pt/dinamica">
-                            <img src="/images/partners/oficial_remax_dinamica.svg" alt="Remax Dinâmica">
-                        </a>
-                    </div>
-                    <div>
-                        <a target="_blank" href="">
-                            <img style="width:170px" src="/images/partners/permedia.png" alt="Permedia">
-                        </a>
-                    </div>
-                    <div>
-                        <a target="_blank" href="">
-                            <img style="width:170px" src="/images/partners/dietmed.png" alt="Dietmed">
-                        </a>
-                    </div>
-                    <div>
-                        <a target="_blank" href="https://instagram.com/heinekenpt">
-                            <img style="width:250px" src="/images/partners/oficial_heineken.svg" alt="Heineken">
-                        </a>
-                    </div>
-
-                </div>
-                <div class="partners_table">
-                    <div>
-                        <a target="_blank" href="https://instagram.com/heinekenpt">
-                            <img src="/images/partners/oficial_bandida.png" alt="Bandida do Pomar">
-                        </a>
-                    </div>
-                    <div>
-                        <a target="_blank" href="">
-                            <img style="width:170px" src="/images/partners/oficial_obliqo.svg" alt="Obliqo">
-                        </a>
-                    </div>
-                    <div>
-                        <a target="_blank" href="">
-                            <img style="width:300px" src="/images/partners/CN_quintaperpita.svg" alt="Quinta da Perpita">
-                        </a>
-                    </div>
-                    <div>
-                        <a target="_blank" href="">
-                            <img src="/images/partners/Protectvis.png" alt="Protectvis">
-                        </a>
-                    </div>
-                </div>
-                
-            </div>
-        </section>
-        <!-- Contactos -->
-        <section id="contactos" class="wrapper style2 special">
-            <div class="inner">
-                <header class="major">
-                    <h2>CONTACTOS</h2>
-                </header>
-            </div>
-            <div class="innernoshadow">
-                <div id="contacts">
-                    <p><strong>Telefone:</strong> +351910715689</p>
-                    <p><strong>E-mail:</strong> <a href="mailto:geral@padelclubecf.com">geral@newpadel.pt</a></p>
-                    <p>
-                        <iframe class="newpadel_map" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3027.37151734003!2d-7.904607284734797!3d40.64374017933935!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd233730500250ad%3A0x2bf80e07e7772797!2sNew%20Padel%20Ch%C3%A3o%20da%20Fonte%20-%20Viseu!5e0!3m2!1spt-PT!2spt!4v1635858609699!5m2!1spt-PT!2spt" allowfullscreen="" loading="lazy"></iframe>
-                    </p>
-                </div>
-            </div>
-        </section>
+      <div class="video-frame" aria-label="Vídeo de apresentação">
+        <video
+          src="/media/intro-story.mp4"
+          autoplay
+          muted
+          loop
+          playsinline
+          preload="metadata"
+          poster="/media/intro-poster.jpg"
+        ></video>
+      </div>
     </div>
-    <!-- Footer -->
-    <footer id="footer">
-        <ul class="icons">
-            <li><a target="_blank" href="https://www.facebook.com/newpadelcdfviseu" class="icon brands fa-facebook-f" style="font-size: 20pt;"><span class="label">Facebook</span></a></li>
-            <li><a target="_blank" href="https://www.instagram.com/newpadelcdfviseu" class="icon brands fa-instagram" style="font-size: 20pt;"><span class="label">Instagram</span></a></li>
-            <li><a target="_blank" href="https://web.whatsapp.com/send?phone=00351910715689" class="icon brands fa-whatsapp" style="font-size: 20pt;"><span class="label">WhatsApp</span></a></li>
+  </section>
 
-        </ul>
-        <ul class="copyright">
-            <li>&copy; 2025 - New Padel &reg;</li>
-            <li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
-        </ul>
-    </footer>
+  <section id="socio" class="section">
+  <div class="section-head">
+    <h2>Sócio New Padel</h2>
+    <p class="hint">Modalidades e vantagens</p>
+  </div>
 
+  <div class="card">
+    <div class="membership-grid">
+
+      <div class="membership">
+        <div class="membership-top">
+          <div>
+            <div class="membership-title">BLACK</div>
+            <div class="membership-price">60 € <span>/ ano</span></div>
+          </div>
+        </div>
+
+        <ul class="membership-list">
+          <li>Desconto de <b>1 €</b> em cada reserva de campo.</li>
+          <li>Desconto de <b>5%</b> na inscrição em aulas.</li>
+          <li>Desconto na inscrição em torneios realizados no clube.</li>
+          <li>Oferta (pessoal e intransmissível) de um jogo de <b>1h30</b> no dia de aniversário.</li>
+        </ul>
+      </div>
+
+      <div class="membership">
+        <div class="membership-top">
+          <div>
+            <div class="membership-title">WHITE</div>
+            <div class="membership-price">1000 € <span>/ ano</span></div>
+            <div class="membership-subprice">ou <b>100 € / mês</b> (fidelização de 1 ano)</div>
+          </div>
+        </div>
+
+        <ul class="membership-list">
+          <li>Livre-trânsito para marcação e realização de jogos (mediante disponibilidade dos campos).</li>
+          <li>Desconto de <b>5%</b> na inscrição em aulas.</li>
+          <li>Desconto na inscrição em torneios realizados no clube.</li>
+          <li>Oferta de um campo por <b>1h30</b> no dia de aniversário.</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="note">
+      Contacta o <b>910 715 689</b> para mais informações. Os valores apresentados incluem IVA à taxa legal em vigor.
+    </div>
+  </div>
+</section>
+
+
+<section id="academia" class="section">
+  <div class="section-head">
+    <h2>Academia</h2>
+    <p class="hint">Mensalidades e packs</p>
+  </div>
+
+  <div class="card">
+    <div class="academy-grid">
+
+      {{-- Mensalidade Adultos --}}
+      <div class="academy-block">
+        <div class="academy-title">Matrícula mensal — Adultos</div>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th></th>
+                <th class="t-center">1× semana</th>
+                <th class="t-center">2× semana</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>Light Sócio</th><td class="t-center">42 €</td><td class="t-center">71 €</td>
+              </tr>
+              <tr>
+                <th>Light Não Sócio</th><td class="t-center">45 €</td><td class="t-center">75 €</td>
+              </tr>
+              <tr>
+                <th>Prime Sócio</th><td class="t-center">52 €</td><td class="t-center">90 €</td>
+              </tr>
+              <tr>
+                <th>Prime Não Sócio</th><td class="t-center">55 €</td><td class="t-center">95 €</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {{-- Mensalidade Crianças --}}
+      <div class="academy-block">
+        <div class="academy-title">Matrícula mensal — Crianças</div>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th></th>
+                <th class="t-center">1× semana</th>
+                <th class="t-center">2× semana</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>Light Sócio</th><td class="t-center">33 €</td><td class="t-center">52 €</td>
+              </tr>
+              <tr>
+                <th>Light Não Sócio</th><td class="t-center">35 €</td><td class="t-center">55 €</td>
+              </tr>
+              <tr>
+                <th>Prime Sócio</th><td class="t-center">42 €</td><td class="t-center">61 €</td>
+              </tr>
+              <tr>
+                <th>Prime Não Sócio</th><td class="t-center">45 €</td><td class="t-center">65 €</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {{-- Pack 1 adulto --}}
+      <div class="academy-block">
+        <div class="academy-title">Pack aulas — 1 adulto</div>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th></th>
+                <th class="t-center">1 aula</th>
+                <th class="t-center">4 aulas</th>
+                <th class="t-center">10 aulas</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>Light Sócio</th><td class="t-center">36 €</td><td class="t-center">131 €</td><td class="t-center">273 €</td>
+              </tr>
+              <tr>
+                <th>Light Não Sócio</th><td class="t-center">38 €</td><td class="t-center">138 €</td><td class="t-center">288 €</td>
+              </tr>
+              <tr>
+                <th>Prime Sócio</th><td class="t-center">40 €</td><td class="t-center">150 €</td><td class="t-center">306 €</td>
+              </tr>
+              <tr>
+                <th>Prime Não Sócio</th><td class="t-center">43 €</td><td class="t-center">158 €</td><td class="t-center">323 €</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {{-- Pack 2 adultos --}}
+      <div class="academy-block">
+        <div class="academy-title">Pack aulas — 2 adultos</div>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th></th>
+                <th class="t-center">1 aula</th>
+                <th class="t-center">4 aulas</th>
+                <th class="t-center">10 aulas</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>Light Sócio</th><td class="t-center">21 €</td><td class="t-center">69 €</td><td class="t-center">154 €</td>
+              </tr>
+              <tr>
+                <th>Light Não Sócio</th><td class="t-center">23 €</td><td class="t-center">73 €</td><td class="t-center">165 €</td>
+              </tr>
+              <tr>
+                <th>Prime Sócio</th><td class="t-center">26 €</td><td class="t-center">93 €</td><td class="t-center">173 €</td>
+              </tr>
+              <tr>
+                <th>Prime Não Sócio</th><td class="t-center">28 €</td><td class="t-center">98 €</td><td class="t-center">183 €</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {{-- Pack 1 criança --}}
+      <div class="academy-block">
+        <div class="academy-title">Pack aulas — 1 criança</div>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th></th>
+                <th class="t-center">1 aula</th>
+                <th class="t-center">4 aulas</th>
+                <th class="t-center">10 aulas</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>Light Sócio</th><td class="t-center">32 €</td><td class="t-center">121 €</td><td class="t-center">259 €</td>
+              </tr>
+              <tr>
+                <th>Light Não Sócio</th><td class="t-center">35 €</td><td class="t-center">128 €</td><td class="t-center">273 €</td>
+              </tr>
+              <tr>
+                <th>Prime Sócio</th><td class="t-center">37 €</td><td class="t-center">135 €</td><td class="t-center">287 €</td>
+              </tr>
+              <tr>
+                <th>Prime Não Sócio</th><td class="t-center">39 €</td><td class="t-center">143 €</td><td class="t-center">303 €</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="note">
+      <div><b>LIGHT</b> — Segunda a sexta, 9h–17h.</div>
+      <div><b>PRIME</b> — Segunda a sexta, 17h–24h · Sábados, domingos e feriados, 9h–24h.</div>
+      <div>Os valores apresentados são por pessoa e incluem IVA à taxa legal em vigor.</div>
+    </div>
+  </div>
+</section>
+
+
+<section id="reservas" class="section">
+  <div class="section-head">
+    <h2>Reservas</h2>
+    <p class="hint">Instruções e preços</p>
+  </div>
+
+  <div class="card">
+    <div class="reservas-grid">
+
+      <div class="reservas-left">
+        <div class="reservas-title">Como reservar</div>
+        <p class="reservas-text">
+          Para efetuares reservas no clube, segue as instruções:
+        </p>
+
+        <img
+          class="reservas-poster"
+          src="/images/tie_sports_poster.png"
+          alt="Connect to New Padel Chão da Fonte - Viseu"
+        />
+
+        {{-- Se tiveres um link direto para reservas, podemos ligar aqui --}}
+        {{-- <a class="btn primary" href="https://..." target="_blank" rel="noopener">Abrir reservas</a> --}}
+      </div>
+
+      <div class="reservas-right">
+        <div class="reservas-title">Tabela de preços</div>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th></th>
+                <th class="t-center">1h</th>
+                <th class="t-center">1h30m</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>LIGHT SÓCIO</th>
+                <td class="t-center">3,5 €</td>
+                <td class="t-center">5,5 €</td>
+              </tr>
+              <tr>
+                <th>LIGHT NÃO SÓCIO</th>
+                <td class="t-center">4,5 €</td>
+                <td class="t-center">6,5 €</td>
+              </tr>
+              <tr>
+                <th>PRIME SÓCIO</th>
+                <td class="t-center">5,5 €</td>
+                <td class="t-center">7,5 €</td>
+              </tr>
+              <tr>
+                <th>PRIME NÃO SÓCIO</th>
+                <td class="t-center">6,5 €</td>
+                <td class="t-center">8,5 €</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="note" style="margin-top:12px;">
+          <div><b>LIGHT</b> — Segunda a sexta, 9h–17h.</div>
+          <div><b>PRIME</b> — Segunda a sexta, 17h–24h · Sábados, domingos e feriados, 9h–24h.</div>
+          <div>Os valores apresentados são por pessoa e incluem IVA à taxa legal em vigor.</div>
+          <div>Deve ser considerado um mínimo de <b>4 pessoas</b> por reserva de campo.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+  <section id="patrocinadores" class="section">
+    <div class="section-head">
+      <h2>Patrocinadores oficiais</h2>
+      <p class="hint">Parcerias do clube</p>
+    </div>
+    <div class="card">
+      <div class="partners">
+        <a class="partner" target="_blank" rel="noopener" href="https://www.remax.pt/dinamica">
+          <img src="/images/partners/oficial_remax_dinamica.svg" alt="Remax Dinâmica">
+        </a>
+        <div class="partner"><img class="logo-boost" src="/images/partners/permedia.png" alt="Permedia"></div>
+        <div class="partner"><img class="logo-boost" src="/images/partners/dietmed.png" alt="Dietmed"></div>
+        <a class="partner" target="_blank" rel="noopener" href="https://instagram.com/heinekenpt">
+          <img src="/images/partners/oficial_heineken.svg" alt="Heineken">
+        </a>
+
+        <div class="partner"><img src="/images/partners/oficial_bandida.png" alt="Bandida do Pomar"></div>
+        <div class="partner"><img class="logo-boost logo-boost--wide" src="/images/partners/oficial_obliqo.svg" alt="Obliqo"></div>
+        <div class="partner"><img src="/images/partners/CN_quintaperpita.svg" alt="Quinta da Perpita"></div>
+        <div class="partner"><img src="/images/partners/Protectvis.png" alt="Protectvis"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contactos" class="section">
+    <div class="section-head">
+      <h2>Contactos</h2>
+      <p class="hint">Fala connosco</p>
+    </div>
+
+    <div class="contacts">
+      <div class="card contact-card">
+        <div class="contact-line"><b>Telefone:</b> +351 910 715 689</div>
+        <div class="contact-line"><b>Email:</b> <a href="mailto:geral@newpadel.pt">geral@newpadel.pt</a></div>
+
+        <div class="actions" style="margin-top:14px;">
+          <a class="btn" target="_blank" href="https://www.facebook.com/newpadelcdfviseu">Facebook</a>
+          <a class="btn" target="_blank" href="https://www.instagram.com/newpadelcdfviseu">Instagram</a>
+          <a class="btn" target="_blank" href="https://web.whatsapp.com/send?phone=00351910715689">WhatsApp</a>
+        </div>
+      </div>
+
+      <div class="card map-card">
+        <iframe
+          class="map"
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3027.37151734003!2d-7.904607284734797!3d40.64374017933935!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd233730500250ad%3A0x2bf80e07e7772797!2sNew%20Padel%20Ch%C3%A3o%20da%20Fonte%20-%20Viseu!5e0!3m2!1spt-PT!2spt!4v1635858609699!5m2!1spt-PT!2spt"
+          allowfullscreen=""
+          loading="lazy"
+        ></iframe>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer">
+    © {{ date('Y') }} New Padel
+  </div>
+
+</div>
 @endsection
