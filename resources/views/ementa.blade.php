@@ -20,7 +20,7 @@
 
             </ul>
             <ul class="copyright">
-                <li>&copy; 2025 - New Padel &reg;</li>
+                <li>&copy; 2026 - New Padel &reg;</li>
                 <li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
             </ul>
         </footer>
