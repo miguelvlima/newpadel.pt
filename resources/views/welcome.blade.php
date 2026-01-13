@@ -16,6 +16,7 @@
       <a class="chip" href="#academia">Academia</a>
       <a class="chip" href="#reservas">Reservas</a>
       <a class="chip" href="#patrocinadores">Patrocinadores Oficiais</a>
+      <a class="chip" href="#eventos">Eventos e Festas de Aniversário</a>
       <a class="chip" href="#contactos">Contactos</a>
       <a class="chip" href="{{ $circuitoUrl }}" target="_blank" rel="noopener">Circuito Social Regional de Padel</a>
     </nav>
@@ -24,26 +25,13 @@
   <section class="hero">
     <div class="hero-grid">
       <div>
-        <img class="hero-logo" src="/images/LOGO_WhiteStripes.png" alt="New Padel">
-
-        <h1>New Padel Chão da Fonte - Viseu</h1>
-
-        <div class="hero-stats" aria-label="Destaques">
-          <div class="stat">
-            <div class="stat__k">4</div>
-            <div class="stat__v">CAMPOS COBERTOS</div>
-          </div>
-          <div class="stat">
-            <div class="stat__k">150m²</div>
-            <div class="stat__v">ESPLANADA</div>
-          </div>
-          <div class="stat">
-            <div class="stat__k">EV</div>
-            <div class="stat__v">CARREGADORES</div>
-          </div>
+        <div class="hero-info">
+          <img class="hero-logo" src="/images/LOGO_WhiteStripes.png" alt="New Padel">
+          <h1>New Padel Chão da Fonte - Viseu</h1>
         </div>
 
         <div class="features" aria-label="Comodidades">
+          <div class="feature"><span class="ico">🏟️</span><span>4 Campos cobertos</span></div>
           <div class="feature"><span class="ico">🅿️</span><span>Estacionamento privativo</span></div>
           <div class="feature"><span class="ico">⚡</span><span>Carregadores para carros elétricos</span></div>
           <div class="feature"><span class="ico">☕</span><span>Cafetaria</span></div>
@@ -375,7 +363,7 @@
 
   <section id="patrocinadores" class="section">
     <div class="section-head">
-      <h2>Patrocinadores oficiais</h2>
+      <h2>Patrocinadores Oficiais</h2>
       <p class="hint">Parcerias do clube</p>
     </div>
     <div class="card">
@@ -396,6 +384,78 @@
       </div>
     </div>
   </section>
+
+  <section id="eventos" class="section">
+  <div class="section-head">
+    <h2>Eventos e Festas de Aniversário</h2>
+    <p class="hint">Dois em um: desporto + convívio</p>
+  </div>
+
+  <div class="card">
+    <div class="events-grid">
+
+      <div class="events-hero">
+        <div class="events-kicker">Para grupos, empresas, amigos e famílias</div>
+        <h3 class="events-title">Organizamos a experiência completa</h3>
+        <p class="events-text">
+          Queres um evento animado e bem organizado? Nós tratamos do essencial: campos, dinâmica, espaço para convívio e
+          suporte no local — a ti basta aproveitares.
+        </p>
+      </div>
+
+      <div class="events-break"></div>
+
+      <div class="events-cards">
+        <div class="mini-card">
+          <div class="mini-card__title">Festa Kids</div>
+          <div class="mini-card__desc">Campo + jogos divertidos + tempo de lanche. Ideal para primeiras raquetadas.</div>
+          <div class="mini-card__bullets">
+            <span>🧸 Parque infantil</span>
+            <span>🏓 Jogos guiados</span>
+            <span>🍰 Momento parabéns</span>
+          </div>
+        </div>
+
+        <div class="mini-card">
+          <div class="mini-card__title">Aniversário Padel</div>
+          <div class="mini-card__desc">Mini-torneio entre amigos com formato rápido e descontraído.</div>
+          <div class="mini-card__bullets">
+            <span>🎾 Equipas rotativas</span>
+            <span>⏱️ Jogos curtos</span>
+            <span>🏅 Final simbólica</span>
+            <span>🍰 Momento parabéns</span>
+          </div>
+        </div>
+
+        <div class="mini-card">
+          <div class="mini-card__title">Empresa / Team Building</div>
+          <div class="mini-card__desc">Competição amigável, clínica para iniciantes ou misto — adaptado ao grupo.</div>
+          <div class="mini-card__bullets">
+            <span>🤝 Dinâmicas</span>
+            <span>📊 Organização</span>
+            <span>🥂 Welcome drink / convívio</span>
+          </div>
+        </div>
+
+        <div class="mini-card">
+          <div class="mini-card__title">Torneio Privado</div>
+          <div class="mini-card__desc">Formato “a sério”, com grupos, eliminatórias e horários definidos.</div>
+          <div class="mini-card__bullets">
+            <span>🏆 Quadro</span>
+            <span>📅 Planeamento</span>
+            <span>🎤 Ambiente</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="note">
+      Diz-nos o número de pessoas, faixa etária e a data pretendida. Responderemos com uma proposta ajustada ao teu grupo.
+    </div>
+  </div>
+</section>
+
 
   <section id="contactos" class="section">
     <div class="section-head">
