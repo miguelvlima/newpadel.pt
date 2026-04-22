@@ -27,7 +27,7 @@ function applyServerIndicator(rootEl, server) {
 }
 
 
-function computeShape(game){
+export function computeShape(game){
   const cfg = parseFormat(game.format);
   const s   = game.score || {};
   const sets = Array.isArray(s.sets) ? s.sets.slice(0,3) : [];
