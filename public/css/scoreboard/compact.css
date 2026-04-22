@@ -41,7 +41,7 @@ body.compact #grid{
 
 .compact-row{
   display:grid;
-  grid-template-columns:minmax(420px,1fr) 72px 72px 72px 82px;
+  grid-template-columns:minmax(260px,40%) 72px 72px 72px 82px;
   height:54px;
 }
 
