@@ -1,160 +1,119 @@
 :root{
-  --primary: #17253f;
-  --secondary: #ffffff;
-  --line: rgba(255,255,255,.18);
-  --accent: #2e74ff;
-  --bg: transparent;
-  --shadow: 0 10px 30px rgba(0,0,0,.20);
+  --primary:#17253f;
+  --set-blue:#27497a;
+  --name-blue:#17253f;
+  --white:#ffffff;
+  --black:#000000;
+  --line-dark:rgba(0,0,0,.12);
+  --line-light:rgba(255,255,255,.08);
+  --serve:#d7ff3f;
 }
 
-*{ box-sizing: border-box; }
+*{ box-sizing:border-box; }
 
-html, body{
-  margin: 0;
-  padding: 0;
-  background: var(--bg);
-  font-family: 'Roboto', system-ui, sans-serif;
+html,body{
+  margin:0;
+  padding:0;
+  background:transparent;
+  font-family:Arial, Helvetica, sans-serif;
 }
 
 body{
-  min-height: 100vh;
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-start;
-  padding: 24px;
+  min-height:100vh;
+  display:flex;
+  align-items:flex-start;
+  justify-content:flex-start;
+  padding:24px;
 }
 
 #compact-scoreboard{
-  width: min(760px, 92vw);
+  width:min(980px, 95vw);
 }
 
 .compact-card{
-  background: var(--primary);
-  color: var(--secondary);
-  border: 2px solid var(--secondary);
-  border-radius: 4px;
-  box-shadow: var(--shadow);
-  overflow: hidden;
+  overflow:hidden;
+  border-radius:2px;
+  box-shadow:0 8px 24px rgba(0,0,0,.25);
 }
 
 .compact-card.is-empty{
-  padding: 14px 18px;
-  font-size: 20px;
-  font-weight: 700;
+  display:none;
 }
 
 .compact-grid{
-  display: grid;
-  grid-template-columns: minmax(320px, 1fr) 64px 64px;
+  display:grid;
+  gap:2px 0;
 }
 
-.team{
-  display: contents;
+.row{
+  display:grid;
+  height:54px;
 }
 
-.team-name{
-  position: relative;
-  display: flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0 14px;
-  font-size: 24px;
-  font-weight: 800;
-  line-height: 1;
-  border-bottom: 1px solid var(--line);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.row--1sets{ grid-template-columns:minmax(320px,1fr) 72px 84px; }
+.row--2sets{ grid-template-columns:minmax(320px,1fr) 72px 72px 84px; }
+.row--3sets{ grid-template-columns:minmax(320px,1fr) 72px 72px 72px 84px; }
+
+.name{
+  background:linear-gradient(90deg, var(--name-blue), #1c3152);
+  color:var(--white);
+  display:flex;
+  align-items:center;
+  min-width:0;
+  padding:0 18px;
+  font-size:20px;
+  font-weight:800;
+  letter-spacing:.2px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
-.team:last-child .team-name{
-  border-bottom: 0;
+.name.serving::after{
+  content:"●";
+  color:var(--serve);
+  font-size:17px;
+  line-height:1;
+  margin-left:10px;
+  flex:0 0 auto;
 }
 
-.team-score,
-.team-set{
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  font-size: 26px;
-  font-weight: 900;
-  border-left: 1px solid var(--secondary);
-  border-bottom: 1px solid var(--line);
-  background: var(--secondary);
-  color: var(--primary);
+.set,
+.game{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:900;
+  font-variant-numeric:tabular-nums;
+  font-feature-settings:"tnum" 1;
+  letter-spacing:0;
 }
 
-.team:last-child .team-score,
-.team:last-child .team-set{
-  border-bottom: 0;
+.set{
+  background:var(--set-blue);
+  color:var(--white);
+  border-left:2px solid var(--line-light);
+  font-size:28px;
 }
 
-.team-name.is-serving::before{
-  content: "";
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: var(--secondary);
-  margin-right: 10px;
-  flex: 0 0 auto;
+.game{
+  background:var(--white);
+  color:var(--black);
+  border-left:2px solid var(--line-dark);
+  font-size:28px;
 }
 
-.meta-bar{
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--secondary);
-  background: rgba(255,255,255,.08);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-}
+@media (max-width:900px){
+  #compact-scoreboard{ width:100%; }
 
-.meta-left{
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.badge-live{
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.badge-live::before{
-  content: "";
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: #3cff91;
-}
-
-.set-header{
-  background: var(--secondary);
-  color: var(--primary);
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: .05em;
-}
-
-@media (max-width: 640px){
-  .compact-grid{
-    grid-template-columns: minmax(180px, 1fr) 54px 54px;
+  .row{
+    height:46px;
   }
 
-  .team-name{
-    font-size: 18px;
-    min-height: 38px;
-  }
+  .row--1sets{ grid-template-columns:minmax(180px,1fr) 60px 68px; }
+  .row--2sets{ grid-template-columns:minmax(180px,1fr) 60px 60px 68px; }
+  .row--3sets{ grid-template-columns:minmax(180px,1fr) 60px 60px 60px 68px; }
 
-  .team-score,
-  .team-set{
-    font-size: 20px;
-    min-height: 38px;
-  }
+  .name{ font-size:16px; padding:0 14px; }
+  .set,.game{ font-size:22px; }
 }

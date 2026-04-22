@@ -32,74 +32,140 @@ function teamName(game, top = true) {
   return [game.player3, game.player4].filter(Boolean).join(' / ');
 }
 
-function currentSet(game) {
-  // fallback simples; se quiseres, podes alinhar isto 100% com a lógica de computeShape(ui.js)
-  const s1a = Number(game.set1_team1 || 0);
-  const s1b = Number(game.set1_team2 || 0);
-  const s2a = Number(game.set2_team1 || 0);
-  const s2b = Number(game.set2_team2 || 0);
-  const s3a = Number(game.set3_team1 || 0);
-  const s3b = Number(game.set3_team2 || 0);
-
-  if (s3a || s3b) return [s3a, s3b];
-  if (s2a || s2b) return [s2a, s2b];
-  return [s1a, s1b];
+function num(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
 }
 
-function currentPoints(game) {
-  // tenta usar games correntes; ajusta os campos se o payload vier com outro naming
-  const a = Number(game.games_team1 ?? game.current_games_team1 ?? 0);
-  const b = Number(game.games_team2 ?? game.current_games_team2 ?? 0);
-  return [a, b];
+function hasAnyValue(a, b) {
+  return num(a) > 0 || num(b) > 0;
 }
 
-function matchStatus(game) {
-  if (game.match_over) return 'Terminado';
-  const hasStarted =
-    Number(game.games_team1 || 0) ||
-    Number(game.games_team2 || 0) ||
-    Number(game.points_team1 || 0) ||
-    Number(game.points_team2 || 0) ||
-    Number(game.set1_team1 || 0) ||
-    Number(game.set1_team2 || 0);
+function tennisPointLabel(v) {
+  const n = num(v);
 
-  return hasStarted ? 'Ao vivo' : 'Pré-jogo';
+  if (n === 0) return '0';
+  if (n === 1) return '15';
+  if (n === 2) return '30';
+  if (n === 3) return '40';
+  if (n === 4) return 'AD';
+
+  return String(n);
+}
+
+function detectSets(game) {
+  const sets = [
+    { top: num(game.set1_team1), bot: num(game.set1_team2) },
+    { top: num(game.set2_team1), bot: num(game.set2_team2) },
+    { top: num(game.set3_team1), bot: num(game.set3_team2) }
+  ];
+
+  const tbTop = num(game.tb_team1 ?? game.current_tb_team1);
+  const tbBot = num(game.tb_team2 ?? game.current_tb_team2);
+
+  const hasThirdSet = hasAnyValue(sets[2].top, sets[2].bot);
+  const hasSecondSet = hasAnyValue(sets[1].top, sets[1].bot);
+  const hasFirstSet = hasAnyValue(sets[0].top, sets[0].bot);
+
+  // Se existir 3.º set preenchido, mostramos 3 colunas.
+  if (hasThirdSet) return sets;
+
+  // Se houver 2 sets preenchidos e TB atual, mostramos a 3.ª coluna com TB/SuperTB.
+  if (hasSecondSet && hasAnyValue(tbTop, tbBot)) {
+    return [
+      sets[0],
+      sets[1],
+      { top: tbTop, bot: tbBot }
+    ];
+  }
+
+  // Se houver 2 sets, mostramos 2 colunas.
+  if (hasSecondSet) return [sets[0], sets[1]];
+
+  // Se só houver 1 set, mostramos 1 coluna.
+  if (hasFirstSet) return [sets[0]];
+
+  // Pré-jogo: mostra 1 coluna a zero para não colapsar layout.
+  return [{ top: 0, bot: 0 }];
+}
+
+function detectCurrentGamePoints(game) {
+  const pointsTop = game.points_team1 ?? game.current_points_team1;
+  const pointsBot = game.points_team2 ?? game.current_points_team2;
+
+  const gamesTop = game.games_team1 ?? game.current_games_team1;
+  const gamesBot = game.games_team2 ?? game.current_games_team2;
+
+  const tbTop = game.tb_team1 ?? game.current_tb_team1;
+  const tbBot = game.tb_team2 ?? game.current_tb_team2;
+
+  // Se houver pontos de ténis, usar 0/15/30/40/AD
+  if (pointsTop != null || pointsBot != null) {
+    return {
+      top: tennisPointLabel(pointsTop),
+      bot: tennisPointLabel(pointsBot)
+    };
+  }
+
+  // Se houver games correntes, usar esses
+  if (gamesTop != null || gamesBot != null) {
+    return {
+      top: String(num(gamesTop)),
+      bot: String(num(gamesBot))
+    };
+  }
+
+  // fallback para TB corrente
+  if (tbTop != null || tbBot != null) {
+    return {
+      top: String(num(tbTop)),
+      bot: String(num(tbBot))
+    };
+  }
+
+  return { top: '0', bot: '0' };
+}
+
+function rowClass(setCount) {
+  if (setCount >= 3) return 'row row--3sets';
+  if (setCount === 2) return 'row row--2sets';
+  return 'row row--1sets';
+}
+
+function renderSetCells(sets, side) {
+  return sets.map(set => {
+    const value = side === 'top' ? set.top : set.bot;
+    return `<div class="set">${safe(String(value))}</div>`;
+  }).join('');
 }
 
 function render(game) {
   if (!game) {
-    root.innerHTML = `<div class="compact-card is-empty">Sem jogo configurado</div>`;
+    root.innerHTML = `<div class="compact-card is-empty"></div>`;
     return;
   }
 
-  const [setTop, setBot] = currentSet(game);
-  const [scoreTop, scoreBot] = currentPoints(game);
-  const status = matchStatus(game);
+  const sets = detectSets(game);
+  const current = detectCurrentGamePoints(game);
 
   const topServing = String(game.server || '') === 'team1';
   const botServing = String(game.server || '') === 'team2';
 
+  const cls = rowClass(sets.length);
+
   root.innerHTML = `
     <section class="compact-card">
-      <div class="meta-bar">
-        <div class="meta-left">
-          <span>${safe(game.court_name || 'Campo')}</span>
-          <span class="badge-live">${safe(status)}</span>
-        </div>
-        <div>${safe(SCREEN_KEY)}</div>
-      </div>
-
       <div class="compact-grid">
-        <div class="team">
-          <div class="team-name ${topServing ? 'is-serving' : ''}">${safe(teamName(game, true))}</div>
-          <div class="team-set set-header">${safe(setTop)}</div>
-          <div class="team-score">${safe(scoreTop)}</div>
+        <div class="${cls}">
+          <div class="name ${topServing ? 'serving' : ''}">${safe(teamName(game, true))}</div>
+          ${renderSetCells(sets, 'top')}
+          <div class="game">${safe(current.top)}</div>
         </div>
 
-        <div class="team">
-          <div class="team-name ${botServing ? 'is-serving' : ''}">${safe(teamName(game, false))}</div>
-          <div class="team-set">${safe(setBot)}</div>
-          <div class="team-score">${safe(scoreBot)}</div>
+        <div class="${cls}">
+          <div class="name ${botServing ? 'serving' : ''}">${safe(teamName(game, false))}</div>
+          ${renderSetCells(sets, 'bot')}
+          <div class="game">${safe(current.bot)}</div>
         </div>
       </div>
     </section>
@@ -109,7 +175,7 @@ function render(game) {
 (async () => {
   const sb = initSupabase(SUPABASE_URL, SUPABASE_ANON);
   const screen = await fetchScreen(sb, SCREEN_KEY, {});
-  
+
   async function refresh() {
     const pack = await fetchSlots(sb, screen);
     render(firstActiveGame(pack.slots));
