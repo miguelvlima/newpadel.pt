@@ -35,6 +35,10 @@ Route::get('/scoreboard/{screen}/gallery', function (string $screen) {
     return view('scoreboard_gallery', ['screen' => $screen]);
 })->name('scoreboard.gallery');
 
+Route::get('/scoreboard/{screen}/compact', function (string $screen) {
+    return view('scoreboard_compact', ['screen' => $screen]);
+})->name('scoreboard.compact');
+
 Route::get('/calendario', function (Request $request) {
     // Ano via ?events-year=2026 (igual ao exemplo)
     $year = (int)($request->query('events-year', now()->year));
