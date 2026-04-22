@@ -11,6 +11,7 @@ import {
 } from './supabase-api.js';
 import {
   buildOrUpdateGrid,
+  buildOrUpdateCompactGrid,
   getCurrentSlots,
   setCurrentSlots
 } from './ui.js';
@@ -111,6 +112,9 @@ import {
     });
     };
 
+    const isCompact = document.body.classList.contains('compact');
+    const renderGrid = isCompact ? buildOrUpdateCompactGrid : buildOrUpdateGrid;
+
   // Bootstrap
   try {
     screen = await fetchScreen(sb, SCREEN_KEY, { logoEl, titleEl });
@@ -121,7 +125,7 @@ import {
     // Se não houver jogos, redireciona para a galeria
     if (!hasAnyGame(pack.slots)) { redirectToGallery(); return; }
 
-    buildOrUpdateGrid(grid, pack.positions, pack.slots);
+    renderGrid(grid, pack.positions, pack.slots);
     touch('Ligado', true);
 
     // Recalibração inicial após o primeiro render
@@ -134,14 +138,14 @@ import {
 
       if (!hasAnyGame(p.slots)) { redirectToGallery(); return; }
 
-      buildOrUpdateGrid(grid, p.positions, p.slots);
+      renderGrid(grid, p.positions, p.slots);
       touch('Seleções atualizadas', true);
       queueRefit(false);
     });
 
     // Live: atualizações de jogos (pontuação em tempo real)
     subscribeGames(sb, () => getCurrentSlots(), (idx, game) => {
-      buildOrUpdateGrid(
+      renderGrid(
         grid,
         screen.positions || getCurrentSlots().length,
         getCurrentSlots(),
@@ -165,7 +169,7 @@ import {
 
         if (!hasAnyGame(p.slots)) { redirectToGallery(); return; }
 
-        buildOrUpdateGrid(grid, p.positions, p.slots);
+        renderGrid(grid, p.positions, p.slots);
         queueRefit(false);
       }
       if (row?.kiosk) document.body.classList.add('hide-cursor');

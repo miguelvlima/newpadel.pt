@@ -447,3 +447,140 @@ export function buildOrUpdateGrid(grid, positions, slots, patch){
     }
   }
 }
+
+
+function compactEscape(v = '') {
+  return String(v)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+function compactTeamLabel(a = '', b = '') {
+  const x = String(a || '').trim();
+  const y = String(b || '').trim();
+
+  if (x && y) return `${x} / ${y}`;
+  return x || y || '';
+}
+
+function compactPadSets(values) {
+  const out = Array.isArray(values) ? values.slice(0, 3) : [];
+  while (out.length < 3) out.push('');
+  return out;
+}
+
+function compactVisibleSetCount(topSets, botSets) {
+  const maxLen = Math.max(topSets.length, botSets.length, 1);
+
+  for (let i = maxLen - 1; i >= 0; i--) {
+    const topVal = String(topSets[i] ?? '').trim();
+    const botVal = String(botSets[i] ?? '').trim();
+
+    if (topVal !== '' || botVal !== '') {
+      return i + 1;
+    }
+  }
+
+  return 1;
+}
+
+function compactSetValues(game, meta, teamNo) {
+  if (isProsetFormat(game, meta)) {
+    const [ps1, ps2] = getProsetDisplay(meta);
+    return compactPadSets([teamNo === 1 ? ps1 : ps2]);
+  }
+
+  const vals = (meta.cols || []).map(i => String(setCellVal(meta, i, teamNo) ?? ''));
+  return compactPadSets(vals);
+}
+
+function compactNowValues(game, meta) {
+  const { cfg, sets, cur } = meta;
+
+  const tb1 = Number(cur.tb_team1 || 0);
+  const tb2 = Number(cur.tb_team2 || 0);
+  const p1 = Number(cur.points_team1 || 0);
+  const p2 = Number(cur.points_team2 || 0);
+
+  const prosetTB = isProsetTieBreak(game, meta);
+  const prosetFinished = isProsetFinished(game, meta);
+  const showNow = meta.superTB ? true : (prosetTB ? true : (!prosetFinished && !meta.matchOver));
+
+  if (!showNow) return ['', ''];
+
+  if (meta.superTB) {
+    const base1 = Number(sets?.[2]?.team1 || 0);
+    const base2 = Number(sets?.[2]?.team2 || 0);
+    return [String(tb1 || base1), String(tb2 || base2)];
+  }
+
+  if (prosetTB || meta.normalTB) {
+    return [String(tb1), String(tb2)];
+  }
+
+  return [
+    String(tennisPoint(p1, cfg.isGP)),
+    String(tennisPoint(p2, cfg.isGP)),
+  ];
+}
+
+function compactRowHtml(name, sets, now, serving, setCount) {
+  const visibleSets = compactPadSets(sets).slice(0, setCount);
+  const rowClass = `compact-row compact-row--sets-${setCount}`;
+
+  return `
+    <div class="${rowClass}">
+      <div class="compact-name ${serving ? 'is-serving' : ''}">${compactEscape(name)}</div>
+      ${visibleSets.map(v => `<div class="compact-set">${compactEscape(v)}</div>`).join('')}
+      <div class="compact-now">${compactEscape(now)}</div>
+    </div>
+  `;
+}
+
+export function buildOrUpdateCompactGrid(grid, positions, slots, patch) {
+  if (!grid) return;
+
+  const list = Array.isArray(slots) ? [...slots] : [];
+
+  if (patch && Number.isInteger(patch.patchIndex) && patch.patchGame) {
+    const i = patch.patchIndex;
+    if (i >= 0 && i < list.length) {
+      list[i] = { ...(list[i] || {}), ...patch.patchGame };
+    }
+  }
+
+  const game = list.find(Boolean) || null;
+
+  if (!game) {
+    grid.innerHTML = '';
+    return;
+  }
+
+  const meta = computeShape(game);
+
+  const topName = compactTeamLabel(game.player1, game.player2);
+  const botName = compactTeamLabel(game.player3, game.player4);
+
+  const topSets = compactSetValues(game, meta, 1);
+  const botSets = compactSetValues(game, meta, 2);
+  const setCount = compactVisibleSetCount(topSets, botSets);
+
+  const [topNow, botNow] = compactNowValues(game, meta);
+
+  const topServing = Number(game.server) === 1 || Number(game.server) === 2;
+  const botServing = Number(game.server) === 3 || Number(game.server) === 4;
+
+  grid.style.display = 'block';
+  grid.style.gridTemplateColumns = '';
+  grid.style.gridTemplateRows = '';
+
+  grid.innerHTML = `
+    <section class="compact-board">
+      ${compactRowHtml(topName, topSets, topNow, topServing, setCount)}
+      ${compactRowHtml(botName, botSets, botNow, botServing, setCount)}
+    </section>
+  `;
+}

@@ -1,35 +1,35 @@
 @php
-  $sbUrl = config('services.supabase.url');
-  $sbAnon = config('services.supabase.anon');
-  $screen = $screen ?? 'default';
+    $sbUrl = config('services.supabase.url');
+    $sbAnon = config('services.supabase.anon');
+    $screen = $screen ?? 'default';
 @endphp
 
 <!doctype html>
 <html lang="pt">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Scoreboard Compact</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Scoreboard Compact</title>
 
-  <link rel="stylesheet" href="/css/scoreboard/scoreboard.css">
-  <link rel="stylesheet" href="/css/scoreboard/compact.css">
+    <link rel="stylesheet" href="/css/scoreboard/scoreboard.css?v=2">
+    <link rel="stylesheet" href="/css/scoreboard/compact.css?v=2">
 </head>
 <body class="compact">
 
-  <header class="screenbar">
-    <img id="screen-logo" alt="" style="display:none;">
-    <div id="screen-title">{{ $screen }}</div>
-    <div id="status"></div>
-    <button id="fs" type="button">FS</button>
-  </header>
+    <header class="screenbar">
+        <img id="screen-logo" alt="" style="display:none;">
+        <div id="screen-title">{{ $screen }}</div>
+        <div id="status"></div>
+        <button id="fs" type="button">FS</button>
+    </header>
 
-  <main
-    id="grid"
-    data-sb-url="{{ $sbUrl }}"
-    data-sb-anon="{{ $sbAnon }}"
-    data-screen="{{ $screen }}"
-  ></main>
+    <main
+        id="grid"
+        data-sb-url="{{ $sbUrl }}"
+        data-sb-anon="{{ $sbAnon }}"
+        data-screen="{{ $screen }}"
+    ></main>
 
-  <script type="module" src="/js/scoreboard/index.js"></script>
+    <script type="module" src="/js/scoreboard/index.js?v=2"></script>
 </body>
 </html>
