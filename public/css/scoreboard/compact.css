@@ -1,56 +1,243 @@
-html,body{
-margin:0;
-padding:0;
-background:transparent;
-font-family:Arial,sans-serif;
+:root{
+  --compact-primary:#17253f;
+  --compact-set:#27497a;
+  --compact-white:#ffffff;
+  --compact-black:#000000;
+  --compact-serve:#d7ff3f;
 }
 
-#compact-scoreboard{
-position:fixed;
-top:20px;
-left:20px;
-width:900px;
-z-index:9999;
+/* base */
+html,
+body{
+  margin:0;
+  padding:0;
+  background:transparent !important;
 }
 
-.row{
-display:grid;
-grid-template-columns:1fr repeat(3,72px) 82px;
-height:54px;
+body.compact{
+  overflow:hidden;
 }
 
-.name{
-background:#17253f;
-color:#fff;
-display:flex;
-align-items:center;
-padding:0 18px;
-font-size:22px;
-font-weight:700;
+/* ancorar no canto superior esquerdo */
+body.compact #grid{
+  position:fixed !important;
+  top:20px;
+  left:20px;
+  width:860px;
+  max-width:calc(100vw - 40px);
+  z-index:9999;
+  margin:0 !important;
+  padding:0 !important;
 }
 
-.name.serving::after{
-content:"●";
-color:#d7ff3f;
-margin-left:10px;
+/* esconder cabeçalho / chrome da view normal */
+body.compact .screenbar,
+body.compact #screen-logo,
+body.compact #screen-title,
+body.compact #status,
+body.compact #fs{
+  display:none !important;
 }
 
-.set{
-background:#24416b;
-color:#fff;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:28px;
-font-weight:800;
+/* garantir que só aparece o necessário */
+body.compact #grid > *{
+  margin:0 !important;
 }
 
-.game{
-background:#fff;
-color:#000;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:28px;
-font-weight:900;
+/* wrappers da grelha/tile */
+body.compact .grid{
+  display:block !important;
+  gap:0 !important;
+}
+
+body.compact .tile{
+  width:auto !important;
+  min-width:0 !important;
+  max-width:none !important;
+  margin:0 !important;
+  padding:0 !important;
+  border:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  border-radius:0 !important;
+}
+
+/* esconder qualquer título/label secundária que a view original use */
+body.compact .tile-title,
+body.compact .tile-header,
+body.compact .slot-title,
+body.compact .court-title,
+body.compact .meta,
+body.compact .legend,
+body.compact .screenname{
+  display:none !important;
+}
+
+/* tabela principal */
+body.compact .scoretable{
+  width:100% !important;
+  border-collapse:separate !important;
+  border-spacing:0 !important;
+  table-layout:fixed !important;
+  overflow:hidden !important;
+  border-radius:2px !important;
+  box-shadow:none !important;
+}
+
+/* esconder cabeçalhos da tabela */
+body.compact .scoretable thead,
+body.compact .scoretable thead tr,
+body.compact .scoretable thead th{
+  display:none !important;
+}
+
+/* altura uniforme */
+body.compact .scoretable tbody tr{
+  height:54px !important;
+}
+
+body.compact .scoretable tbody tr + tr td{
+  border-top:2px solid rgba(255,255,255,.08) !important;
+}
+
+/* coluna nomes / equipa */
+body.compact .scoretable td.names,
+body.compact .scoretable td.players,
+body.compact .scoretable td.name,
+body.compact .scoretable td.team{
+  background:linear-gradient(90deg, var(--compact-primary), #1e3153) !important;
+  color:var(--compact-white) !important;
+  font-size:22px !important;
+  font-weight:800 !important;
+  line-height:1 !important;
+  letter-spacing:.2px !important;
+  padding:0 18px !important;
+  height:54px !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  vertical-align:middle !important;
+}
+
+/* servir */
+body.compact .scoretable td.names .serving,
+body.compact .scoretable td.players .serving,
+body.compact .scoretable td.name .serving,
+body.compact .scoretable td.team .serving{
+  position:relative;
+}
+
+body.compact .scoretable td.names .serving::after,
+body.compact .scoretable td.players .serving::after,
+body.compact .scoretable td.name .serving::after,
+body.compact .scoretable td.team .serving::after{
+  content:"●";
+  color:var(--compact-serve);
+  margin-left:10px;
+  font-size:16px;
+  vertical-align:middle;
+}
+
+/* colunas de set */
+body.compact .scoretable th.setcol,
+body.compact .scoretable td.setcol,
+body.compact .scoretable td.set,
+body.compact .scoretable td[class*="set"]{
+  background:var(--compact-set) !important;
+  color:var(--compact-white) !important;
+  width:72px !important;
+  min-width:72px !important;
+  max-width:72px !important;
+  text-align:center !important;
+  vertical-align:middle !important;
+  font-size:28px !important;
+  font-weight:900 !important;
+  font-variant-numeric:tabular-nums !important;
+  font-feature-settings:"tnum" 1 !important;
+  border-left:2px solid rgba(255,255,255,.08) !important;
+  padding:0 !important;
+}
+
+/* coluna do jogo atual */
+body.compact .scoretable th.nowcol,
+body.compact .scoretable td.nowcol,
+body.compact .scoretable td.now,
+body.compact .scoretable td.current,
+body.compact .scoretable td:last-child{
+  background:var(--compact-white) !important;
+  color:var(--compact-black) !important;
+  width:82px !important;
+  min-width:82px !important;
+  max-width:82px !important;
+  text-align:center !important;
+  vertical-align:middle !important;
+  font-size:28px !important;
+  font-weight:900 !important;
+  font-variant-numeric:tabular-nums !important;
+  font-feature-settings:"tnum" 1 !important;
+  border-left:2px solid rgba(0,0,0,.08) !important;
+  padding:0 !important;
+}
+
+/* evitar que a última regra pinte a coluna de nomes em layouts inesperados */
+body.compact .scoretable td.names:last-child,
+body.compact .scoretable td.players:last-child,
+body.compact .scoretable td.name:last-child,
+body.compact .scoretable td.team:last-child{
+  background:linear-gradient(90deg, var(--compact-primary), #1e3153) !important;
+  color:var(--compact-white) !important;
+}
+
+/* esconder elementos visuais extra do layout original */
+body.compact .scoretable .label,
+body.compact .scoretable .small,
+body.compact .scoretable .sub,
+body.compact .scoretable .caption,
+body.compact .scoretable .header,
+body.compact .scoretable .badge{
+  display:none !important;
+}
+
+/* mobile / resoluções menores */
+@media (max-width: 900px){
+  body.compact #grid{
+    top:12px;
+    left:12px;
+    width:calc(100vw - 24px);
+    max-width:calc(100vw - 24px);
+  }
+
+  body.compact .scoretable tbody tr{
+    height:46px !important;
+  }
+
+  body.compact .scoretable td.names,
+  body.compact .scoretable td.players,
+  body.compact .scoretable td.name,
+  body.compact .scoretable td.team{
+    font-size:16px !important;
+    padding:0 14px !important;
+    height:46px !important;
+  }
+
+  body.compact .scoretable th.setcol,
+  body.compact .scoretable td.setcol,
+  body.compact .scoretable td.set,
+  body.compact .scoretable td[class*="set"]{
+    width:60px !important;
+    min-width:60px !important;
+    max-width:60px !important;
+    font-size:22px !important;
+  }
+
+  body.compact .scoretable th.nowcol,
+  body.compact .scoretable td.nowcol,
+  body.compact .scoretable td.now,
+  body.compact .scoretable td.current,
+  body.compact .scoretable td:last-child{
+    width:68px !important;
+    min-width:68px !important;
+    max-width:68px !important;
+    font-size:22px !important;
+  }
 }
