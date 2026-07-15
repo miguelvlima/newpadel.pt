@@ -91,11 +91,6 @@ body.compact #grid{
   font-variant-numeric:tabular-nums;
   font-feature-settings:"tnum" 1;
 }
-.compact-set.compact-set-primary{
-  background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,0)), linear-gradient(135deg, var(--primary-dark), var(--primary));
-  border-color:rgba(126,43,65,.55);
-  color:#fff7ea;
-}
 
 .compact-now{
   display:flex;

@@ -160,11 +160,6 @@ main{
 .scoretable td.set > .cell{
   background:var(--set-bg); border:1px solid var(--set-br); color:#150d0a;
 }
-.scoretable td.set.set-primary > .cell{
-  background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,0)), linear-gradient(135deg, #5b1428, #7e2b41);
-  border-color:rgba(126,43,65,.55);
-  color:#fff7ea;
-}
 .scoretable td.now > .cell-now{
   color:var(--now-fg);
   background:linear-gradient(180deg, rgba(var(--now-glow), .24), rgba(var(--now-glow), .14));
