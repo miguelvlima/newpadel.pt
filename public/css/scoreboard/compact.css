@@ -83,11 +83,11 @@ body.compact #grid{
   display:flex;
   align-items:center;
   justify-content:center;
-  background:rgba(19,13,10,.08);
-  color:var(--ink);
+  background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,0)), linear-gradient(135deg, var(--primary-dark), var(--primary));
+  color:#fff7ea;
   font-size:28px;
   font-weight:900;
-  border:1px solid rgba(19,13,10,.14);
+  border:1px solid rgba(126,43,65,.55);
   font-variant-numeric:tabular-nums;
   font-feature-settings:"tnum" 1;
 }
