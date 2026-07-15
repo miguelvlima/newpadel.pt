@@ -17,7 +17,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
 
   <!-- CSS do scoreboard -->
-  <link rel="stylesheet" href="/css/scoreboard/scoreboard.css?v=1.0">
+  <link rel="stylesheet" href="/css/scoreboard/scoreboard.css?v=1.1">
 </head>
 <body>
 

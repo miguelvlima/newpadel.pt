@@ -205,19 +205,19 @@ function buildTile(game){
   wrap.dataset.shapeKey=meta.shapeKey + (showNow ? ':now' : ':nonow'); // bloqueia “shape” quando entra/sai NOW
   wrap.classList.toggle('is-tb', (prosetTB || meta.normalTB));
 
-  const headerSetTh = meta.titles.map(t => `<th class="set">${t}</th>`).join('');
+  const headerSetTh = meta.titles.map((t, idx) => `<th class="set${idx === 0 ? ' set-primary' : ''}">${t}</th>`).join('');
 
   let rowTopSets = '';
   let rowBotSets = '';
   if (isProsetFormat(game, meta)) {
     // PROSET: escreve sempre o valor do set (fechado ou corrente)
     const [ps1, ps2] = getProsetDisplay(meta);
-    rowTopSets = `<td class="set"><div class="cell"><span class="num">${ps1}</span></div></td>`;
-    rowBotSets = `<td class="set"><div class="cell"><span class="num">${ps2}</span></div></td>`;
+    rowTopSets = `<td class="set set-primary"><div class="cell"><span class="num">${ps1}</span></div></td>`;
+    rowBotSets = `<td class="set set-primary"><div class="cell"><span class="num">${ps2}</span></div></td>`;
   } else {
     // restantes formatos: como tinhas
-    rowTopSets = meta.cols.map(i => `<td class="set"><div class="cell"><span class="num">${setCellVal(meta,i,1)}</span></div></td>`).join('');
-    rowBotSets = meta.cols.map(i => `<td class="set"><div class="cell"><span class="num">${setCellVal(meta,i,2)}</span></div></td>`).join('');
+    rowTopSets = meta.cols.map((i, idx) => `<td class="set${idx === 0 ? ' set-primary' : ''}"><div class="cell"><span class="num">${setCellVal(meta,i,1)}</span></div></td>`).join('');
+    rowBotSets = meta.cols.map((i, idx) => `<td class="set${idx === 0 ? ' set-primary' : ''}"><div class="cell"><span class="num">${setCellVal(meta,i,2)}</span></div></td>`).join('');
   }
 
   const maybeNowHeader = showNow ? `<th class="now">${nowLabel}</th>` : '';
@@ -534,7 +534,7 @@ function compactRowHtml(name, sets, now, serving, setCount) {
   return `
     <div class="${rowClass}">
       <div class="compact-name ${serving ? 'is-serving' : ''}">${compactEscape(name)}</div>
-      ${visibleSets.map(v => `<div class="compact-set">${compactEscape(v)}</div>`).join('')}
+      ${visibleSets.map((v, idx) => `<div class="compact-set${idx === 0 ? ' compact-set-primary' : ''}">${compactEscape(v)}</div>`).join('')}
       <div class="compact-now">${compactEscape(now)}</div>
     </div>
   `;

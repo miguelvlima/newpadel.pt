@@ -12,7 +12,7 @@
     <title>Scoreboard Compact</title>
 
     <link rel="stylesheet" href="/css/scoreboard/scoreboard.css?v=2">
-    <link rel="stylesheet" href="/css/scoreboard/compact.css?v=2">
+    <link rel="stylesheet" href="/css/scoreboard/compact.css?v=2.1">
 </head>
 <body class="compact">
 
