@@ -9,8 +9,8 @@
   --ink:#ffffff;
   --serve:#22c55e;
   --pregame-ink:#b8bcc4;
-  --now-bg:#3f4550;
-  --now-bg-dim:#2a2e36;
+  --now-bg:#ffffff;
+  --now-bg-dim:#e5e7eb;
 }
 
 html,
@@ -156,13 +156,13 @@ body.compact #grid{
   color:#86efac;
 }
 
-/* Coluna jogo – cinzento, números brancos (40 / 15 / …) */
+/* Coluna jogo – branco, números pretos (40 / 15 / …) */
 .compact-now{
   display:flex;
   align-items:center;
   justify-content:center;
   background:var(--now-bg);
-  color:#ffffff;
+  color:#000000;
   font-size:26px;
   font-weight:900;
   border:0;
@@ -173,17 +173,17 @@ body.compact #grid{
 
 .compact-board.is-live .compact-now{
   background:var(--now-bg);
-  color:#ffffff;
+  color:#000000;
 }
 
 .compact-board.is-over .compact-now{
   background:var(--now-bg-dim);
-  color:rgba(255,255,255,.45);
+  color:rgba(0,0,0,.45);
 }
 
 .compact-board.is-pregame .compact-now{
   background:var(--now-bg-dim);
-  color:var(--pregame-ink);
+  color:#6b7280;
 }
 
 .compact-now:empty{
