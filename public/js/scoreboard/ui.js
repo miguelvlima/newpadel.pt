@@ -465,12 +465,36 @@ function compactEscape(v = '') {
     .replaceAll("'", '&#39;');
 }
 
-function compactTeamLabel(a = '', b = '') {
-  const x = String(a || '').trim();
-  const y = String(b || '').trim();
+const NAME_PARTICLES = new Set([
+  'de', 'da', 'do', 'das', 'dos', 'e', 'del', 'della', 'di', 'du', 'van', 'von',
+]);
 
-  if (x && y) return `${x} / ${y}`;
-  return x || y || '';
+function abbreviatePersonName(name = '') {
+  const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '';
+  if (parts.length === 1) return parts[0];
+
+  // apelido = última palavra que não é partícula (ignora "de", "da", ...)
+  let surnameIdx = parts.length - 1;
+  while (surnameIdx > 0 && NAME_PARTICLES.has(parts[surnameIdx].toLowerCase())) {
+    surnameIdx -= 1;
+  }
+
+  const initial = parts[0].charAt(0).toUpperCase();
+  return `${initial}. ${parts[surnameIdx]}`;
+}
+
+function compactTeamLabel(...rawNames) {
+  const players = rawNames
+    .flatMap((n) => String(n || '').split('/'))
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  if (players.length === 0) return '';
+  if (players.length === 1) return players[0];
+
+  // dupla: abrevia ambos (E. Costa / N. Lopes)
+  return players.map(abbreviatePersonName).join(' / ');
 }
 
 function compactPadSets(values) {
