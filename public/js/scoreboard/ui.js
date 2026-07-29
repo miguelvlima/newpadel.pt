@@ -204,6 +204,9 @@ function buildTile(game){
   wrap.dataset.gameId=game.id;
   wrap.dataset.shapeKey=meta.shapeKey + (showNow ? ':now' : ':nonow'); // bloqueia “shape” quando entra/sai NOW
   wrap.classList.toggle('is-tb', (prosetTB || meta.normalTB));
+  wrap.classList.toggle('is-live', started && !isOver);
+  wrap.classList.toggle('is-over', isOver);
+  wrap.classList.toggle('is-pregame', !started && !isOver);
 
   const headerSetTh = meta.titles.map(t => `<th class="set">${t}</th>`).join('');
 
@@ -310,6 +313,10 @@ function updateTile(el, game){
   const statusText = isOver ? 'TERMINADO' : (started ? 'AO VIVO' : 'PRÉ-JOGO');
   const statusBadge = row?.querySelector('.badge.status');
   if (statusBadge) statusBadge.innerHTML = (!isOver && started) ? '<span class="pulse">AO VIVO</span>' : statusText;
+
+  el.classList.toggle('is-live', started && !isOver);
+  el.classList.toggle('is-over', isOver);
+  el.classList.toggle('is-pregame', !started && !isOver);
 
   // nomes
   const [n1a,n1b,n2a,n2b] = [game.player1||'', game.player2||'', game.player3||'', game.player4||''].map(escapeHtml);
@@ -533,11 +540,29 @@ function compactRowHtml(name, sets, now, serving, setCount) {
 
   return `
     <div class="${rowClass}">
-      <div class="compact-name ${serving ? 'is-serving' : ''}">${compactEscape(name)}</div>
+      <div class="compact-name ${serving ? 'is-serving' : ''}"><span class="compact-name__text">${compactEscape(name)}</span></div>
       ${visibleSets.map(v => `<div class="compact-set">${compactEscape(v)}</div>`).join('')}
       <div class="compact-now">${compactEscape(now)}</div>
     </div>
   `;
+}
+
+export function fitCompactNames(root) {
+  if (!root) return;
+
+  root.querySelectorAll('.compact-name').forEach((cell) => {
+    const text = cell.querySelector('.compact-name__text');
+    if (!text) return;
+
+    cell.style.fontSize = '';
+    let fs = parseFloat(getComputedStyle(cell).fontSize) || 22;
+    cell.style.fontSize = `${fs}px`;
+
+    while (fs > 12 && text.scrollWidth > text.clientWidth + 1) {
+      fs -= 1;
+      cell.style.fontSize = `${fs}px`;
+    }
+  });
 }
 
 export function buildOrUpdateCompactGrid(grid, positions, slots, patch) {
@@ -577,10 +602,26 @@ export function buildOrUpdateCompactGrid(grid, positions, slots, patch) {
   grid.style.gridTemplateColumns = '';
   grid.style.gridTemplateRows = '';
 
+  const anySetFinished = meta.setConcluded.some(Boolean);
+  const anySetFilled = meta.sets.some(ss => (Number(ss?.team1 || 0) + Number(ss?.team2 || 0)) > 0);
+  const g1 = Number(meta.cur.games_team1 || 0);
+  const g2 = Number(meta.cur.games_team2 || 0);
+  const tb1 = Number(meta.cur.tb_team1 || 0);
+  const tb2 = Number(meta.cur.tb_team2 || 0);
+  const p1 = Number(meta.cur.points_team1 || 0);
+  const p2 = Number(meta.cur.points_team2 || 0);
+  const hasCurrent = (g1 + g2 + p1 + p2 + tb1 + tb2) > 0;
+  const started = anySetFinished || anySetFilled || hasCurrent;
+  const prosetFinished = isProsetFinished(game, meta);
+  const isOver = meta.matchOver || prosetFinished;
+  const boardState = isOver ? 'is-over' : (started ? 'is-live' : 'is-pregame');
+
   grid.innerHTML = `
-    <section class="compact-board">
+    <section class="compact-board ${boardState}">
       ${compactRowHtml(topName, topSets, topNow, topServing, setCount)}
       ${compactRowHtml(botName, botSets, botNow, botServing, setCount)}
     </section>
   `;
+
+  fitCompactNames(grid);
 }

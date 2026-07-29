@@ -1,14 +1,31 @@
 :root{
-  --bg:#efe0bf; --fg:#150d0a; --muted:#7e2b41;
-  --tile:#f4e6c9; --tile-grad:#ead4a8;
-  --set-bg:rgba(19,13,10,.08); --set-br:rgba(19,13,10,.14);
-  --live:#a33550; --now-fg:#d59a16;
+  /* Open dos Ouriços – preto + verde #22c55e */
+  --black:#000000;
+  --black-soft:#0a0a0a;
+  --fg:#ffffff;
+  --muted:#22c55e;
+  --muted-dim:rgba(34,197,94,.55);
+
+  --accent:#22c55e;
+  --accent-dark:#16a34a;
+  --accent-rgb:34,197,94;
+  --accent-dim:rgba(34,197,94,.14);
+  --accent-border:rgba(34,197,94,.65);
+
+  --live:#22c55e;
+  --now-fg:#000000;
+  --now-glow:34,197,94;
+
+  --over-fg:#ffffff;
+  --over-accent-dim:rgba(34,197,94,.35);
+
+  --pregame-fg:#b8bcc4;
+
   --app-h: 100vh;
-  --now-glow: 213,154,22;
 
   --fs-name: 22px;
   --fs-set: 26px;
-  --fs-set-max: 220px;          /* teto dinâmico (RO respeita) */
+  --fs-set-max: 220px;
   --fs-head: 12px;
   --fs-badge: 14px;
 
@@ -25,17 +42,14 @@
   --pad-cell-y-tight: calc(var(--pad-cell-y) * .66);
   --pad-cell-x-tight: calc(var(--pad-cell-x) * .80);
 
-  --set-w: 120px;               /* RO aumenta se precisar */
+  --set-w: 120px;
 }
 
 *{ box-sizing:border-box }
 html,body{ height:var(--app-h); overflow:hidden; }
 body{
   margin:0;
-  background:
-    radial-gradient(circle at top left, rgba(163,53,80,.16), transparent 24%),
-    radial-gradient(circle at bottom right, rgba(213,154,22,.14), transparent 22%),
-    linear-gradient(180deg, #f3e3c2 0%, #ead8b3 100%);
+  background:var(--black);
   color:var(--fg);
   -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
   font-family:'Bebas Neue', system-ui,-apple-system,'Segoe UI',Roboto,Ubuntu,Cantarell,'Noto Sans',sans-serif;
@@ -43,17 +57,17 @@ body{
   display:flex; flex-direction:column;
 }
 
-/* header */
 header, footer { padding:12px 16px; flex:0 0 auto; }
-footer{ border-top:1px solid rgba(19,13,10,.12); text-align:center }
-.muted{color:var(--muted)} .status-ok{color:#a33550} .status-bad{color:#c74f3d}
-button{ background:rgba(19,13,10,.08); color:var(--fg); border:0; padding:8px 12px; cursor:pointer; font-family:inherit }
-button:hover{background:rgba(19,13,10,.16)}
+footer{ border-top:1px solid rgba(34,197,94,.25); text-align:center }
+.muted{color:var(--muted-dim)} .status-ok{color:var(--accent)} .status-bad{color:#ef4444}
+button{ background:var(--black); color:var(--fg); border:1px solid var(--accent-border); padding:8px 12px; cursor:pointer; font-family:inherit }
+button:hover{background:rgba(34,197,94,.12)}
 
 .app-header{
   display:grid; grid-template-columns:1fr auto 1fr;
   align-items:center; gap:12px; padding:12px 16px;
-  border-bottom:1px solid rgba(19,13,10,.12);
+  border-bottom:1px solid rgba(34,197,94,.25);
+  background:var(--black);
 }
 .app-header .left{ justify-self:start; min-width:0 }
 .app-header .center{ justify-self:center; text-align:center; min-width:0 }
@@ -62,93 +76,146 @@ button:hover{background:rgba(19,13,10,.16)}
   max-height:var(--header-logo-h); max-width:min(50vw,320px);
   object-fit:contain; display:none; vertical-align:middle;
 }
-#screen-title{ display:inline-block; font-size:18px; letter-spacing:.14em }
+#screen-title{ display:inline-block; font-size:18px; letter-spacing:.14em; color:var(--accent) }
 
-/* grid de tiles */
 main{
   flex:1 1 auto; min-height:0; overflow:hidden;
   padding:var(--grid-pad); display:grid; gap:var(--grid-gap);
   grid-template-columns:repeat(2,1fr); grid-template-rows:repeat(2,1fr);
   place-items:stretch;
+  background:var(--black);
 }
+
 .tile{
   display:grid; grid-template-rows:auto 1fr; min-height:0; overflow:hidden;
   padding:var(--tile-pad);
-  border:1px solid rgba(126,43,65,.24);
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,0)),
-    linear-gradient(135deg,var(--tile),var(--tile-grad));
+  border:2px solid var(--accent-border);
+  background:var(--black);
   border-radius:12px;
-  box-shadow:0 10px 28px rgba(74,24,37,.10);
+  box-shadow:0 10px 28px rgba(0,0,0,.55);
+  transition:border-color .25s ease, box-shadow .25s ease;
 }
+
+.tile.is-live{
+  border-color:var(--accent);
+  box-shadow:
+    0 10px 28px rgba(0,0,0,.55),
+    0 0 0 1px rgba(34,197,94,.20),
+    0 0 40px rgba(34,197,94,.18);
+}
+
+.tile.is-over{
+  border-color:var(--over-accent-dim);
+  box-shadow:0 8px 22px rgba(0,0,0,.45);
+}
+
+.tile.is-pregame{
+  border-color:rgba(34,197,94,.28);
+}
+
 .tile > .row{
   position: relative;
   z-index: 2;
-  padding-bottom: 6px; /* respiro entre header e a tabela */
+  padding-bottom: 6px;
 }
 
 .tile > .scoretable{
   position: relative;
   z-index: 1;
-  margin-top: 6px; /* respiro entre header e a tabela */
+  margin-top: 6px;
   min-height: 0;
 }
-/* barra com badges */
+
 .row{ display:grid; grid-template-columns:1fr auto; align-items:center; min-height:0 }
 .row .left{ min-width:0; overflow:hidden }
 .row .right{ min-width:0; justify-self:end; overflow:hidden }
+
 .badge{
   display:inline-flex; align-items:center; justify-content:center;
   font-size:var(--fs-badge); letter-spacing:.08em;
   padding:var(--badge-pad-y) var(--badge-pad-x);
-  border:1px solid rgba(126,43,65,.28); background:rgba(126,43,65,.08); color:#5a1427;
+  border:1px solid var(--accent-border);
+  background:var(--black);
+  color:var(--accent);
   line-height:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;
+  border-radius:var(--badge-radius);
 }
+
+.tile.is-live .badge.court,
+.tile.is-live .badge.status{
+  border-color:var(--accent);
+  color:var(--accent);
+  background:rgba(34,197,94,.10);
+}
+
+.tile.is-over .badge.court{
+  border-color:var(--over-accent-dim);
+  color:var(--over-fg);
+}
+
+.tile.is-over .badge.status{
+  border-color:var(--over-accent-dim);
+  color:var(--muted-dim);
+}
+
+.tile.is-pregame .badge.status{
+  border-color:rgba(34,197,94,.28);
+  color:var(--pregame-fg);
+}
+
 .row .badge.court{ margin-left:var(--names-pad-l) }
-.row .badge.status{ border-color:rgba(126,43,65,.34) }
-.pulse{ animation:pulse 1s infinite; color:var(--live); font-weight:800 }
+
+.pulse{
+  animation:pulse 1s infinite;
+  color:var(--accent);
+  font-weight:800;
+  text-shadow:0 0 16px rgba(34,197,94,.65);
+}
 @keyframes pulse{0%{opacity:1}50%{opacity:.55}100%{opacity:1}}
 
-/* Tabela de resultados */
 .scoretable{
   width:100%; height:100%;
   table-layout:fixed;
-  margin-top:0;                         /* sem folga → não “corta” a 2.ª linha */
+  margin-top:0;
 }
 .scoretable thead th{
-  font-size:var(--fs-head); letter-spacing:.08em; color:var(--muted);
+  font-size:var(--fs-head); letter-spacing:.08em; color:var(--accent);
   font-weight:700; text-align:center; padding-bottom:4px;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .scoretable thead th.names{ text-align:left }
+
+.tile.is-over .scoretable thead th{
+  color:var(--muted-dim);
+}
+
 .scoretable th, .scoretable td{
   border-bottom:0; padding:0 10px; vertical-align:middle; background-clip:padding-box;
 }
 
-/* Alturas das linhas controladas por var (aplicadas também às <td>) */
 .scoretable tbody tr{ height:var(--row-h, auto) }
 .scoretable tbody td{ height:var(--row-h, auto) }
 
-/* Nomes (duas linhas) */
 .scoretable td.names{
   font-size:var(--fs-name);
   height:var(--row-h);
   display:flex; flex-direction:column; justify-content:center; gap:2px;
   padding-left:var(--names-pad-l); overflow:hidden;
+  color:var(--fg);
 }
+.tile.is-over .scoretable td.names{ color:var(--over-fg); }
+.tile.is-pregame .scoretable td.names{ color:var(--pregame-fg); }
+
 .scoretable td.names .line{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
 
-/* Espaçador */
 .scoretable th.flexfill, .scoretable td.flexfill{ width:var(--spacer-w); padding:0 }
 
-/* Colunas de resultado – largura fixa via --set-w */
 .scoretable td.set, .scoretable td.now{ padding:0 !important }
 .scoretable th.set, .scoretable td.set,
 .scoretable th.now, .scoretable td.now{
   width:var(--set-w); padding:0;
 }
 
-/* Células de set / agora: a célula não cresce; o número é que escala */
 .scoretable td.set > .cell,
 .scoretable td.now > .cell-now{
   display:flex; align-items:center; justify-content:center;
@@ -157,36 +224,63 @@ main{
   font-weight:900; font-size:var(--fs-set); font-variant-numeric:tabular-nums;
   overflow:hidden;
 }
+
+/* Sets – verde sólido, números brancos */
 .scoretable td.set > .cell{
-  background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,0)), linear-gradient(135deg, #5b1428, #7e2b41);
-  border:1px solid rgba(126,43,65,.55);
-  color:#fff7ea;
-}
-.scoretable td.now > .cell-now{
-  color:var(--now-fg);
-  background:linear-gradient(180deg, rgba(var(--now-glow), .24), rgba(var(--now-glow), .14));
-  border:1px solid rgba(var(--now-glow), .50);
-  box-shadow:0 0 0 2px rgba(var(--now-glow), .16) inset, 0 0 24px rgba(126,43,65,.08);
+  background:var(--accent);
+  border:2px solid var(--accent);
+  color:#ffffff;
 }
 
-/* Wrapper do número (o que efetivamente escala) */
+.tile.is-live .scoretable td.set > .cell{
+  background:var(--accent);
+  border-color:var(--accent);
+  color:#ffffff;
+  box-shadow:0 0 20px rgba(34,197,94,.35);
+}
+
+.tile.is-over .scoretable td.set > .cell{
+  background:#14532d;
+  border-color:rgba(34,197,94,.40);
+  color:#ffffff;
+}
+
+.tile.is-pregame .scoretable td.set > .cell{
+  background:#0f2918;
+  border-color:rgba(34,197,94,.25);
+  color:#86efac;
+}
+
+/* Coluna JOGO/TB – verde brilhante, números pretos */
+.scoretable td.now > .cell-now{
+  color:var(--now-fg);
+  background:var(--accent);
+  border:2px solid var(--accent);
+  box-shadow:0 0 28px rgba(34,197,94,.45);
+}
+
+.tile.is-tb .scoretable td.now > .cell-now{
+  background:#4ade80;
+  border-color:#4ade80;
+  color:#000000;
+}
+
 .scoretable .cell .num,
 .scoretable .cell-now .num{
   display:inline-block; line-height:.92;
   transform-origin:center; will-change:transform;
 }
 
-/* transição do “AGORA” */
 .scoretable th.now, .scoretable td.now{ transition:opacity .25s ease }
 .scoretable .now.is-hidden     { opacity:0 }
 .scoretable .now.is-hidden .cell-now{
   opacity:0; box-shadow:none; border-color:transparent; background:transparent;
 }
 
-.placeholder{ display:grid; place-items:center; color:#7e2b41; font-size:18px }
+.placeholder{ display:grid; place-items:center; color:var(--accent); font-size:18px }
 .hide-cursor *{ cursor:none !important }
 
-#status{ font-variant-numeric:tabular-nums }
+#status{ font-variant-numeric:tabular-nums; color:var(--accent) }
 
 @media (max-width:900px){
   main{ gap:12px; padding:12px }
@@ -194,10 +288,9 @@ main{
   .scoretable th, .scoretable td{ padding:6px 8px }
 }
 
-/* Indicador de serviço: bola amarela atrás do nome */
 .scoretable td.names .line{
   position: relative;
-  padding-left: 32px; /* espaço para a bola */
+  padding-left: 32px;
 }
 
 .scoretable td.names .line.is-serving::before{
@@ -209,7 +302,13 @@ main{
   width: 25px;
   height: 25px;
   border-radius: 999px;
-  background: #a33550;
-  z-index: -1;           /* “atrás” do texto */
-  opacity: 0.95;
+  background: var(--accent);
+  box-shadow: 0 0 16px rgba(34,197,94,.70);
+  z-index: -1;
+  opacity: 1;
+}
+
+.tile.is-over .scoretable td.names .line.is-serving::before{
+  background: rgba(34,197,94,.45);
+  box-shadow: none;
 }

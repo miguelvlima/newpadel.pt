@@ -12,6 +12,7 @@ import {
 import {
   buildOrUpdateGrid,
   buildOrUpdateCompactGrid,
+  fitCompactNames,
   getCurrentSlots,
   setCurrentSlots
 } from './ui.js';
@@ -86,6 +87,11 @@ import {
 
   // === Refit pipeline (em ordem) ===
   const refit = (allowGrow = false) => {
+    if (document.body.classList.contains('compact')) {
+      fitCompactNames(grid);
+      return;
+    }
+
     document.querySelectorAll('.tile').forEach((tile) => {
 
         ensureNumWrappers(tile);

@@ -17,7 +17,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
 
   <!-- CSS do scoreboard -->
-  <link rel="stylesheet" href="/css/scoreboard/scoreboard.css?v=1.1">
+  <link rel="stylesheet" href="/css/scoreboard/scoreboard.css?v=3.1">
 </head>
 <body>
 
@@ -31,6 +31,6 @@
 
 
   <!-- JS modular (ESM) -->
-  <script type="module" src="/js/scoreboard/index.js?v=2"></script>
+  <script type="module" src="/js/scoreboard/index.js?v=3"></script>
 </body>
 </html>

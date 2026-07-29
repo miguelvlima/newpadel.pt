@@ -11,8 +11,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Scoreboard Compact</title>
 
-    <link rel="stylesheet" href="/css/scoreboard/scoreboard.css?v=2">
-    <link rel="stylesheet" href="/css/scoreboard/compact.css?v=2.1">
+    <link rel="stylesheet" href="/css/scoreboard/scoreboard.css?v=3.3">
+    <link rel="stylesheet" href="/css/scoreboard/compact.css?v=3.3">
 </head>
 <body class="compact">
 
@@ -30,6 +30,6 @@
         data-screen="{{ $screen }}"
     ></main>
 
-    <script type="module" src="/js/scoreboard/index.js?v=2"></script>
+    <script type="module" src="/js/scoreboard/index.js?v=3.3"></script>
 </body>
 </html>
