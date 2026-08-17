@@ -178,7 +178,8 @@ main {
 
 .tile {
   display: grid;
-  grid-template-rows: 1fr;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
   min-height: 0;
   overflow: hidden;
   padding: 0;
@@ -206,65 +207,66 @@ main {
   border-color: var(--ph-border);
 }
 
-.tile-body {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  min-height: 0;
-  height: 100%;
-}
-
-.tile-brand {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 108px;
-  padding: 12px 10px;
-  border-right: 1px solid var(--ph-border);
-  background: color-mix(in srgb, var(--ph-bg) 55%, var(--ph-surface));
-}
-
-.tile-brand-logo {
-  display: block;
-  width: 72px;
-  height: auto;
-  max-height: 60px;
-  object-fit: contain;
-}
-
-.tile-brand-meta {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  text-align: center;
-}
-
-.tile-brand-cat,
-.tile-brand-group {
-  margin: 0;
-  font-family: "Space Grotesk", system-ui, sans-serif;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  line-height: 1.15;
-}
-
-.tile-brand-cat {
-  color: var(--ph-accent);
-}
-
-.tile-brand-group {
-  color: var(--ph-muted);
-}
-
 .tile-content {
+  grid-column: 1;
+  grid-row: 1;
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: minmax(0, 1fr);
   min-width: 0;
   min-height: 0;
   padding: 12px;
+}
+
+.tile-bar {
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  /* Alinha com nomes (pad do content + names + serve) e com a borda direita dos números */
+  padding: 12px 12px 14px;
+  padding-left: calc(12px + var(--names-pad-l) + 28px);
+  padding-right: 12px;
+  border-top: 1px solid var(--ph-border);
+  background: color-mix(in srgb, var(--ph-bg) 78%, #000);
+}
+
+.tile-bar-court {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  color: var(--ph-muted);
+  white-space: nowrap;
+}
+
+.tile-bar-meta {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 0.45em;
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-size: clamp(1.15rem, 2vw, 1.65rem);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.tile-bar-cat {
+  color: var(--ph-accent);
+}
+
+.tile-bar-sep {
+  color: var(--ph-muted);
+}
+
+.tile-bar-group {
+  color: var(--ph-text);
 }
 
 .tile > .row,
@@ -575,18 +577,14 @@ main {
     padding: 12px;
   }
 
-  .tile-brand {
-    width: 84px;
-    padding: 10px 8px;
-  }
-
-  .tile-brand-logo {
-    width: 56px;
-    max-height: 48px;
-  }
-
   .tile-content {
     padding: 10px;
+  }
+
+  .tile-bar {
+    padding: 10px 10px 12px;
+    padding-left: calc(10px + var(--names-pad-l) + 28px);
+    padding-right: 10px;
   }
 
   .scoretable th,

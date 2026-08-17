@@ -37,6 +37,6 @@
         data-brand-group="Grupo A"
     ></main>
 
-    <script type="module" src="/js/scoreboard/index.js?v=5.2"></script>
+    <script type="module" src="/js/scoreboard/index.js?v=5.4"></script>
 </body>
 </html>

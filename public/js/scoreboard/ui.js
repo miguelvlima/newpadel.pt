@@ -1,6 +1,6 @@
 // /public/js/scoreboard/ui.js
-import { parseFormat, isSetConcluded, countWonSets, tennisPoint, isNormalTBActive, superTBActive } from './rules.js?v=5.2';
-import { fitNames, fitBadges, watchTile, ensureNumWrappers, scaleNumbersToFit, setRowHeights } from './sizing.js?v=5.2';
+import { parseFormat, isSetConcluded, countWonSets, tennisPoint, isNormalTBActive, superTBActive } from './rules.js?v=5.4';
+import { fitNames, fitBadges, watchTile, ensureNumWrappers, scaleNumbersToFit, setRowHeights } from './sizing.js?v=5.4';
 
 let TILE_ELS = [];
 let CURRENT_SLOTS = [];
@@ -193,8 +193,6 @@ function buildTile(game){
 
   // se prosetFinished, força TERMINADO
   const isOver         = meta.matchOver || prosetFinished;
-  const statusText     = isOver ? 'TERMINADO' : (started ? 'AO VIVO' : 'PRÉ-JOGO');
-  const statusInner    = (!isOver && started) ? '<span class="pulse">AO VIVO</span>' : statusText;
 
   const nowLabel = meta.superTB ? 'Super TB' : (prosetTB || meta.normalTB ? 'TB' : 'JOGO');
 
@@ -229,15 +227,13 @@ function buildTile(game){
   const gridEl = document.getElementById('grid');
   const brandCategory = gridEl?.dataset?.brandCategory || 'M2';
   const brandGroup = gridEl?.dataset?.brandGroup || 'Grupo A';
-  const metaLabel = `${brandCategory} · ${brandGroup}`;
+  const rawCourt = String(game.court_name || gridEl?.dataset?.screen || '').trim();
+  const courtLabel = rawCourt
+    ? `CAMPO ${rawCourt.replace(/^campo\s+/i, '').toUpperCase()}`
+    : 'CAMPO —';
 
   wrap.innerHTML = `
     <div class="tile-content">
-      <div class="row">
-        <div class="left"><span class="badge court">${escapeHtml(metaLabel)}</span></div>
-        <div class="right"><span class="badge status">${statusInner}</span></div>
-      </div>
-
       <table class="scoretable" aria-label="Scoreboard do jogo">
         <thead>
           <tr>
@@ -263,6 +259,14 @@ function buildTile(game){
         </tbody>
       </table>
     </div>
+    <footer class="tile-bar">
+      <span class="tile-bar-court">${escapeHtml(courtLabel)}</span>
+      <span class="tile-bar-meta">
+        <span class="tile-bar-cat">${escapeHtml(brandCategory)}</span>
+        <span class="tile-bar-sep" aria-hidden="true">·</span>
+        <span class="tile-bar-group">${escapeHtml(brandGroup)}</span>
+      </span>
+    </footer>
   `;
 
   applyServerIndicator(wrap, game.server);
@@ -272,7 +276,6 @@ function buildTile(game){
     setRowHeights(wrap);
     fitNames(wrap);
     scaleNumbersToFit(wrap);
-    fitBadges(wrap);
     watchTile(wrap);
   });
 
@@ -300,15 +303,20 @@ function updateTile(el, game){
 
   el.dataset.gameId = game.id;
 
-  // category · group (em vez do nome do campo)
-  const row = el.querySelector('.row');
-  const courtBadge = row?.querySelector('.badge.court');
   const gridEl = document.getElementById('grid');
   const brandCategory = gridEl?.dataset?.brandCategory || 'M2';
   const brandGroup = gridEl?.dataset?.brandGroup || 'Grupo A';
-  if (courtBadge) courtBadge.textContent = `${brandCategory} · ${brandGroup}`;
+  const rawCourt = String(game.court_name || gridEl?.dataset?.screen || '').trim();
+  const courtLabel = rawCourt
+    ? `CAMPO ${rawCourt.replace(/^campo\s+/i, '').toUpperCase()}`
+    : 'CAMPO —';
+  const courtEl = el.querySelector('.tile-bar-court');
+  const catEl = el.querySelector('.tile-bar-cat');
+  const groupEl = el.querySelector('.tile-bar-group');
+  if (courtEl) courtEl.textContent = courtLabel;
+  if (catEl) catEl.textContent = brandCategory;
+  if (groupEl) groupEl.textContent = brandGroup;
 
-  // status
   const anySetFinished = meta.setConcluded.some(Boolean);
   const anySetFilled   = meta.sets.some(ss => (Number(ss?.team1||0)+Number(ss?.team2||0))>0);
   const g1 = Number(meta.cur.games_team1||0), g2 = Number(meta.cur.games_team2||0);
@@ -318,9 +326,6 @@ function updateTile(el, game){
   const started    = anySetFinished || anySetFilled || hasCurrent;
 
   const isOver     = meta.matchOver || prosetFinished;
-  const statusText = isOver ? 'TERMINADO' : (started ? 'AO VIVO' : 'PRÉ-JOGO');
-  const statusBadge = row?.querySelector('.badge.status');
-  if (statusBadge) statusBadge.innerHTML = (!isOver && started) ? '<span class="pulse">AO VIVO</span>' : statusText;
 
   el.classList.toggle('is-live', started && !isOver);
   el.classList.toggle('is-over', isOver);
@@ -384,7 +389,6 @@ function updateTile(el, game){
     setRowHeights(el);
     fitNames(el);
     scaleNumbersToFit(el);
-    fitBadges(el);
   });
   return el;
 }
@@ -399,15 +403,22 @@ function emptyTile(){
   const gridEl = document.getElementById('grid');
   const brandCategory = gridEl?.dataset?.brandCategory || 'M2';
   const brandGroup = gridEl?.dataset?.brandGroup || 'Grupo A';
-  const metaLabel = `${brandCategory} · ${brandGroup}`;
+  const rawCourt = String(gridEl?.dataset?.screen || '').trim();
+  const courtLabel = rawCourt
+    ? `CAMPO ${rawCourt.replace(/^campo\s+/i, '').toUpperCase()}`
+    : 'CAMPO —';
   wrap.innerHTML = `
     <div class="tile-content">
-      <div class="row">
-        <div class="left"><span class="badge court">${escapeHtml(metaLabel)}</span></div>
-        <div class="right"><span class="badge status">—</span></div>
-      </div>
       <div class="placeholder">Sem jogo configurado</div>
     </div>
+    <footer class="tile-bar">
+      <span class="tile-bar-court">${escapeHtml(courtLabel)}</span>
+      <span class="tile-bar-meta">
+        <span class="tile-bar-cat">${escapeHtml(brandCategory)}</span>
+        <span class="tile-bar-sep" aria-hidden="true">·</span>
+        <span class="tile-bar-group">${escapeHtml(brandGroup)}</span>
+      </span>
+    </footer>
   `;
   return wrap;
 }
