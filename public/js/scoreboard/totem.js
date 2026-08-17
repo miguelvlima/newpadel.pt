@@ -207,7 +207,10 @@ function paint(game, courtName, screenKey = '') {
   const raw = String(courtName || screenKey || '').trim();
   const court = raw.replace(/^campo\s+/i, '').toUpperCase() || '—';
   $('totem-court').textContent = `CAMPO ${court}`;
-  $('totem-meta').textContent = 'M2 · Grupo A';
+  const cat = $('totem-category');
+  const grp = $('totem-group');
+  if (cat) cat.textContent = 'M2';
+  if (grp) grp.textContent = 'Grupo A';
 
   const serveA = server === 1 || server === 2 ? [server] : [];
   const serveB = server === 3 || server === 4 ? [server - 2] : [];
@@ -218,7 +221,6 @@ function paint(game, courtName, screenKey = '') {
   renderScoreBoard($('totem-score-board'), d);
   const label = $('totem-points-label');
   if (label) label.textContent = d.pointsLabel;
-  $('totem-status').textContent = d.matchOver ? 'Jogo terminado' : 'Marcação ao vivo';
 }
 
 async function fetchGame(sb, gameId) {
@@ -291,6 +293,7 @@ async function fetchCourtName(sb, courtId) {
       .subscribe();
   } catch (err) {
     console.error(err);
-    $('totem-status').textContent = err?.message || 'Erro ao carregar';
+    const court = $('totem-court');
+    if (court) court.textContent = err?.message || 'Erro ao carregar';
   }
 })();

@@ -6,9 +6,8 @@
  *
  * Contas (altura):
  *   pad-y 18+18 = 36
- *   header ≈ 118 | score ≈ 132 | footer ≈ 34 | 2×fotos 428
- *   subtotal ≈ 748 → resto (~332) distribuído com space-between
- *   (sem 1fr a esticar as fotos)
+ *   header ≈ 100 | score ≈ 132 | footer ≈ 70 | 2×fotos 428
+ *   resto distribuído com space-between (sem 1fr a esticar fotos)
  */
 
 :root {
@@ -96,30 +95,12 @@ body.totem-body {
 
 .totem-logo {
   display: block;
-  width: 200px;
+  width: 100%;
+  max-width: 400px;
   height: auto;
-  max-height: 64px;
-  margin: 0 auto 6px;
+  max-height: 88px;
+  margin: 0 auto;
   object-fit: contain;
-}
-
-.totem-court {
-  margin: 0;
-  font-family: "Bebas Neue", sans-serif;
-  font-size: 1.35rem;
-  line-height: 1;
-  letter-spacing: 0.08em;
-  font-weight: 400;
-  color: var(--ph-muted);
-}
-
-.totem-meta {
-  margin: 4px 0 0;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ph-text);
 }
 
 .totem-side {
@@ -284,13 +265,46 @@ body.totem-body {
 }
 
 .totem-footer {
-  padding-top: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding-top: 10px;
   border-top: 1px solid var(--ph-border);
   text-align: center;
-  font-size: 0.62rem;
-  font-weight: 600;
+}
+
+.totem-court {
+  margin: 0;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 1.35rem;
+  line-height: 1;
   letter-spacing: 0.08em;
+  font-weight: 400;
+  color: var(--ph-muted);
+}
+
+.totem-meta {
+  margin: 0;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45em;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+  line-height: 1.1;
+}
+
+.totem-meta #totem-category {
+  color: var(--ph-accent);
+}
+
+.totem-meta #totem-group {
+  color: var(--ph-text);
+}
+
+.totem-meta-sep {
   color: var(--ph-muted);
 }
 

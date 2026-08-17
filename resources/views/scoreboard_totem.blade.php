@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/scoreboard/totem.css?v=13" />
+  <link rel="stylesheet" href="/css/scoreboard/totem.css?v=19" />
 </head>
 <body class="totem-body">
   <div
@@ -28,13 +28,11 @@
     <header class="totem-header">
       <img
         class="totem-logo"
-        src="/images/tournaments/3-open-dos-ouricos-logo.png"
+        src="/images/tournaments/3-open-dos-ouricos-logo-horizontal.png"
         alt="3º Open dos Ouriços"
-        width="280"
+        width="420"
         height="120"
       />
-      <h1 class="totem-court" id="totem-court">CAMPO {{ strtoupper($screen) }}</h1>
-      <p class="totem-meta" id="totem-meta">M2 · Grupo A</p>
     </header>
 
     <section class="totem-side totem-side-a" aria-label="Dupla A">
@@ -51,10 +49,15 @@
     </section>
 
     <footer class="totem-footer">
-      <span id="totem-status">A carregar…</span>
+      <h1 class="totem-court" id="totem-court">CAMPO {{ strtoupper($screen) }}</h1>
+      <p class="totem-meta" id="totem-meta">
+        <span id="totem-category">M2</span>
+        <span class="totem-meta-sep" aria-hidden="true">·</span>
+        <span id="totem-group">Grupo A</span>
+      </p>
     </footer>
   </div>
 
-  <script type="module" src="/js/scoreboard/totem.js?v=13"></script>
+  <script type="module" src="/js/scoreboard/totem.js?v=15"></script>
 </body>
 </html>
