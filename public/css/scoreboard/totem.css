@@ -1,0 +1,317 @@
+/* Totem LED — canvas fixo 480×1080.
+ *
+ * Contas (largura):
+ *   pad-x 20+20 = 40 → útil = 440
+ *   gap fotos 12 → foto = (440 - 12) / 2 = 214px
+ *
+ * Contas (altura):
+ *   pad-y 18+18 = 36
+ *   header ≈ 118 | score ≈ 132 | footer ≈ 34 | 2×fotos 428
+ *   subtotal ≈ 748 → resto (~332) distribuído com space-between
+ *   (sem 1fr a esticar as fotos)
+ */
+
+:root {
+  --ph-accent: #22c55e;
+  --ph-accent-muted: rgba(34, 197, 94, 0.16);
+  --ph-bg: #080b10;
+  --ph-surface: #121820;
+  --ph-surface-elevated: #1a222d;
+  --ph-border: rgba(255, 255, 255, 0.1);
+  --ph-text: #f3f5f7;
+  --ph-muted: #8b95a8;
+
+  --totem-w: 480px;
+  --totem-h: 1080px;
+  --totem-pad-x: 20px;
+  --totem-pad-y: 18px;
+  --photo-gap: 12px;
+  --photo-size: calc((var(--totem-w) - 2 * var(--totem-pad-x) - var(--photo-gap)) / 2);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body.totem-body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  color: var(--ph-text);
+  font-family: "Space Grotesk", system-ui, sans-serif;
+}
+
+.totem-body {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.totem {
+  width: var(--totem-w);
+  height: var(--totem-h);
+  max-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto auto auto auto auto;
+  align-content: space-between;
+  gap: 0;
+  padding: var(--totem-pad-y) var(--totem-pad-x);
+  background:
+    radial-gradient(120% 50% at 50% 0%, rgba(34, 197, 94, 0.16), transparent 55%),
+    linear-gradient(180deg, #0e141c 0%, var(--ph-bg) 45%, #05070a 100%);
+  color: var(--ph-text);
+  position: relative;
+  overflow: hidden;
+}
+
+.totem::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 24px 24px;
+  pointer-events: none;
+  opacity: 0.35;
+}
+
+.totem > * {
+  position: relative;
+  z-index: 1;
+}
+
+.totem-header {
+  text-align: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--ph-border);
+  animation: totem-fade-in 0.6s ease both;
+}
+
+.totem-logo {
+  display: block;
+  width: 200px;
+  height: auto;
+  max-height: 64px;
+  margin: 0 auto 6px;
+  object-fit: contain;
+}
+
+.totem-court {
+  margin: 0;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 1.35rem;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  font-weight: 400;
+  color: var(--ph-muted);
+}
+
+.totem-meta {
+  margin: 4px 0 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ph-text);
+}
+
+.totem-side {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0;
+  height: var(--photo-size);
+}
+
+.totem-side-a {
+  animation: totem-slide-down 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.totem-side-b {
+  animation: totem-slide-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.06s both;
+}
+
+.totem-photos {
+  display: grid;
+  grid-template-columns: var(--photo-size) var(--photo-size);
+  gap: var(--photo-gap);
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  justify-content: center;
+}
+
+.totem-photo {
+  width: var(--photo-size);
+  height: var(--photo-size);
+  margin: 0;
+  padding: 0;
+  border-radius: 0.9rem;
+  overflow: hidden;
+  border: 2px solid var(--ph-accent);
+  background: var(--ph-surface-elevated);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  position: relative;
+}
+
+.totem-photo.is-serving {
+  border-color: #eab308;
+  box-shadow:
+    0 0 0 2px rgba(234, 179, 8, 0.55),
+    0 0 22px rgba(234, 179, 8, 0.35),
+    0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+.totem-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+}
+
+.totem-photo-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+  padding: 1.8rem 0.4rem 0.55rem;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-align: center;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+.totem-score {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0;
+  animation: totem-fade-in 0.8s ease 0.1s both;
+}
+
+.totem-score-board {
+  border: 1px solid var(--ph-border);
+  border-radius: 0.9rem;
+  background: color-mix(in srgb, var(--ph-surface) 92%, transparent);
+  overflow: hidden;
+}
+
+.totem-score-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.totem-score-table th,
+.totem-score-table td {
+  text-align: center;
+  vertical-align: middle;
+  padding: 0.45rem 0.2rem;
+}
+
+.totem-score-table thead th {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ph-muted);
+  border-bottom: 1px solid var(--ph-border);
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.totem-score-table tbody tr + tr td {
+  border-top: 1px solid var(--ph-border);
+}
+
+.totem-score-table .col-set {
+  width: 18%;
+}
+
+.totem-score-table .col-pts {
+  width: 28%;
+  border-left: 1px solid var(--ph-border);
+  background: color-mix(in srgb, var(--ph-accent) 10%, transparent);
+}
+
+.totem-score-table thead .col-pts {
+  color: var(--ph-accent);
+}
+
+.totem-score-table .set-val {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--ph-text);
+}
+
+.totem-score-table .set-val.is-won {
+  color: var(--ph-accent);
+}
+
+.totem-score-table .set-val.is-live {
+  color: #fff;
+}
+
+.totem-score-table .set-val.is-empty {
+  color: rgba(255, 255, 255, 0.18);
+}
+
+.totem-score-table .pts-val {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 2.75rem;
+  line-height: 0.95;
+  color: var(--ph-accent);
+}
+
+.totem-score-table .pts-val.is-final {
+  color: var(--ph-text);
+}
+
+.totem-points-label {
+  display: none;
+}
+
+.totem-footer {
+  padding-top: 8px;
+  border-top: 1px solid var(--ph-border);
+  text-align: center;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ph-muted);
+}
+
+@keyframes totem-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes totem-slide-down {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes totem-slide-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-height: 1079px) {
+  .totem {
+    transform-origin: top center;
+    transform: scale(calc(100dvh / 1080));
+  }
+}

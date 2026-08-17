@@ -39,6 +39,15 @@ Route::get('/scoreboard/{screen}/compact', function (string $screen) {
     return view('scoreboard_compact', ['screen' => $screen]);
 })->name('scoreboard.compact');
 
+/** Totem LED 480×1080 — apresentação com fotos (não altera compact/gallery). */
+Route::get('/scoreboard/{screen}/totem', function (string $screen) {
+    return view('scoreboard_totem', [
+        'screen' => $screen,
+        // Jogo demo actual na BD scoreboard (enquanto não há match-context).
+        'demoGameId' => 'fa9333dd-1b93-4948-8a95-879d6f9eb198',
+    ]);
+})->where('screen', '[A-Za-z0-9_-]+')->name('scoreboard.totem');
+
 Route::get('/calendario', function (Request $request) {
     // Ano via ?events-year=2026 (igual ao exemplo)
     $year = (int)($request->query('events-year', now()->year));
