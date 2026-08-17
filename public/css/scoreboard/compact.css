@@ -1,5 +1,6 @@
 /* Compact overlay — linguagem visual do totem (sem fotos).
- * Página transparente; o board é um cartão escuro. */
+ * Página transparente; o board é um cartão escuro.
+ * Escala ~150% face ao layout original (OBS 1:1 mais nítido). */
 
 :root {
   --ph-accent: #22c55e;
@@ -12,10 +13,10 @@
   --ph-muted: #8b95a8;
   --ph-serve: #eab308;
   --ph-serve-glow: rgba(234, 179, 8, 0.45);
-  --name-max: 420px;
-  --set-w: 52px;
-  --pts-w: 64px;
-  --row-h: 58px;
+  --name-max: 630px;
+  --set-w: 78px;
+  --pts-w: 96px;
+  --row-h: 87px;
 }
 
 html,
@@ -42,10 +43,10 @@ body.compact #grid {
 
 body.compact #grid {
   position: fixed !important;
-  top: 16px;
-  left: 16px;
+  top: 24px;
+  left: 24px;
   width: max-content;
-  max-width: calc(100vw - 32px);
+  max-width: calc(100vw - 48px);
   margin: 0 !important;
   padding: 0 !important;
   z-index: 9999;
@@ -59,10 +60,10 @@ body.compact #grid {
   width: max-content;
   max-width: 100%;
   border: 1px solid var(--ph-border);
-  border-radius: 0.9rem;
+  border-radius: 1.35rem;
   overflow: hidden;
   background: color-mix(in srgb, var(--ph-surface) 94%, transparent);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
 }
 
 .compact-brand {
@@ -70,18 +71,18 @@ body.compact #grid {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  width: 92px;
-  padding: 10px 8px;
+  gap: 9px;
+  width: 138px;
+  padding: 15px 12px;
   border-right: 1px solid var(--ph-border);
   background: color-mix(in srgb, var(--ph-bg) 55%, var(--ph-surface));
 }
 
 .compact-brand-logo {
   display: block;
-  width: 64px;
+  width: 96px;
   height: auto;
-  max-height: 52px;
+  max-height: 78px;
   object-fit: contain;
 }
 
@@ -89,7 +90,7 @@ body.compact #grid {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
   text-align: center;
 }
 
@@ -97,7 +98,7 @@ body.compact #grid {
 .compact-brand-group {
   margin: 0;
   font-family: "Space Grotesk", system-ui, sans-serif;
-  font-size: 0.62rem;
+  font-size: 0.93rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -147,13 +148,13 @@ body.compact #grid {
 .compact-name {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 15px;
   min-width: 0;
-  padding: 0 16px;
+  padding: 0 24px;
   background: transparent;
   color: var(--ph-text);
   font-family: "Space Grotesk", system-ui, sans-serif;
-  font-size: 22px;
+  font-size: 33px;
   font-weight: 700;
   line-height: 1;
   letter-spacing: 0.04em;
@@ -187,7 +188,7 @@ body.compact #grid {
 .compact-name.is-serving::after {
   content: "●";
   color: var(--ph-serve);
-  font-size: 16px;
+  font-size: 24px;
   flex: 0 0 auto;
   text-shadow: 0 0 14px var(--ph-serve-glow);
 }
@@ -205,7 +206,7 @@ body.compact #grid {
   background: transparent;
   color: var(--ph-text);
   font-family: "Bebas Neue", sans-serif;
-  font-size: 28px;
+  font-size: 42px;
   font-weight: 400;
   border: 0;
   border-right: 1px solid var(--ph-border);
@@ -250,7 +251,7 @@ body.compact #grid {
   background: color-mix(in srgb, var(--ph-accent) 12%, transparent);
   color: var(--ph-accent);
   font-family: "Bebas Neue", sans-serif;
-  font-size: 32px;
+  font-size: 48px;
   font-weight: 400;
   border: 0;
   box-shadow: none;
@@ -279,44 +280,44 @@ body.compact #grid {
 
 @media (max-width: 900px) {
   :root {
-    --name-max: 280px;
-    --set-w: 42px;
-    --pts-w: 52px;
-    --row-h: 48px;
+    --name-max: 420px;
+    --set-w: 63px;
+    --pts-w: 78px;
+    --row-h: 72px;
   }
 
   body.compact #grid {
-    top: 10px;
-    left: 10px;
-    max-width: calc(100vw - 20px);
+    top: 15px;
+    left: 15px;
+    max-width: calc(100vw - 30px);
   }
 
   .compact-brand {
-    width: 76px;
-    padding: 8px 6px;
-    gap: 4px;
+    width: 114px;
+    padding: 12px 9px;
+    gap: 6px;
   }
 
   .compact-brand-logo {
-    width: 52px;
-    max-height: 42px;
+    width: 78px;
+    max-height: 63px;
   }
 
   .compact-brand-cat,
   .compact-brand-group {
-    font-size: 0.55rem;
+    font-size: 0.825rem;
   }
 
   .compact-name {
-    padding: 0 12px;
-    font-size: 17px;
+    padding: 0 18px;
+    font-size: 26px;
   }
 
   .compact-set {
-    font-size: 22px;
+    font-size: 33px;
   }
 
   .compact-now {
-    font-size: 26px;
+    font-size: 39px;
   }
 }
