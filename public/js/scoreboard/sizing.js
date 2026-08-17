@@ -95,7 +95,7 @@ export function ensureNumWrappers(root){
 
 /* ================== Escalar números p/ caber ================== */
 export function scaleNumbersToFit(root, _rerun = false){
-  const cells = root.querySelectorAll('td.set .cell, td.now .cell-now');
+  const cells = [...root.querySelectorAll('td.set .cell, td.now .cell-now')];
   if (!cells.length) return;
 
   const SAFE = 0.94;
@@ -120,8 +120,11 @@ export function scaleNumbersToFit(root, _rerun = false){
 
   const ABS_MIN = 64;
   const ABS_MAX = 200; // podes subir para 220 se quiseres mais largo
+  const scaleCap = 1.22;
 
   let neededW = setW;
+  let uniformScale = scaleCap;
+  const nums = [];
 
   cells.forEach(cell => {
     const num = cell.querySelector('.num');
@@ -144,21 +147,26 @@ export function scaleNumbersToFit(root, _rerun = false){
     const r  = num.getBoundingClientRect();
     if (!cw || !ch || !r.width || !r.height) return;
 
-    // preferir altura (uniformiza 1/2 dígitos)
-    const scaleByH   = SAFE * (ch / r.height);
-    const scaleCap   = 1.22; // tampa crescimento anómalo
-    const scaleH     = Math.min(scaleByH, scaleCap);
-    const widthAfter = r.width * scaleH;
+    const scaleByH = SAFE * (ch / r.height);
+    const scaleByW = SAFE * (cw / r.width);
+    const scale = Math.min(scaleByH, scaleByW, scaleCap);
+    uniformScale = Math.min(uniformScale, scale);
 
-    if (widthAfter <= cw){
-      num.style.transform = `translateZ(0) scale(${scaleH})`;
-    } else {
-      // não cabe em largura → regista largura necessária e encolhe por largura
-      neededW = Math.max(neededW, Math.ceil(widthAfter + 2));
-      const scaleByW = SAFE * (cw / r.width);
-      num.style.transform = `translateZ(0) scale(${scaleByW})`;
+    const widthAfter = r.width * scale;
+    if (widthAfter > cw) {
+      neededW = Math.max(neededW, Math.ceil(r.width * Math.min(scaleByH, scaleCap) + 2));
     }
+
+    nums.push(num);
   });
+
+  // mesma escala em sets e JOGO
+  if (Number.isFinite(uniformScale) && nums.length) {
+    const s = Math.max(0.1, uniformScale);
+    nums.forEach((num) => {
+      num.style.transform = `translateZ(0) scale(${s})`;
+    });
+  }
 
   // se precisar, alarga a coluna (sem passar limites)
   const clampedNeeded = Math.max(ABS_MIN, Math.min(neededW, Math.min(maxPerSet, ABS_MAX)));

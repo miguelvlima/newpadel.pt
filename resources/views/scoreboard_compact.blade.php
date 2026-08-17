@@ -11,8 +11,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Scoreboard Compact</title>
 
-    <link rel="stylesheet" href="/css/scoreboard/scoreboard.css?v=3.9">
-    <link rel="stylesheet" href="/css/scoreboard/compact.css?v=3.9">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/css/scoreboard/scoreboard.css?v=4.1">
+    <link rel="stylesheet" href="/css/scoreboard/compact.css?v=4.1">
 </head>
 <body class="compact">
 
@@ -28,8 +32,11 @@
         data-sb-url="{{ $sbUrl }}"
         data-sb-anon="{{ $sbAnon }}"
         data-screen="{{ $screen }}"
+        data-brand-logo="/images/tournaments/3-open-dos-ouricos-logo.png"
+        data-brand-category="M2"
+        data-brand-group="Grupo A"
     ></main>
 
-    <script type="module" src="/js/scoreboard/index.js?v=3.9"></script>
+    <script type="module" src="/js/scoreboard/index.js?v=4.1"></script>
 </body>
 </html>

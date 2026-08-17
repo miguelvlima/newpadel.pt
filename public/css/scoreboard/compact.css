@@ -1,227 +1,322 @@
-:root{
-  /* Open dos Ouriços – compact: preto + #22c55e */
-  --black:#000000;
-  --accent:#22c55e;
-  --accent-dark:#16a34a;
-  --accent-dim:rgba(34,197,94,.40);
-  --accent-glow:rgba(34,197,94,.45);
-  --set-over:#14532d;
-  --ink:#ffffff;
-  --serve:#22c55e;
-  --pregame-ink:#b8bcc4;
-  --now-bg:#ffffff;
-  --now-bg-dim:#e5e7eb;
+/* Compact overlay — linguagem visual do totem (sem fotos).
+ * Página transparente; o board é um cartão escuro. */
+
+:root {
+  --ph-accent: #22c55e;
+  --ph-accent-muted: rgba(34, 197, 94, 0.16);
+  --ph-bg: #080b10;
+  --ph-surface: #121820;
+  --ph-surface-elevated: #1a222d;
+  --ph-border: rgba(255, 255, 255, 0.1);
+  --ph-text: #f3f5f7;
+  --ph-muted: #8b95a8;
+  --ph-serve: #eab308;
+  --ph-serve-glow: rgba(234, 179, 8, 0.45);
+  --name-max: 420px;
+  --set-w: 52px;
+  --pts-w: 64px;
+  --row-h: 58px;
 }
 
 html,
-body{
-  margin:0;
-  padding:0;
-  background:transparent !important;
-  font-family:'Bebas Neue', Arial, Helvetica, sans-serif;
+body {
+  margin: 0;
+  padding: 0;
+  background: transparent !important;
+  font-family: "Space Grotesk", "Bebas Neue", system-ui, sans-serif;
 }
 
-body.compact{
-  overflow:hidden;
-  background:transparent !important;
+body.compact {
+  overflow: hidden;
+  background: transparent !important;
 }
 
-body.compact .screenbar{
-  display:none !important;
+body.compact .screenbar {
+  display: none !important;
 }
 
 body.compact main,
-body.compact #grid{
-  background:transparent !important;
+body.compact #grid {
+  background: transparent !important;
 }
 
-body.compact #grid{
-  position:fixed !important;
-  top:16px;
-  left:16px;
-  width:max-content;
-  max-width:calc(100vw - 32px);
-  margin:0 !important;
-  padding:0 !important;
-  z-index:9999;
+body.compact #grid {
+  position: fixed !important;
+  top: 16px;
+  left: 16px;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  margin: 0 !important;
+  padding: 0 !important;
+  z-index: 9999;
 }
 
-.compact-board{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-  width:max-content;
-  max-width:100%;
+.compact-board {
+  display: grid;
+  grid-template-columns: auto minmax(0, max-content);
+  align-items: stretch;
+  gap: 0;
+  width: max-content;
+  max-width: 100%;
+  border: 1px solid var(--ph-border);
+  border-radius: 0.9rem;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--ph-surface) 94%, transparent);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
 }
 
-.compact-row{
-  display:grid;
-  grid-template-columns:minmax(0, 520px) 48px 48px 48px 54px;
-  column-gap:3px;
-  height:56px;
-  width:max-content;
-  max-width:100%;
+.compact-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 92px;
+  padding: 10px 8px;
+  border-right: 1px solid var(--ph-border);
+  background: color-mix(in srgb, var(--ph-bg) 55%, var(--ph-surface));
 }
 
-.compact-row--sets-1{
-  grid-template-columns:minmax(0, 520px) 48px 54px;
+.compact-brand-logo {
+  display: block;
+  width: 64px;
+  height: auto;
+  max-height: 52px;
+  object-fit: contain;
 }
 
-.compact-row--sets-2{
-  grid-template-columns:minmax(0, 520px) 48px 48px 54px;
+.compact-brand-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
 }
 
-.compact-row--sets-3{
-  grid-template-columns:minmax(0, 520px) 48px 48px 48px 54px;
+.compact-brand-cat,
+.compact-brand-group {
+  margin: 0;
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.15;
 }
 
-/* Nomes – fundo preto, texto branco */
-.compact-name{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  min-width:0;
-  padding:0 16px;
-  background:var(--black);
-  color:var(--ink);
-  font-size:30px;
-  font-weight:800;
-  line-height:1;
-  letter-spacing:.04em;
-  overflow:hidden;
-  border:0;
-  box-shadow:none;
+.compact-brand-cat {
+  color: var(--ph-accent);
 }
 
-.compact-name__text{
-  min-width:0;
-  flex:1 1 auto;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
+.compact-brand-group {
+  color: var(--ph-muted);
 }
 
-.compact-board.is-live .compact-name{
-  color:#ffffff;
+.compact-rows {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
-.compact-board.is-over .compact-name{
-  color:#ffffff;
+.compact-row {
+  display: grid;
+  grid-template-columns: minmax(0, var(--name-max)) var(--set-w) var(--set-w) var(--set-w) var(--pts-w);
+  column-gap: 0;
+  height: var(--row-h);
+  width: max-content;
+  max-width: 100%;
 }
 
-.compact-board.is-pregame .compact-name{
-  color:var(--pregame-ink);
+.compact-row + .compact-row {
+  border-top: 1px solid var(--ph-border);
 }
 
-.compact-name.is-serving::after{
-  content:"●";
-  color:var(--serve);
-  font-size:18px;
-  flex:0 0 auto;
-  text-shadow:0 0 12px rgba(34,197,94,.75);
+.compact-row--sets-1 {
+  grid-template-columns: minmax(0, var(--name-max)) var(--set-w) var(--pts-w);
 }
 
-.compact-board.is-over .compact-name.is-serving::after{
-  color:rgba(34,197,94,.50);
-  text-shadow:none;
+.compact-row--sets-2 {
+  grid-template-columns: minmax(0, var(--name-max)) var(--set-w) var(--set-w) var(--pts-w);
 }
 
-/* Sets – fundo verde, números pretos */
-.compact-set{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:var(--accent);
-  color:#000000;
-  font-size:26px;
-  font-weight:900;
-  border:0;
-  box-shadow:none;
-  font-variant-numeric:tabular-nums;
-  font-feature-settings:"tnum" 1;
+.compact-row--sets-3 {
+  grid-template-columns: minmax(0, var(--name-max)) var(--set-w) var(--set-w) var(--set-w) var(--pts-w);
 }
 
-.compact-board.is-live .compact-set{
-  background:var(--accent);
-  color:#000000;
+/* Nomes */
+.compact-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 0 16px;
+  background: transparent;
+  color: var(--ph-text);
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  overflow: hidden;
+  border: 0;
+  border-right: 1px solid var(--ph-border);
+  box-shadow: none;
 }
 
-.compact-board.is-over .compact-set{
-  background:var(--set-over);
-  color:#ffffff;
+.compact-name__text {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.compact-board.is-pregame .compact-set{
-  background:#0f2918;
-  color:#86efac;
+.compact-board.is-live .compact-name {
+  color: var(--ph-text);
 }
 
-/* Coluna jogo – branco, números pretos (40 / 15 / …) */
-.compact-now{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:var(--now-bg);
-  color:#000000;
-  font-size:26px;
-  font-weight:900;
-  border:0;
-  box-shadow:none;
-  font-variant-numeric:tabular-nums;
-  font-feature-settings:"tnum" 1;
+.compact-board.is-over .compact-name {
+  color: var(--ph-text);
 }
 
-.compact-board.is-live .compact-now{
-  background:var(--now-bg);
-  color:#000000;
+.compact-board.is-pregame .compact-name {
+  color: var(--ph-muted);
 }
 
-.compact-board.is-over .compact-now{
-  background:var(--now-bg-dim);
-  color:rgba(0,0,0,.45);
+.compact-name.is-serving::after {
+  content: "●";
+  color: var(--ph-serve);
+  font-size: 16px;
+  flex: 0 0 auto;
+  text-shadow: 0 0 14px var(--ph-serve-glow);
 }
 
-.compact-board.is-pregame .compact-now{
-  background:var(--now-bg-dim);
-  color:#6b7280;
+.compact-board.is-over .compact-name.is-serving::after {
+  color: color-mix(in srgb, var(--ph-serve) 55%, transparent);
+  text-shadow: none;
 }
 
-.compact-now:empty{
-  opacity:.35;
+/* Sets */
+.compact-set {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--ph-text);
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 28px;
+  font-weight: 400;
+  border: 0;
+  border-right: 1px solid var(--ph-border);
+  box-shadow: none;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
-@media (max-width: 900px){
-  body.compact #grid{
-    top:10px;
-    left:10px;
-    width:max-content;
-    max-width:calc(100vw - 20px);
+.compact-board.is-live .compact-set {
+  background: transparent;
+  color: var(--ph-text);
+}
+
+.compact-board.is-over .compact-set {
+  background: transparent;
+  color: var(--ph-muted);
+}
+
+.compact-board.is-pregame .compact-set {
+  background: transparent;
+  color: color-mix(in srgb, var(--ph-muted) 70%, transparent);
+}
+
+.compact-set.is-won {
+  color: var(--ph-accent);
+  background: var(--ph-accent-muted);
+}
+
+.compact-set.is-live {
+  color: #fff;
+}
+
+.compact-set:empty {
+  color: rgba(255, 255, 255, 0.18);
+}
+
+/* Pontos (coluna now) — destaque verde como PTS do totem */
+.compact-now {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--ph-accent) 12%, transparent);
+  color: var(--ph-accent);
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 32px;
+  font-weight: 400;
+  border: 0;
+  box-shadow: none;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+.compact-board.is-live .compact-now {
+  background: color-mix(in srgb, var(--ph-accent) 12%, transparent);
+  color: var(--ph-accent);
+}
+
+.compact-board.is-over .compact-now {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ph-muted);
+}
+
+.compact-board.is-pregame .compact-now {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--ph-muted);
+}
+
+.compact-now:empty {
+  opacity: 0.35;
+}
+
+@media (max-width: 900px) {
+  :root {
+    --name-max: 280px;
+    --set-w: 42px;
+    --pts-w: 52px;
+    --row-h: 48px;
   }
 
-  .compact-row{
-    grid-template-columns:minmax(0, 300px) 40px 40px 40px 46px;
-    height:48px;
+  body.compact #grid {
+    top: 10px;
+    left: 10px;
+    max-width: calc(100vw - 20px);
   }
 
-  .compact-row--sets-1{
-    grid-template-columns:minmax(0, 300px) 40px 46px;
+  .compact-brand {
+    width: 76px;
+    padding: 8px 6px;
+    gap: 4px;
   }
 
-  .compact-row--sets-2{
-    grid-template-columns:minmax(0, 300px) 40px 40px 46px;
+  .compact-brand-logo {
+    width: 52px;
+    max-height: 42px;
   }
 
-  .compact-row--sets-3{
-    grid-template-columns:minmax(0, 300px) 40px 40px 40px 46px;
+  .compact-brand-cat,
+  .compact-brand-group {
+    font-size: 0.55rem;
   }
 
-  .compact-name{
-    padding:0 12px;
-    font-size:22px;
+  .compact-name {
+    padding: 0 12px;
+    font-size: 17px;
   }
 
-  .compact-set,
-  .compact-now{
-    font-size:20px;
+  .compact-set {
+    font-size: 22px;
+  }
+
+  .compact-now {
+    font-size: 26px;
   }
 }

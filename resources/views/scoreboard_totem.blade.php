@@ -55,6 +55,6 @@
     </footer>
   </div>
 
-  <script type="module" src="/js/scoreboard/totem.js?v=10"></script>
+  <script type="module" src="/js/scoreboard/totem.js?v=13"></script>
 </body>
 </html>

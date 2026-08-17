@@ -161,9 +161,8 @@ function isProsetFinished(game, meta){
 function buildTile(game){
   const meta = computeShape(game);
 
-  const pair1a = escapeHtml(game.player1||''), pair1b=escapeHtml(game.player2||'');
-  const pair2a = escapeHtml(game.player3||''), pair2b=escapeHtml(game.player4||'');
-  const courtName = game.court_name ? `${escapeHtml(game.court_name)}` : (game.court_id ? `CAMPO ${escapeHtml(String(game.court_id)).slice(0,8)}` : '');
+  const pair1a = escapeHtml(abbreviatePersonName(game.player1||'')), pair1b=escapeHtml(abbreviatePersonName(game.player2||''));
+  const pair2a = escapeHtml(abbreviatePersonName(game.player3||'')), pair2b=escapeHtml(abbreviatePersonName(game.player4||''));
 
   const { cfg, sets, cur } = meta;
   const g1 = Number(cur.games_team1||0), g2 = Number(cur.games_team2||0);
@@ -227,36 +226,43 @@ function buildTile(game){
   const maybeNowTopTd  = showNow ? `<td class="now"><div class="cell-now"><span class="num">${nowTop}</span></div></td>` : '';
   const maybeNowBotTd  = showNow ? `<td class="now"><div class="cell-now"><span class="num">${nowBot}</span></div></td>` : '';
 
-  wrap.innerHTML = `
-    <div class="row">
-      <div class="left">${courtName ? `<span class="badge court">${courtName}</span>` : `<span class="badge court">—</span>`}</div>
-      <div class="right"><span class="badge status">${statusInner}</span></div>
-    </div>
+  const gridEl = document.getElementById('grid');
+  const brandCategory = gridEl?.dataset?.brandCategory || 'M2';
+  const brandGroup = gridEl?.dataset?.brandGroup || 'Grupo A';
+  const metaLabel = `${brandCategory} · ${brandGroup}`;
 
-    <table class="scoretable" aria-label="Scoreboard do jogo">
-      <thead>
-        <tr>
-          <th class="names"></th>
-          <th class="flexfill"></th>
-          ${headerSetTh}
-          ${maybeNowHeader}
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="names"><div class="line">${pair1a}</div><div class="line">${pair1b}</div></td>
-          <td class="flexfill"></td>
-          ${rowTopSets}
-          ${maybeNowTopTd}
-        </tr>
-        <tr>
-          <td class="names"><div class="line">${pair2a}</div><div class="line">${pair2b}</div></td>
-          <td class="flexfill"></td>
-          ${rowBotSets}
-          ${maybeNowBotTd}
-        </tr>
-      </tbody>
-    </table>
+  wrap.innerHTML = `
+    <div class="tile-content">
+      <div class="row">
+        <div class="left"><span class="badge court">${escapeHtml(metaLabel)}</span></div>
+        <div class="right"><span class="badge status">${statusInner}</span></div>
+      </div>
+
+      <table class="scoretable" aria-label="Scoreboard do jogo">
+        <thead>
+          <tr>
+            <th class="names"></th>
+            <th class="flexfill"></th>
+            ${headerSetTh}
+            ${maybeNowHeader}
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="names"><div class="line">${pair1a}</div><div class="line">${pair1b}</div></td>
+            <td class="flexfill"></td>
+            ${rowTopSets}
+            ${maybeNowTopTd}
+          </tr>
+          <tr>
+            <td class="names"><div class="line">${pair2a}</div><div class="line">${pair2b}</div></td>
+            <td class="flexfill"></td>
+            ${rowBotSets}
+            ${maybeNowBotTd}
+          </tr>
+        </tbody>
+      </table>
+    </div>
   `;
 
   applyServerIndicator(wrap, game.server);
@@ -294,11 +300,13 @@ function updateTile(el, game){
 
   el.dataset.gameId = game.id;
 
-  // court
+  // category · group (em vez do nome do campo)
   const row = el.querySelector('.row');
   const courtBadge = row?.querySelector('.badge.court');
-  const courtName = game.court_name ? `${escapeHtml(game.court_name)}` : (game.court_id ? `CAMPO ${escapeHtml(String(game.court_id)).slice(0,8)}` : '');
-  if (courtBadge) courtBadge.textContent = courtName || '—';
+  const gridEl = document.getElementById('grid');
+  const brandCategory = gridEl?.dataset?.brandCategory || 'M2';
+  const brandGroup = gridEl?.dataset?.brandGroup || 'Grupo A';
+  if (courtBadge) courtBadge.textContent = `${brandCategory} · ${brandGroup}`;
 
   // status
   const anySetFinished = meta.setConcluded.some(Boolean);
@@ -319,7 +327,9 @@ function updateTile(el, game){
   el.classList.toggle('is-pregame', !started && !isOver);
 
   // nomes
-  const [n1a,n1b,n2a,n2b] = [game.player1||'', game.player2||'', game.player3||'', game.player4||''].map(escapeHtml);
+  const [n1a,n1b,n2a,n2b] = [game.player1||'', game.player2||'', game.player3||'', game.player4||'']
+    .map(abbreviatePersonName)
+    .map(escapeHtml);
   const nameLines = el.querySelectorAll('td.names .line');
   if (nameLines[0]) nameLines[0].textContent = n1a;
   if (nameLines[1]) nameLines[1].textContent = n1b;
@@ -386,12 +396,18 @@ function updateTile(el, game){
 function emptyTile(){
   const wrap = document.createElement('div');
   wrap.className='tile'; wrap.dataset.type='empty';
+  const gridEl = document.getElementById('grid');
+  const brandCategory = gridEl?.dataset?.brandCategory || 'M2';
+  const brandGroup = gridEl?.dataset?.brandGroup || 'Grupo A';
+  const metaLabel = `${brandCategory} · ${brandGroup}`;
   wrap.innerHTML = `
-    <div class="row">
-      <div class="left"><span class="badge court">—</span></div>
-      <div class="right"><span class="badge status">—</span></div>
+    <div class="tile-content">
+      <div class="row">
+        <div class="left"><span class="badge court">${escapeHtml(metaLabel)}</span></div>
+        <div class="right"><span class="badge status">—</span></div>
+      </div>
+      <div class="placeholder">Sem jogo configurado</div>
     </div>
-    <div class="placeholder">Sem jogo configurado</div>
   `;
   return wrap;
 }
@@ -558,14 +574,19 @@ function compactNowValues(game, meta) {
   ];
 }
 
-function compactRowHtml(name, sets, now, serving, setCount) {
+function compactRowHtml(name, sets, now, serving, setCount, setFlags = []) {
   const visibleSets = compactPadSets(sets).slice(0, setCount);
   const rowClass = `compact-row compact-row--sets-${setCount}`;
 
   return `
     <div class="${rowClass}">
       <div class="compact-name ${serving ? 'is-serving' : ''}"><span class="compact-name__text">${compactEscape(name)}</span></div>
-      ${visibleSets.map(v => `<div class="compact-set">${compactEscape(v)}</div>`).join('')}
+      ${visibleSets
+        .map((v, i) => {
+          const flag = setFlags[i] || '';
+          return `<div class="compact-set${flag ? ` ${flag}` : ''}">${compactEscape(v)}</div>`;
+        })
+        .join('')}
       <div class="compact-now">${compactEscape(now)}</div>
     </div>
   `;
@@ -608,6 +629,12 @@ export function buildOrUpdateCompactGrid(grid, positions, slots, patch) {
     return;
   }
 
+  const brand = {
+    logo: grid.dataset.brandLogo || '/images/tournaments/3-open-dos-ouricos-logo.png',
+    category: grid.dataset.brandCategory || 'M2',
+    group: grid.dataset.brandGroup || 'Grupo A',
+  };
+
   const meta = computeShape(game);
 
   const topName = compactTeamLabel(game.player1, game.player2);
@@ -640,10 +667,42 @@ export function buildOrUpdateCompactGrid(grid, positions, slots, patch) {
   const isOver = meta.matchOver || prosetFinished;
   const boardState = isOver ? 'is-over' : (started ? 'is-live' : 'is-pregame');
 
+  const topVisible = compactPadSets(topSets).slice(0, setCount);
+  const botVisible = compactPadSets(botSets).slice(0, setCount);
+  const topFlags = [];
+  const botFlags = [];
+  for (let i = 0; i < setCount; i++) {
+    const a = String(topVisible[i] ?? '').trim();
+    const b = String(botVisible[i] ?? '').trim();
+    const aNum = Number(a);
+    const bNum = Number(b);
+    const bothNumeric = a !== '' && b !== '' && Number.isFinite(aNum) && Number.isFinite(bNum);
+    const isLast = i === setCount - 1;
+    if (!isOver && isLast && started) {
+      topFlags[i] = 'is-live';
+      botFlags[i] = 'is-live';
+    } else if (bothNumeric && aNum !== bNum) {
+      topFlags[i] = aNum > bNum ? 'is-won' : '';
+      botFlags[i] = bNum > aNum ? 'is-won' : '';
+    } else {
+      topFlags[i] = '';
+      botFlags[i] = '';
+    }
+  }
+
   grid.innerHTML = `
     <section class="compact-board ${boardState}">
-      ${compactRowHtml(topName, topSets, topNow, topServing, setCount)}
-      ${compactRowHtml(botName, botSets, botNow, botServing, setCount)}
+      <aside class="compact-brand">
+        <img class="compact-brand-logo" src="${compactEscape(brand.logo)}" alt="" />
+        <div class="compact-brand-meta">
+          <p class="compact-brand-cat">${compactEscape(brand.category)}</p>
+          <p class="compact-brand-group">${compactEscape(brand.group)}</p>
+        </div>
+      </aside>
+      <div class="compact-rows">
+        ${compactRowHtml(topName, topSets, topNow, topServing, setCount, topFlags)}
+        ${compactRowHtml(botName, botSets, botNow, botServing, setCount, botFlags)}
+      </div>
     </section>
   `;
 

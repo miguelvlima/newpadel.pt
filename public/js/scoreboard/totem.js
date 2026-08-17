@@ -71,11 +71,17 @@ function computeDisplay(game) {
   for (let i = 0; i < sets.length; i++) {
     const s = sets[i];
     if (!s) continue;
+    const done = concluded[i];
+    // Como no scoreboard normal: Super TB em curso não vira coluna de set —
+    // fica só na coluna Pts com rótulo "Super TB".
+    if (cfg.isSuper && i === 2 && !done) continue;
+
     const a = Number(s.team1 ?? 0);
     const b = Number(s.team2 ?? 0);
-    const done = concluded[i];
+    const label =
+      cfg.isSuper && i === 2 ? 'Super TB' : SET_LABELS[i] || `${i + 1}º`;
     columns.push({
-      label: SET_LABELS[i] || `${i + 1}º`,
+      label,
       a,
       b,
       wonA: done && a > b,
@@ -109,32 +115,33 @@ function computeDisplay(game) {
   // Limitar a 3 colunas de set.
   while (columns.length > 3) columns.pop();
 
-  let pointsA = '—';
-  let pointsB = '—';
-  let pointsLabel = 'Pontos';
-  let pointsFinal = false;
+  let pointsA = '';
+  let pointsB = '';
+  let pointsLabel = 'Pts';
+  let showPoints = true;
 
   if (matchOver) {
-    pointsA = String(w1);
-    pointsB = String(w2);
-    pointsLabel = 'Sets';
-    pointsFinal = true;
+    // Jogo terminado: só sets (como o scoreboard normal esconde a coluna JOGO).
+    showPoints = false;
   } else if (superTB || normalTB) {
-    pointsA = String(Number(cur.tb_team1 || 0));
-    pointsB = String(Number(cur.tb_team2 || 0));
+    // Em Super TB o valor pode estar em current.tb_* ou já em sets[2].
+    const base1 = Number(sets[2]?.team1 || 0);
+    const base2 = Number(sets[2]?.team2 || 0);
+    pointsA = String(Number(cur.tb_team1 || 0) || base1);
+    pointsB = String(Number(cur.tb_team2 || 0) || base2);
     pointsLabel = superTB ? 'Super TB' : 'Tie-break';
   } else {
     pointsA = String(tennisPoint(Number(cur.points_team1 || 0), cfg.isGP));
     pointsB = String(tennisPoint(Number(cur.points_team2 || 0), cfg.isGP));
-    pointsLabel = 'Pontos';
+    pointsLabel = 'Pts';
   }
 
-  return { columns, pointsA, pointsB, pointsLabel, pointsFinal, matchOver };
+  return { columns, pointsA, pointsB, pointsLabel, showPoints, matchOver };
 }
 
 function renderScoreBoard(el, display) {
   if (!el) return;
-  const { columns, pointsA, pointsB, pointsFinal } = display;
+  const { columns, pointsA, pointsB, pointsLabel, showPoints } = display;
 
   const headSets = columns
     .map(
@@ -160,24 +167,30 @@ function renderScoreBoard(el, display) {
       })
       .join('');
 
-  const ptsCls = `pts-val${pointsFinal ? ' is-final' : ''}`;
+  const ptsHead = showPoints
+    ? `<th class="col-pts">${escapeHtml(pointsLabel)}</th>`
+    : '';
+  const ptsCell = (val) =>
+    showPoints
+      ? `<td class="col-pts"><span class="pts-val">${escapeHtml(val)}</span></td>`
+      : '';
 
   el.innerHTML = `
     <table class="totem-score-table">
       <thead>
         <tr>
           ${headSets}
-          <th class="col-pts">Pts</th>
+          ${ptsHead}
         </tr>
       </thead>
       <tbody>
         <tr>
           ${rowSets('a')}
-          <td class="col-pts"><span class="${ptsCls}">${escapeHtml(pointsA)}</span></td>
+          ${ptsCell(pointsA)}
         </tr>
         <tr>
           ${rowSets('b')}
-          <td class="col-pts"><span class="${ptsCls}">${escapeHtml(pointsB)}</span></td>
+          ${ptsCell(pointsB)}
         </tr>
       </tbody>
     </table>
