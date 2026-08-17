@@ -28,7 +28,7 @@
     <header class="totem-header">
       <img
         class="totem-logo"
-        src="/images/tournaments/3-open-dos-ouricos-logo-horizontal.png"
+        src="/images/tournaments/3-open-dos-ouricos-logo-horizontal.png?v=2"
         alt="3º Open dos Ouriços"
         width="420"
         height="120"
