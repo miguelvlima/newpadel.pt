@@ -1,6 +1,6 @@
 // /public/js/scoreboard/ui.js
-import { parseFormat, isSetConcluded, countWonSets, tennisPoint, isNormalTBActive, superTBActive } from './rules.js?v=5.4';
-import { fitNames, fitBadges, watchTile, ensureNumWrappers, scaleNumbersToFit, setRowHeights } from './sizing.js?v=5.4';
+import { parseFormat, isSetConcluded, countWonSets, tennisPoint, isNormalTBActive, superTBActive } from './rules.js?v=5.6';
+import { fitNames, fitBadges, watchTile, ensureNumWrappers, scaleNumbersToFit, setRowHeights } from './sizing.js?v=5.6';
 
 let TILE_ELS = [];
 let CURRENT_SLOTS = [];
@@ -233,6 +233,14 @@ function buildTile(game){
     : 'CAMPO —';
 
   wrap.innerHTML = `
+    <header class="tile-bar">
+      <span class="tile-bar-court">${escapeHtml(courtLabel)}</span>
+      <span class="tile-bar-meta">
+        <span class="tile-bar-cat">${escapeHtml(brandCategory)}</span>
+        <span class="tile-bar-sep" aria-hidden="true">·</span>
+        <span class="tile-bar-group">${escapeHtml(brandGroup)}</span>
+      </span>
+    </header>
     <div class="tile-content">
       <table class="scoretable" aria-label="Scoreboard do jogo">
         <thead>
@@ -259,14 +267,6 @@ function buildTile(game){
         </tbody>
       </table>
     </div>
-    <footer class="tile-bar">
-      <span class="tile-bar-court">${escapeHtml(courtLabel)}</span>
-      <span class="tile-bar-meta">
-        <span class="tile-bar-cat">${escapeHtml(brandCategory)}</span>
-        <span class="tile-bar-sep" aria-hidden="true">·</span>
-        <span class="tile-bar-group">${escapeHtml(brandGroup)}</span>
-      </span>
-    </footer>
   `;
 
   applyServerIndicator(wrap, game.server);
@@ -408,17 +408,17 @@ function emptyTile(){
     ? `CAMPO ${rawCourt.replace(/^campo\s+/i, '').toUpperCase()}`
     : 'CAMPO —';
   wrap.innerHTML = `
-    <div class="tile-content">
-      <div class="placeholder">Sem jogo configurado</div>
-    </div>
-    <footer class="tile-bar">
+    <header class="tile-bar">
       <span class="tile-bar-court">${escapeHtml(courtLabel)}</span>
       <span class="tile-bar-meta">
         <span class="tile-bar-cat">${escapeHtml(brandCategory)}</span>
         <span class="tile-bar-sep" aria-hidden="true">·</span>
         <span class="tile-bar-group">${escapeHtml(brandGroup)}</span>
       </span>
-    </footer>
+    </header>
+    <div class="tile-content">
+      <div class="placeholder">Sem jogo configurado</div>
+    </div>
   `;
   return wrap;
 }
@@ -711,18 +711,18 @@ export function buildOrUpdateCompactGrid(grid, positions, slots, patch) {
       <aside class="compact-brand">
         <img class="compact-brand-logo" src="${compactEscape(brand.logo)}" alt="" />
       </aside>
-      <div class="compact-rows">
-        ${compactRowHtml(topName, topSets, topNow, topServing, setCount, topFlags)}
-        ${compactRowHtml(botName, botSets, botNow, botServing, setCount, botFlags)}
-      </div>
-      <footer class="compact-bar">
+      <header class="compact-bar">
         <span class="compact-bar-court">${compactEscape(courtLabel)}</span>
         <span class="compact-bar-meta">
           <span class="compact-bar-cat">${compactEscape(brand.category)}</span>
           <span class="compact-bar-sep" aria-hidden="true">·</span>
           <span class="compact-bar-group">${compactEscape(brand.group)}</span>
         </span>
-      </footer>
+      </header>
+      <div class="compact-rows">
+        ${compactRowHtml(topName, topSets, topNow, topServing, setCount, topFlags)}
+        ${compactRowHtml(botName, botSets, botNow, botServing, setCount, botFlags)}
+      </div>
     </section>
   `;
 

@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="/css/scoreboard/scoreboard.css?v=5.5">
+  <link rel="stylesheet" href="/css/scoreboard/scoreboard.css?v=5.6">
 </head>
 <body>
 
@@ -28,6 +28,6 @@
     <div class="tile placeholder">Sem jogos configurados para este ecrã.</div>
   </main>
 
-  <script type="module" src="/js/scoreboard/index.js?v=5.4"></script>
+  <script type="module" src="/js/scoreboard/index.js?v=5.6"></script>
 </body>
 </html>

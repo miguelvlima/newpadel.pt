@@ -266,34 +266,37 @@ body.totem-body {
 
 .totem-footer {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding-top: 10px;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 12px;
   border-top: 1px solid var(--ph-border);
-  text-align: center;
 }
 
 .totem-court {
   margin: 0;
   font-family: "Bebas Neue", sans-serif;
-  font-size: 1.35rem;
+  font-size: 1.7rem;
   line-height: 1;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   font-weight: 400;
   color: var(--ph-muted);
+  white-space: nowrap;
 }
 
 .totem-meta {
   margin: 0;
   display: inline-flex;
   align-items: baseline;
+  justify-content: flex-end;
   gap: 0.45em;
-  font-size: 1.05rem;
+  font-size: 1.35rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   line-height: 1.1;
+  white-space: nowrap;
+  text-align: right;
 }
 
 .totem-meta #totem-category {
