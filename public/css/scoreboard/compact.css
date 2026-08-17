@@ -55,8 +55,8 @@ body.compact #grid {
 .compact-board {
   display: grid;
   grid-template-columns: auto minmax(0, max-content);
+  grid-template-rows: auto auto;
   align-items: stretch;
-  gap: 0;
   width: max-content;
   max-width: 100%;
   border: 1px solid var(--ph-border);
@@ -67,56 +67,79 @@ body.compact #grid {
 }
 
 .compact-brand {
+  grid-column: 1;
+  grid-row: 1 / -1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  width: 120px;
-  padding: 13px 10px;
+  width: 118px;
+  padding: 14px 12px;
   border-right: 1px solid var(--ph-border);
   background: color-mix(in srgb, var(--ph-bg) 55%, var(--ph-surface));
 }
 
 .compact-brand-logo {
   display: block;
-  width: 83px;
+  width: 96px;
   height: auto;
-  max-height: 68px;
+  max-height: 160px;
   object-fit: contain;
 }
 
-.compact-brand-meta {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  text-align: center;
-}
-
-.compact-brand-cat,
-.compact-brand-group {
-  margin: 0;
-  font-family: "Space Grotesk", system-ui, sans-serif;
-  font-size: 0.81rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  line-height: 1.15;
-}
-
-.compact-brand-cat {
-  color: var(--ph-accent);
-}
-
-.compact-brand-group {
-  color: var(--ph-muted);
-}
-
 .compact-rows {
+  grid-column: 2;
+  grid-row: 1;
   display: flex;
   flex-direction: column;
   min-width: 0;
+}
+
+.compact-bar {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--ph-border);
+  background: color-mix(in srgb, var(--ph-bg) 78%, #000);
+}
+
+.compact-bar-court {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  color: var(--ph-muted);
+  white-space: nowrap;
+}
+
+.compact-bar-meta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4em;
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.compact-bar-cat {
+  color: var(--ph-accent);
+}
+
+.compact-bar-sep {
+  color: var(--ph-muted);
+}
+
+.compact-bar-group {
+  color: var(--ph-text);
 }
 
 .compact-row {
@@ -293,19 +316,26 @@ body.compact #grid {
   }
 
   .compact-brand {
-    width: 99px;
-    padding: 10px 8px;
-    gap: 5px;
+    width: 100px;
+    padding: 12px 10px;
   }
 
   .compact-brand-logo {
-    width: 68px;
-    max-height: 55px;
+    width: 80px;
+    max-height: 140px;
   }
 
-  .compact-brand-cat,
-  .compact-brand-group {
-    font-size: 0.72rem;
+  .compact-bar {
+    padding: 7px 12px;
+    gap: 12px;
+  }
+
+  .compact-bar-court {
+    font-size: 0.92rem;
+  }
+
+  .compact-bar-meta {
+    font-size: 0.8rem;
   }
 
   .compact-name {

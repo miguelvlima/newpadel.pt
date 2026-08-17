@@ -1,6 +1,6 @@
 // /public/js/scoreboard/ui.js
-import { parseFormat, isSetConcluded, countWonSets, tennisPoint, isNormalTBActive, superTBActive } from './rules.js?v=5.0';
-import { fitNames, fitBadges, watchTile, ensureNumWrappers, scaleNumbersToFit, setRowHeights } from './sizing.js?v=5.0';
+import { parseFormat, isSetConcluded, countWonSets, tennisPoint, isNormalTBActive, superTBActive } from './rules.js?v=5.2';
+import { fitNames, fitBadges, watchTile, ensureNumWrappers, scaleNumbersToFit, setRowHeights } from './sizing.js?v=5.2';
 
 let TILE_ELS = [];
 let CURRENT_SLOTS = [];
@@ -690,19 +690,28 @@ export function buildOrUpdateCompactGrid(grid, positions, slots, patch) {
     }
   }
 
+  const rawCourt = String(game.court_name || grid.dataset.screen || '').trim();
+  const courtLabel = rawCourt
+    ? `CAMPO ${rawCourt.replace(/^campo\s+/i, '').toUpperCase()}`
+    : 'CAMPO —';
+
   grid.innerHTML = `
     <section class="compact-board ${boardState}">
       <aside class="compact-brand">
         <img class="compact-brand-logo" src="${compactEscape(brand.logo)}" alt="" />
-        <div class="compact-brand-meta">
-          <p class="compact-brand-cat">${compactEscape(brand.category)}</p>
-          <p class="compact-brand-group">${compactEscape(brand.group)}</p>
-        </div>
       </aside>
       <div class="compact-rows">
         ${compactRowHtml(topName, topSets, topNow, topServing, setCount, topFlags)}
         ${compactRowHtml(botName, botSets, botNow, botServing, setCount, botFlags)}
       </div>
+      <footer class="compact-bar">
+        <span class="compact-bar-court">${compactEscape(courtLabel)}</span>
+        <span class="compact-bar-meta">
+          <span class="compact-bar-cat">${compactEscape(brand.category)}</span>
+          <span class="compact-bar-sep" aria-hidden="true">·</span>
+          <span class="compact-bar-group">${compactEscape(brand.group)}</span>
+        </span>
+      </footer>
     </section>
   `;
 

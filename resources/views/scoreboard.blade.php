@@ -28,6 +28,6 @@
     <div class="tile placeholder">Sem jogos configurados para este ecrã.</div>
   </main>
 
-  <script type="module" src="/js/scoreboard/index.js?v=5.0"></script>
+  <script type="module" src="/js/scoreboard/index.js?v=5.2"></script>
 </body>
 </html>

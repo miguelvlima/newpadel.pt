@@ -16,7 +16,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="/css/scoreboard/scoreboard.css?v=5.0">
-    <link rel="stylesheet" href="/css/scoreboard/compact.css?v=5.2">
+    <link rel="stylesheet" href="/css/scoreboard/compact.css?v=5.4">
 </head>
 <body class="compact">
 
@@ -37,6 +37,6 @@
         data-brand-group="Grupo A"
     ></main>
 
-    <script type="module" src="/js/scoreboard/index.js?v=5.0"></script>
+    <script type="module" src="/js/scoreboard/index.js?v=5.2"></script>
 </body>
 </html>
