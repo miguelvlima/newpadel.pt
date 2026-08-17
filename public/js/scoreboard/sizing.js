@@ -186,14 +186,15 @@ export function setRowHeights(tile){
   const table  = tile.querySelector('.scoretable');
   if (!table) return;
 
-  // área útil do tile
-  const csTile = getComputedStyle(tile);
-  const padTop = parseFloat(csTile.paddingTop)    || 0;
-  const padBot = parseFloat(csTile.paddingBottom) || 0;
-  const tileH  = tile.clientHeight - padTop - padBot;
+  // Medir a caixa real do conteúdo (tile-content tem padding; o .tile em si não).
+  const box = tile.querySelector('.tile-content') || tile;
+  const csBox = getComputedStyle(box);
+  const padTop = parseFloat(csBox.paddingTop)    || 0;
+  const padBot = parseFloat(csBox.paddingBottom) || 0;
+  const boxH  = box.clientHeight - padTop - padBot;
 
   // header (badges)
-  const headerH = tile.querySelector('.row')?.getBoundingClientRect().height || 0;
+  const headerH = box.querySelector('.row')?.getBoundingClientRect().height || 0;
 
   // margens e cabeçalho da tabela
   const csTable = getComputedStyle(table);
@@ -203,7 +204,7 @@ export function setRowHeights(tile){
 
   // altura útil
   const safety = 24; // extra para bordas/pixel snapping
-  const tbodyUsable = Math.max(0, tileH - headerH - mt - mb - theadH - safety);
+  const tbodyUsable = Math.max(0, boxH - headerH - mt - mb - theadH - safety);
 
   const rowsEl = table.tBodies[0]?.rows;
   const rows   = rowsEl?.length || 2;

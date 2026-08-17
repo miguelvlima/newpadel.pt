@@ -1,6 +1,7 @@
 // /public/js/scoreboard/index.js
+// Cache-bust dos módulos (ui.js sem ?v= ficava stale em prod).
 
-import { setAppHeight, onFullscreenToggle, byId } from './utils.js';
+import { setAppHeight, onFullscreenToggle, byId } from './utils.js?v=5.0';
 import {
   initSupabase,
   fetchScreen,
@@ -8,14 +9,14 @@ import {
   subscribeSelections,
   subscribeGames,
   subscribeScreenMeta
-} from './supabase-api.js';
+} from './supabase-api.js?v=5.0';
 import {
   buildOrUpdateGrid,
   buildOrUpdateCompactGrid,
   fitCompactNames,
   getCurrentSlots,
   setCurrentSlots
-} from './ui.js';
+} from './ui.js?v=5.0';
 import {
   ensureNumWrappers,
   setRowHeights,
@@ -23,7 +24,7 @@ import {
   scaleNumbersToFit,
   fitBadges,
   fitHeadings,
-} from './sizing.js';
+} from './sizing.js?v=5.0';
 
 (async () => {
   // Ajuste do 100vh mobile
