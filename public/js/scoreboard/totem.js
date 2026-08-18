@@ -42,14 +42,44 @@ function photoFor(name) {
   return DEMO_PHOTOS[name] || FALLBACK_PHOTO(name);
 }
 
-function renderPhotos(el, names, serverIndexes) {
+/** Letras individuais — revelação tipo escrita, da esquerda para a direita. */
+function letterSpans(text) {
+  const chars = Array.from(String(text || ''));
+  let letterIndex = 0;
+  return chars
+    .map((ch) => {
+      if (ch === ' ') {
+        return `<span class="totem-letter totem-letter-space" style="--i:${letterIndex++}">&nbsp;</span>`;
+      }
+      const i = letterIndex++;
+      return `<span class="totem-letter" style="--i:${i}">${escapeHtml(ch)}</span>`;
+    })
+    .join('');
+}
+
+function renderPhotos(el, names, serverIndexes, { animate = false } = {}) {
   if (!el) return;
   el.innerHTML = names
     .map((name, i) => {
       const serving = serverIndexes.includes(i + 1) ? ' is-serving' : '';
-      return `<figure class="totem-photo${serving}">
+      const label = shortName(name);
+      const labelHtml = animate ? letterSpans(label) : escapeHtml(label);
+      const slot = animate ? ` style="--slot:${i}"` : '';
+      return `<figure class="totem-photo${serving}"${slot}>
+        <div class="totem-photo-build" aria-hidden="true">
+          <span class="totem-photo-tile"></span>
+          <span class="totem-photo-tile"></span>
+          <span class="totem-photo-tile"></span>
+          <span class="totem-photo-tile"></span>
+          <span class="totem-photo-tile"></span>
+          <span class="totem-photo-tile"></span>
+          <span class="totem-photo-tile"></span>
+          <span class="totem-photo-tile"></span>
+          <span class="totem-photo-tile"></span>
+        </div>
+        <div class="totem-photo-scan" aria-hidden="true"></div>
         <img src="${escapeHtml(photoFor(name))}" alt="${escapeHtml(name)}" loading="eager" />
-        <figcaption class="totem-photo-label">${escapeHtml(shortName(name))}</figcaption>
+        <figcaption class="totem-photo-label">${labelHtml}</figcaption>
       </figure>`;
     })
     .join('');
@@ -197,7 +227,13 @@ function renderScoreBoard(el, display) {
   `;
 }
 
-function paint(game, courtName, screenKey = '') {
+let introPlayed = false;
+
+function wait(ms) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+function paint(game, courtName, screenKey = '', { playIntro = false } = {}) {
   const p1 = game.player1 || 'TBD';
   const p2 = game.player2 || 'TBD';
   const p3 = game.player3 || 'TBD';
@@ -214,13 +250,242 @@ function paint(game, courtName, screenKey = '') {
 
   const serveA = server === 1 || server === 2 ? [server] : [];
   const serveB = server === 3 || server === 4 ? [server - 2] : [];
-  renderPhotos($('photos-a'), [p1, p2], serveA);
-  renderPhotos($('photos-b'), [p3, p4], serveB);
+  const animate = playIntro && !introPlayed;
+  renderPhotos($('photos-a'), [p1, p2], serveA, { animate });
+  renderPhotos($('photos-b'), [p3, p4], serveB, { animate });
 
   const d = computeDisplay(game);
   renderScoreBoard($('totem-score-board'), d);
   const label = $('totem-points-label');
   if (label) label.textContent = d.pointsLabel;
+
+  if (animate) {
+    runIntro([
+      { name: p1, side: 'a', slot: 0 },
+      { name: p2, side: 'a', slot: 1 },
+      { name: p3, side: 'b', slot: 0 },
+      { name: p4, side: 'b', slot: 1 },
+    ]);
+  }
+}
+
+function spawnSparks(host, count = 36) {
+  if (!host) return;
+  host.innerHTML = '';
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < count; i++) {
+    const s = document.createElement('span');
+    s.className = 'totem-spark';
+    const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.35;
+    const dist = 110 + Math.random() * 280;
+    s.style.setProperty('--sx', `${Math.cos(angle) * dist}px`);
+    s.style.setProperty('--sy', `${Math.sin(angle) * dist}px`);
+    s.style.setProperty('--sd', `${0.95 + Math.random() * 1.1}s`);
+    s.style.setProperty('--sdelay', `${Math.random() * 0.45}s`);
+    s.style.setProperty('--ssize', `${4 + Math.random() * 9}px`);
+    frag.appendChild(s);
+  }
+  host.appendChild(frag);
+}
+
+function photoEl(side, slot) {
+  const root = $(`photos-${side}`);
+  if (!root) return null;
+  return root.querySelectorAll('.totem-photo')[slot] || null;
+}
+
+/**
+ * Apresenta um jogador: nome GRANDE no centro, letra a letra,
+ * e depois o nome “aterra” na legenda final da foto.
+ */
+async function presentPlayer(player, { keepPresenting = false, endPresenting = true } = {}) {
+  const root = $('totem');
+  const stage = $('totem-name-stage');
+  const textEl = $('totem-name-stage-text');
+  const fig = photoEl(player.side, player.slot);
+  if (!root || !stage || !textEl || !fig) return;
+
+  const caption = fig.querySelector('.totem-photo-label');
+  root.dataset.presentSide = player.side;
+  root.querySelectorAll('.totem-photo.is-spotlight').forEach((el) => {
+    el.classList.remove('is-spotlight');
+  });
+  fig.classList.add('is-spotlight');
+  if (!keepPresenting) root.classList.add('is-presenting');
+
+  stage.classList.remove('is-out');
+  const label = shortName(player.name);
+  textEl.innerHTML = letterSpans(label);
+  void textEl.offsetWidth;
+  stage.classList.add('is-on');
+
+  const letters = textEl.querySelectorAll('.totem-letter');
+  letters.forEach((el, i) => {
+    el.style.setProperty('--i', String(i));
+    el.classList.add('is-reveal');
+  });
+
+  const letterMs = 180;
+  const holdMs = 800;
+  await wait(Math.max(letters.length * letterMs + 350, 1000) + holdMs);
+
+  await settleNameToPhoto({ root, stage, textEl, fig, caption, label });
+
+  if (endPresenting) {
+    fig.classList.remove('is-spotlight');
+    root.classList.remove('is-presenting');
+    delete root.dataset.presentSide;
+  }
+}
+
+/** FLIP: o nome voa do centro para a legenda da foto. */
+async function settleNameToPhoto({ root, stage, textEl, fig, caption, label }) {
+  if (!caption) {
+    stage.classList.remove('is-on');
+    stage.classList.add('is-out');
+    await wait(280);
+    stage.classList.remove('is-out');
+    textEl.innerHTML = '';
+    return;
+  }
+
+  caption.textContent = label;
+  const from = textEl.getBoundingClientRect();
+  let toRect = caption.getBoundingClientRect();
+
+  // Garante medição mesmo com a legenda ainda invisível
+  if (toRect.width < 2 || toRect.height < 2) {
+    caption.classList.add('is-measure');
+    toRect = caption.getBoundingClientRect();
+    caption.classList.remove('is-measure');
+  }
+
+  const to = {
+    left: toRect.left,
+    top: toRect.top,
+    width: Math.max(toRect.width, 40),
+    height: Math.max(toRect.height, 16),
+  };
+
+  const ghost = document.createElement('div');
+  ghost.className = 'totem-name-fly';
+  ghost.textContent = label;
+  const parent = root.getBoundingClientRect();
+  const startX = from.left + from.width / 2 - parent.left;
+  const startY = from.top + from.height / 2 - parent.top;
+  const endX = to.left + to.width / 2 - parent.left;
+  const endY = to.top + to.height / 2 - parent.top;
+  const startScale = Math.min(Math.max(from.width / Math.max(to.width, 1), 1.6), 3.2);
+
+  ghost.style.setProperty('--fly-x0', `${startX}px`);
+  ghost.style.setProperty('--fly-y0', `${startY}px`);
+  ghost.style.setProperty('--fly-x1', `${endX}px`);
+  ghost.style.setProperty('--fly-y1', `${endY}px`);
+  ghost.style.setProperty('--fly-s0', String(startScale));
+  root.appendChild(ghost);
+
+  stage.classList.remove('is-on');
+  stage.classList.add('is-out-fast');
+  void ghost.offsetWidth;
+  ghost.classList.add('is-flying');
+
+  await wait(580);
+  fig.classList.add('is-named');
+  ghost.remove();
+  stage.classList.remove('is-out-fast');
+  textEl.innerHTML = '';
+  await wait(120);
+}
+
+async function runIntro(players) {
+  const root = $('totem');
+  if (!root || introPlayed) return;
+  introPlayed = true;
+
+  root.classList.add('is-intro');
+  root.classList.remove(
+    'is-ready',
+    'is-intro-play',
+    'is-show-boom',
+    'is-show-boom-2',
+    'is-show-logo',
+    'is-show-logo-out',
+    'is-show-vs',
+    'is-show-vs-out',
+    'is-show-settle',
+    'is-show-score',
+    'is-presenting',
+  );
+  spawnSparks($('totem-show-sparks'), 56);
+
+  void root.offsetWidth;
+  // 1) Escuro → splash impactante (sem logo ainda)
+  root.classList.add('is-intro-play');
+  await wait(200);
+  root.classList.add('is-show-boom');
+  await wait(700);
+  // segundo batimento do flash
+  root.classList.add('is-show-boom-2');
+  await wait(900);
+
+  // 2) Logo só DEPOIS do splash — entra e sai fluido
+  root.classList.add('is-show-logo');
+  await wait(2600);
+  root.classList.add('is-show-logo-out');
+  await wait(700);
+  root.classList.remove('is-show-boom', 'is-show-boom-2', 'is-show-logo', 'is-show-logo-out');
+
+  // 3) Dupla de cima + nomes (centro), encadeados
+  root.classList.add('is-show-sides-a');
+  await wait(850);
+  await presentPlayer(players[0], { endPresenting: false });
+  await presentPlayer(players[1], { keepPresenting: true, endPresenting: true });
+  await wait(180);
+
+  // 4) VS no meio → desaparece antes da dupla de baixo
+  root.classList.add('is-show-vs');
+  await wait(1100);
+  root.classList.add('is-show-vs-out');
+  await wait(450);
+  root.classList.remove('is-show-vs', 'is-show-vs-out');
+
+  // 5) Dupla de baixo — mesmas regras: só o foco activo, resto disabled
+  root.classList.add('is-show-sides-b');
+  await wait(850);
+  await presentPlayer(players[2], { endPresenting: false });
+  await presentPlayer(players[3], { keepPresenting: true, endPresenting: true });
+  await wait(280);
+
+  // 6) Placar / header / footer
+  root.classList.add('is-show-score');
+  await wait(2000);
+  root.classList.add('is-show-settle');
+  await wait(700);
+
+  root.classList.remove(
+    'is-intro',
+    'is-intro-play',
+    'is-show-boom',
+    'is-show-boom-2',
+    'is-show-logo',
+    'is-show-logo-out',
+    'is-show-vs',
+    'is-show-vs-out',
+    'is-show-settle',
+    'is-show-sides-a',
+    'is-show-sides-b',
+    'is-show-score',
+    'is-presenting',
+  );
+  root.classList.add('is-ready');
+  root.querySelectorAll('.totem-photo-label').forEach((el) => {
+    el.textContent = el.textContent;
+  });
+  root.querySelectorAll('.totem-photo-build, .totem-photo-scan').forEach((el) => el.remove());
+  const show = $('totem-show');
+  if (show) show.remove();
+  const vs = $('totem-show-vs');
+  if (vs) vs.remove();
 }
 
 async function fetchGame(sb, gameId) {
@@ -277,7 +542,7 @@ async function fetchCourtName(sb, courtId) {
     if (!game) throw new Error('Jogo não encontrado');
 
     const courtName = (await fetchCourtName(sb, game.court_id)) || screenKey;
-    paint(game, courtName, screenKey);
+    paint(game, courtName, screenKey, { playIntro: true });
 
     sb.channel(`totem-game-${game.id}`)
       .on(
@@ -293,6 +558,11 @@ async function fetchCourtName(sb, courtId) {
       .subscribe();
   } catch (err) {
     console.error(err);
+    const root = $('totem');
+    if (root) {
+      root.classList.remove('is-intro', 'is-intro-play');
+      root.classList.add('is-ready');
+    }
     const court = $('totem-court');
     if (court) court.textContent = err?.message || 'Erro ao carregar';
   }

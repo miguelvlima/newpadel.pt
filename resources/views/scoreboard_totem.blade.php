@@ -9,17 +9,20 @@
 <html lang="pt">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=480, height=1080, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <title>Totem · {{ $screen }}</title>
+  <meta name="theme-color" content="#080b10" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/scoreboard/totem.css?v=20" />
+  <link rel="stylesheet" href="/css/scoreboard/totem.css?v=33" />
 </head>
 <body class="totem-body">
   <div
     id="totem"
-    class="totem"
+    class="totem is-intro"
     data-sb-url="{{ $sbUrl }}"
     data-sb-anon="{{ $sbAnon }}"
     data-screen="{{ $screen }}"
@@ -40,6 +43,9 @@
     </section>
 
     <section class="totem-score" aria-label="Resultado">
+      <div class="totem-show-vs" id="totem-show-vs" aria-hidden="true">
+        <span class="totem-show-vs-text">VS</span>
+      </div>
       <div class="totem-score-board" id="totem-score-board"></div>
       <p class="totem-points-label" id="totem-points-label">Pontos</p>
     </section>
@@ -56,8 +62,27 @@
         <span id="totem-group">Grupo A</span>
       </p>
     </footer>
+
+    {{-- Camada SHOW TOTAL (só na intro) --}}
+    <div class="totem-show" id="totem-show" aria-hidden="true">
+      <div class="totem-show-flash"></div>
+      <div class="totem-show-beams"></div>
+      <div class="totem-show-sparks" id="totem-show-sparks"></div>
+      <div class="totem-show-logo-wrap" id="totem-show-logo-wrap">
+        <img
+          class="totem-show-logo"
+          src="/images/tournaments/3-open-dos-ouricos-logo-horizontal.png?v=2"
+          alt=""
+          width="420"
+          height="120"
+        />
+      </div>
+      <div class="totem-name-stage" id="totem-name-stage" aria-live="polite">
+        <p class="totem-name-stage-text" id="totem-name-stage-text"></p>
+      </div>
+    </div>
   </div>
 
-  <script type="module" src="/js/scoreboard/totem.js?v=15"></script>
+  <script type="module" src="/js/scoreboard/totem.js?v=26"></script>
 </body>
 </html>
