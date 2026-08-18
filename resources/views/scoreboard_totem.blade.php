@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/scoreboard/totem.css?v=33" />
+  <link rel="stylesheet" href="/css/scoreboard/totem.css?v=41" />
 </head>
 <body class="totem-body">
   <div
@@ -46,6 +46,9 @@
       <div class="totem-show-vs" id="totem-show-vs" aria-hidden="true">
         <span class="totem-show-vs-text">VS</span>
       </div>
+      <div class="totem-name-stage" id="totem-name-stage" aria-live="polite">
+        <p class="totem-name-stage-text" id="totem-name-stage-text"></p>
+      </div>
       <div class="totem-score-board" id="totem-score-board"></div>
       <p class="totem-points-label" id="totem-points-label">Pontos</p>
     </section>
@@ -63,6 +66,8 @@
       </p>
     </footer>
 
+    <section class="totem-others" id="totem-others" aria-label="Outros campos"></section>
+
     {{-- Camada SHOW TOTAL (só na intro) --}}
     <div class="totem-show" id="totem-show" aria-hidden="true">
       <div class="totem-show-flash"></div>
@@ -77,12 +82,9 @@
           height="120"
         />
       </div>
-      <div class="totem-name-stage" id="totem-name-stage" aria-live="polite">
-        <p class="totem-name-stage-text" id="totem-name-stage-text"></p>
-      </div>
     </div>
   </div>
 
-  <script type="module" src="/js/scoreboard/totem.js?v=26"></script>
+  <script type="module" src="/js/scoreboard/totem.js?v=31"></script>
 </body>
 </html>

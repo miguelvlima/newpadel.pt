@@ -22,6 +22,64 @@ const FALLBACK_PHOTO = (name) =>
 
 const SET_LABELS = ['1º', '2º', '3º'];
 
+/** Jogos dummy dos outros 3 campos — só para validar o layout do totem. */
+const OTHER_COURTS_DEMO = [
+  {
+    court: 'REMAX',
+    category: 'M3',
+    group: 'Grupo B',
+    player1: 'Ricardo Alves',
+    player2: 'Tiago Mendes',
+    player3: 'Bruno Silva',
+    player4: 'Pedro Nunes',
+    format: 'best_of_3',
+    server: 1,
+    score: {
+      sets: [
+        { team1: 6, team2: 4 },
+        { team1: 3, team2: 5 },
+      ],
+      current: { points_team1: 2, points_team2: 1, games_team1: 3, games_team2: 5 },
+    },
+  },
+  {
+    court: 'DIETMED',
+    category: 'M2',
+    group: 'Grupo C',
+    player1: 'André Costa',
+    player2: 'Miguel Rocha',
+    player3: 'João Pereira',
+    player4: 'Hugo Martins',
+    format: 'best_of_3',
+    server: 3,
+    score: {
+      sets: [
+        { team1: 7, team2: 5 },
+        { team1: 2, team2: 2 },
+      ],
+      current: { points_team1: 3, points_team2: 3, games_team1: 2, games_team2: 2 },
+    },
+  },
+  {
+    court: 'HEINEKEN',
+    category: 'M4',
+    group: 'Grupo A',
+    player1: 'Carlos Dias',
+    player2: 'Rui Fonseca',
+    player3: 'Paulo Santos',
+    player4: 'Nuno Ribeiro',
+    format: 'best_of_3',
+    server: 0,
+    score: {
+      sets: [
+        { team1: 6, team2: 3 },
+        { team1: 6, team2: 2 },
+      ],
+      current: { points_team1: 0, points_team2: 0, games_team1: 0, games_team2: 0 },
+    },
+  },
+];
+
 function $(id) {
   return document.getElementById(id);
 }
@@ -227,6 +285,93 @@ function renderScoreBoard(el, display) {
   `;
 }
 
+function lastName(full) {
+  const parts = String(full || '').trim().split(/\s+/).filter(Boolean);
+  return parts[parts.length - 1] || full || '—';
+}
+
+function pairShort(p1, p2) {
+  return `${lastName(p1)} / ${lastName(p2)}`;
+}
+
+function otherScoreCells(display, side) {
+  const cells = display.columns.map((col) => {
+    const val = side === 'a' ? col.a : col.b;
+    const won = side === 'a' ? col.wonA : col.wonB;
+    return `<span class="totem-other-set${won ? ' is-won' : ''}${col.live ? ' is-live' : ''}">${escapeHtml(String(val))}</span>`;
+  });
+  if (display.showPoints) {
+    const pts = side === 'a' ? display.pointsA : display.pointsB;
+    cells.push(`<span class="totem-other-pts">${escapeHtml(pts)}</span>`);
+  }
+  return cells.join('');
+}
+
+function renderOtherCourts(el, games = OTHER_COURTS_DEMO) {
+  if (!el) return;
+  el.innerHTML = games
+    .map((g) => {
+      const display = computeDisplay(g);
+      const serveA = g.server === 1 || g.server === 2;
+      const serveB = g.server === 3 || g.server === 4;
+      return `<article class="totem-other">
+        <div class="totem-other-side">
+          <span class="totem-other-court">${escapeHtml(g.court)}</span>
+          <span class="totem-other-meta">${escapeHtml(g.category)} · ${escapeHtml(g.group)}</span>
+        </div>
+        <div class="totem-other-main">
+          <div class="totem-other-row">
+            <p class="totem-other-pair${serveA ? ' is-serving' : ''}">${escapeHtml(pairShort(g.player1, g.player2))}</p>
+            <div class="totem-other-sets">${otherScoreCells(display, 'a')}</div>
+          </div>
+          <div class="totem-other-row">
+            <p class="totem-other-pair${serveB ? ' is-serving' : ''}">${escapeHtml(pairShort(g.player3, g.player4))}</p>
+            <div class="totem-other-sets">${otherScoreCells(display, 'b')}</div>
+          </div>
+        </div>
+      </article>`;
+    })
+    .join('');
+}
+
+/** Garante nome de apresentação sempre numa linha (reduz escala se preciso). */
+function fitNameStageText(stage, textEl) {
+  if (!stage || !textEl) return;
+  textEl.style.transform = 'none';
+  const max = stage.clientWidth;
+  const need = textEl.scrollWidth;
+  if (max > 0 && need > max) {
+    const s = Math.max(0.45, max / need);
+    textEl.style.transform = `scale(${s})`;
+  }
+}
+
+/** Fotos no espaço restante + alinha placar/footer/outros à mesma largura. */
+function syncRailWidth() {
+  const root = $('totem');
+  if (!root) return;
+
+  const side = root.querySelector('.totem-side');
+  const gapRaw = getComputedStyle(root).getPropertyValue('--photo-gap').trim();
+  const gap = Number.parseFloat(gapRaw) || 12;
+
+  if (side) {
+    const sideH = side.clientHeight;
+    const sideW = side.clientWidth;
+    if (sideH > 2 && sideW > 2) {
+      const s = Math.max(48, Math.floor(Math.min(sideH, (sideW - gap) / 2)));
+      root.style.setProperty('--photo-s', `${s}px`);
+      root.style.setProperty('--photos-row', `${s * 2 + gap}px`);
+      return;
+    }
+  }
+
+  const photos = root.querySelector('.totem-photos');
+  if (!photos) return;
+  const w = photos.getBoundingClientRect().width;
+  if (w > 2) root.style.setProperty('--photos-row', `${Math.round(w)}px`);
+}
+
 let introPlayed = false;
 
 function wait(ms) {
@@ -258,6 +403,11 @@ function paint(game, courtName, screenKey = '', { playIntro = false } = {}) {
   renderScoreBoard($('totem-score-board'), d);
   const label = $('totem-points-label');
   if (label) label.textContent = d.pointsLabel;
+  renderOtherCourts($('totem-others'));
+  requestAnimationFrame(() => {
+    syncRailWidth();
+    requestAnimationFrame(syncRailWidth);
+  });
 
   if (animate) {
     runIntro([
@@ -315,9 +465,11 @@ async function presentPlayer(player, { keepPresenting = false, endPresenting = t
 
   stage.classList.remove('is-out');
   const label = shortName(player.name);
+  textEl.style.transform = 'none';
   textEl.innerHTML = letterSpans(label);
   void textEl.offsetWidth;
   stage.classList.add('is-on');
+  fitNameStageText(stage, textEl);
 
   const letters = textEl.querySelectorAll('.totem-letter');
   letters.forEach((el, i) => {
@@ -486,6 +638,7 @@ async function runIntro(players) {
   if (show) show.remove();
   const vs = $('totem-show-vs');
   if (vs) vs.remove();
+  syncRailWidth();
 }
 
 async function fetchGame(sb, gameId) {
@@ -512,6 +665,13 @@ async function fetchCourtName(sb, courtId) {
   const anon = root.dataset.sbAnon || '';
   const demoGameId = root.dataset.demoGameId || '';
   const screenKey = root.dataset.screen || 'default';
+
+  const onResize = () => syncRailWidth();
+  window.addEventListener('resize', onResize);
+  if (typeof ResizeObserver !== 'undefined') {
+    const ro = new ResizeObserver(() => syncRailWidth());
+    ro.observe(root);
+  }
 
   try {
     if (!/^https:\/\/.+\.supabase\.co/i.test(url)) throw new Error('SUPABASE_URL inválida');
