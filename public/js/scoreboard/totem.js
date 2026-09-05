@@ -1,4 +1,4 @@
-// Totem LED 480×1080 — carregamento próprio (não altera index.js / ui.js).
+// Totem LED 256×512 — carregamento próprio (não altera index.js / ui.js).
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import {
   parseFormat,
@@ -22,7 +22,10 @@ const FALLBACK_PHOTO = (name) =>
 
 const SET_LABELS = ['1º', '2º', '3º'];
 
-/** Jogos dummy dos outros 3 campos — só para validar o layout do totem. */
+/** Ordem canónica dos campos (videoled + “outros”). */
+const FIELD_ORDER = ['REMAX', 'PERMEDIA', 'AURA', 'HEINEKEN'];
+
+/** Fallback local se a Supabase não devolver jogos dos outros campos. */
 const OTHER_COURTS_DEMO = [
   {
     court: 'REMAX',
@@ -43,7 +46,24 @@ const OTHER_COURTS_DEMO = [
     },
   },
   {
-    court: 'DIETMED',
+    court: 'PERMEDIA',
+    category: 'M2',
+    group: 'Grupo A',
+    player1: 'Eduardo Costa',
+    player2: 'Nuno Miguel Lopes',
+    player3: 'Gustavo de Sales',
+    player4: 'Afonso Craveiro',
+    format: 'best_of_3',
+    server: 1,
+    score: {
+      sets: [
+        { team1: 6, team2: 3 },
+      ],
+      current: { points_team1: 3, points_team2: 2, games_team1: 4, games_team2: 2 },
+    },
+  },
+  {
+    court: 'AURA',
     category: 'M2',
     group: 'Grupo C',
     player1: 'André Costa',
@@ -69,13 +89,13 @@ const OTHER_COURTS_DEMO = [
     player3: 'Paulo Santos',
     player4: 'Nuno Ribeiro',
     format: 'best_of_3',
-    server: 0,
+    server: 2,
     score: {
       sets: [
         { team1: 6, team2: 3 },
-        { team1: 6, team2: 2 },
+        { team1: 5, team2: 4 },
       ],
-      current: { points_team1: 0, points_team2: 0, games_team1: 0, games_team2: 0 },
+      current: { points_team1: 1, points_team2: 0, games_team1: 5, games_team2: 4 },
     },
   },
 ];
@@ -307,17 +327,29 @@ function otherScoreCells(display, side) {
   return cells.join('');
 }
 
-function renderOtherCourts(el, games = OTHER_COURTS_DEMO) {
+function renderOtherCourts(el, excludeKeys = [], games = OTHER_COURTS_DEMO) {
   if (!el) return;
-  el.innerHTML = games
+  const exclude = new Set(
+    (Array.isArray(excludeKeys) ? excludeKeys : [excludeKeys])
+      .map((k) => String(k || '').trim().toUpperCase())
+      .filter(Boolean),
+  );
+  const list = games
+    .filter((g) => !exclude.has(String(g.court || '').toUpperCase()))
+    .slice(0, 3);
+  el.innerHTML = list
     .map((g) => {
       const display = computeDisplay(g);
       const serveA = g.server === 1 || g.server === 2;
       const serveB = g.server === 3 || g.server === 4;
+      const metaBits = [g.category, g.group].map((x) => String(x || '').trim()).filter(Boolean);
+      const metaHtml = metaBits.length
+        ? `<span class="totem-other-meta">${escapeHtml(metaBits.join(' · '))}</span>`
+        : '';
       return `<article class="totem-other">
         <div class="totem-other-side">
           <span class="totem-other-court">${escapeHtml(g.court)}</span>
-          <span class="totem-other-meta">${escapeHtml(g.category)} · ${escapeHtml(g.group)}</span>
+          ${metaHtml}
         </div>
         <div class="totem-other-main">
           <div class="totem-other-row">
@@ -333,6 +365,67 @@ function renderOtherCourts(el, games = OTHER_COURTS_DEMO) {
     })
     .join('');
 }
+
+async function fetchOtherCourtGames(sb, excludeKeys = []) {
+  const exclude = new Set(
+    (Array.isArray(excludeKeys) ? excludeKeys : [excludeKeys])
+      .map((k) => String(k || '').trim().toUpperCase())
+      .filter(Boolean),
+  );
+  const keys = FIELD_ORDER.filter((k) => !exclude.has(k));
+  if (!keys.length) return [];
+
+  const { data: boards, error: boardsErr } = await sb
+    .from('scoreboards')
+    .select('id,key')
+    .in('key', keys);
+  if (boardsErr) throw boardsErr;
+  if (!boards?.length) return [];
+
+  const byKey = new Map(boards.map((b) => [String(b.key).toUpperCase(), b]));
+  const ordered = keys.map((k) => byKey.get(k)).filter(Boolean);
+  const boardIds = ordered.map((b) => b.id);
+
+  const { data: sels, error: selsErr } = await sb
+    .from('scoreboard_selections')
+    .select('scoreboard_id,game_id,position')
+    .in('scoreboard_id', boardIds)
+    .order('position', { ascending: true });
+  if (selsErr) throw selsErr;
+
+  const gameByBoard = new Map();
+  for (const s of sels || []) {
+    if (!gameByBoard.has(s.scoreboard_id) && s.game_id) {
+      gameByBoard.set(s.scoreboard_id, s.game_id);
+    }
+  }
+
+  const gameIds = [...new Set([...gameByBoard.values()])];
+  if (!gameIds.length) return [];
+
+  const { data: games, error: gamesErr } = await sb
+    .from('games')
+    .select('id,player1,player2,player3,player4,format,score,server,court_id')
+    .in('id', gameIds);
+  if (gamesErr) throw gamesErr;
+
+  const gmap = new Map((games || []).map((g) => [g.id, g]));
+
+  return ordered
+    .map((board) => {
+      const gid = gameByBoard.get(board.id);
+      const g = gmap.get(gid);
+      if (!g) return null;
+      return {
+        ...g,
+        court: String(board.key).toUpperCase(),
+        category: '',
+        group: '',
+      };
+    })
+    .filter(Boolean);
+}
+
 
 /** Garante nome de apresentação sempre numa linha (reduz escala se preciso). */
 function fitNameStageText(stage, textEl) {
@@ -378,7 +471,7 @@ function wait(ms) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
-function paint(game, courtName, screenKey = '', { playIntro = false } = {}) {
+function paint(game, courtName, screenKey = '', { playIntro = false, otherGames = null } = {}) {
   const p1 = game.player1 || 'TBD';
   const p2 = game.player2 || 'TBD';
   const p3 = game.player3 || 'TBD';
@@ -403,7 +496,12 @@ function paint(game, courtName, screenKey = '', { playIntro = false } = {}) {
   renderScoreBoard($('totem-score-board'), d);
   const label = $('totem-points-label');
   if (label) label.textContent = d.pointsLabel;
-  renderOtherCourts($('totem-others'));
+
+  if (Array.isArray(otherGames)) {
+    renderOtherCourts($('totem-others'), [], otherGames);
+  } else {
+    renderOtherCourts($('totem-others'), [screenKey, court]);
+  }
   requestAnimationFrame(() => {
     syncRailWidth();
     requestAnimationFrame(syncRailWidth);
@@ -416,6 +514,13 @@ function paint(game, courtName, screenKey = '', { playIntro = false } = {}) {
       { name: p3, side: 'b', slot: 0 },
       { name: p4, side: 'b', slot: 1 },
     ]);
+  } else {
+    const root = $('totem');
+    if (root) {
+      root.classList.remove('is-intro', 'is-intro-play', 'is-show-boom', 'is-presenting');
+      root.classList.add('is-ready');
+    }
+    introPlayed = true;
   }
 }
 
@@ -663,8 +768,12 @@ async function fetchCourtName(sb, courtId) {
 
   const url = root.dataset.sbUrl || '';
   const anon = root.dataset.sbAnon || '';
-  const demoGameId = root.dataset.demoGameId || '';
+  const forcedGameId = root.dataset.gameId || '';
   const screenKey = root.dataset.screen || 'default';
+  const isEmbed = root.dataset.embed === '1';
+  const isQuiet = root.dataset.quiet === '1'
+    || new URLSearchParams(window.location.search).has('quiet');
+  const skipIntro = isEmbed || isQuiet;
 
   const onResize = () => syncRailWidth();
   window.addEventListener('resize', onResize);
@@ -677,32 +786,56 @@ async function fetchCourtName(sb, courtId) {
     if (!/^https:\/\/.+\.supabase\.co/i.test(url)) throw new Error('SUPABASE_URL inválida');
     const sb = createClient(url, anon, { realtime: { params: { eventsPerSecond: 5 } } });
 
-    let game = demoGameId ? await fetchGame(sb, demoGameId) : null;
+    let game = null;
 
-    const { data: board } = await sb
-      .from('scoreboards')
-      .select('id,key,title')
-      .eq('key', screenKey)
-      .maybeSingle();
+    // 1) game explícito (?game= / data-game-id) — usado pelo videoled
+    if (forcedGameId) {
+      game = await fetchGame(sb, forcedGameId);
+    }
 
-    if (board?.id) {
-      const { data: sel } = await sb
-        .from('scoreboard_selections')
-        .select('game_id')
-        .eq('scoreboard_id', board.id)
-        .order('position', { ascending: true })
-        .limit(1)
+    // 2) selection do scoreboard (key)
+    if (!game) {
+      const { data: board } = await sb
+        .from('scoreboards')
+        .select('id,key,title')
+        .eq('key', screenKey)
         .maybeSingle();
-      if (sel?.game_id) {
-        const selected = await fetchGame(sb, sel.game_id);
-        if (selected) game = selected;
+
+      if (board?.id) {
+        const { data: sel } = await sb
+          .from('scoreboard_selections')
+          .select('game_id')
+          .eq('scoreboard_id', board.id)
+          .order('position', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        if (sel?.game_id) {
+          game = await fetchGame(sb, sel.game_id);
+        }
       }
     }
 
-    if (!game) throw new Error('Jogo não encontrado');
+    if (!game) throw new Error(`Sem jogo para ${screenKey}`);
 
-    const courtName = (await fetchCourtName(sb, game.court_id)) || screenKey;
-    paint(game, courtName, screenKey, { playIntro: true });
+    const courtName = String(screenKey || (await fetchCourtName(sb, game.court_id)) || '').toUpperCase();
+    let otherGames = [];
+    try {
+      otherGames = await fetchOtherCourtGames(sb, [screenKey, courtName]);
+    } catch (e) {
+      console.warn('outros campos (fallback demo):', e);
+      otherGames = OTHER_COURTS_DEMO.filter(
+        (g) => ![screenKey, courtName].map((x) => String(x || '').toUpperCase()).includes(String(g.court).toUpperCase()),
+      ).slice(0, 3);
+    }
+
+    paint(game, courtName, screenKey, { playIntro: !skipIntro, otherGames });
+
+    const refreshOthers = async () => {
+      try {
+        otherGames = await fetchOtherCourtGames(sb, [screenKey, courtName]);
+        renderOtherCourts($('totem-others'), [], otherGames);
+      } catch (_) { /* keep last */ }
+    };
 
     sb.channel(`totem-game-${game.id}`)
       .on(
@@ -711,10 +844,19 @@ async function fetchCourtName(sb, courtId) {
         (payload) => {
           const next = payload.new;
           if (!next) return;
-          paint({ ...game, ...next }, courtName, screenKey);
+          paint({ ...game, ...next }, courtName, screenKey, { otherGames });
           Object.assign(game, next);
         },
       )
+      .subscribe();
+
+    sb.channel(`totem-others-${screenKey}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'games' }, () => {
+        refreshOthers();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'scoreboard_selections' }, () => {
+        refreshOthers();
+      })
       .subscribe();
   } catch (err) {
     console.error(err);

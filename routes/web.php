@@ -27,6 +27,84 @@ Route::get('/ementa', function () {
     return view('ementa');
 });
 
+/** Redirect legado DIETMED → AURA (key Supabase scoreboards). */
+Route::get('/scoreboard/DIETMED/{rest?}', function (?string $rest = null) {
+    $target = '/scoreboard/AURA' . ($rest !== null && $rest !== '' ? '/' . ltrim($rest, '/') : '');
+    return redirect($target, 301);
+})->where('rest', '.*');
+
+Route::get('/scoreboard/dietmed/{rest?}', function (?string $rest = null) {
+    $target = '/scoreboard/AURA' . ($rest !== null && $rest !== '' ? '/' . ltrim($rest, '/') : '');
+    return redirect($target, 301);
+})->where('rest', '.*');
+
+/** Video LED 1024×512 — 4 totems (REMAX/PERMEDIA/AURA/HEINEKEN) sem gaps. */
+Route::get('/scoreboard/videoled', function () {
+    if (app()->bound('debugbar')) {
+        app('debugbar')->disable();
+    }
+
+    $screens = ['REMAX', 'PERMEDIA', 'AURA', 'HEINEKEN'];
+    $gameIds = [];
+
+    $sbUrl = rtrim((string) config('services.supabase.url'), '/');
+    $sbAnon = (string) config('services.supabase.anon');
+
+    if ($sbUrl && $sbAnon) {
+        try {
+            $boards = Http::withHeaders([
+                'apikey' => $sbAnon,
+                'Authorization' => 'Bearer '.$sbAnon,
+            ])->get($sbUrl.'/rest/v1/scoreboards', [
+                'select' => 'id,key',
+                'key' => 'in.('.implode(',', $screens).')',
+            ])->json();
+
+            $boardByKey = [];
+            foreach ($boards ?: [] as $b) {
+                if (!empty($b['key']) && !empty($b['id'])) {
+                    $boardByKey[strtoupper($b['key'])] = $b['id'];
+                }
+            }
+
+            $boardIds = array_values($boardByKey);
+            if ($boardIds) {
+                $sels = Http::withHeaders([
+                    'apikey' => $sbAnon,
+                    'Authorization' => 'Bearer '.$sbAnon,
+                ])->get($sbUrl.'/rest/v1/scoreboard_selections', [
+                    'select' => 'scoreboard_id,game_id,position',
+                    'scoreboard_id' => 'in.('.implode(',', $boardIds).')',
+                    'order' => 'position.asc',
+                ])->json();
+
+                $gameByBoard = [];
+                foreach ($sels ?: [] as $s) {
+                    $bid = $s['scoreboard_id'] ?? null;
+                    $gid = $s['game_id'] ?? null;
+                    if ($bid && $gid && !isset($gameByBoard[$bid])) {
+                        $gameByBoard[$bid] = $gid;
+                    }
+                }
+
+                foreach ($screens as $key) {
+                    $bid = $boardByKey[$key] ?? null;
+                    if ($bid && isset($gameByBoard[$bid])) {
+                        $gameIds[$key] = $gameByBoard[$bid];
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            report($e);
+        }
+    }
+
+    return view('scoreboard_videoled', [
+        'screens' => $screens,
+        'gameIds' => $gameIds,
+    ]);
+})->name('scoreboard.videoled');
+
 Route::get('/scoreboard/{screen?}', function (string $screen = 'default') {
     return view('scoreboard', ['screen' => $screen]); // o Blade já usa $screen
 })->where('screen', '[A-Za-z0-9_-]+');
@@ -39,12 +117,14 @@ Route::get('/scoreboard/{screen}/compact', function (string $screen) {
     return view('scoreboard_compact', ['screen' => $screen]);
 })->name('scoreboard.compact');
 
-/** Totem LED 480×1080 — apresentação com fotos (não altera compact/gallery). */
+/** Totem LED 256×512 — apresentação com fotos (não altera compact/gallery). */
 Route::get('/scoreboard/{screen}/totem', function (string $screen) {
+    if (app()->bound('debugbar')) {
+        app('debugbar')->disable();
+    }
+
     return view('scoreboard_totem', [
         'screen' => $screen,
-        // Jogo demo actual na BD scoreboard (enquanto não há match-context).
-        'demoGameId' => 'fa9333dd-1b93-4948-8a95-879d6f9eb198',
     ]);
 })->where('screen', '[A-Za-z0-9_-]+')->name('scoreboard.totem');
 

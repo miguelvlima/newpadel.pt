@@ -1,4 +1,4 @@
-/* Totem LED — 480×1080 nativo; em laptop/mobile preenche 100dvh.
+/* Totem LED — 256×512 nativo; rem escala via html.totem-html.
  * Coluna flex: chrome (logo/placar/footer/outros) fixo; fotos ocupam o resto.
  */
 
@@ -12,11 +12,11 @@
   --ph-text: #f3f5f7;
   --ph-muted: #8b95a8;
 
-  --totem-w: 480px;
-  --totem-h: 1080px;
-  --totem-pad-x: 16px;
-  --totem-pad-y: 12px;
-  --photo-gap: 12px;
+  --totem-w: 256px;
+  --totem-h: 512px;
+  --totem-pad-x: 8px;
+  --totem-pad-y: 6px;
+  --photo-gap: 6px;
   /* fallback até o JS medir a fila de fotos */
   --photos-row: calc(100% - 0px);
 }
@@ -25,6 +25,11 @@
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+html.totem-html {
+  /* ~metade do 16px: tipografia rem cabe em 256×512 */
+  font-size: 8.5px;
 }
 
 html,
@@ -39,28 +44,55 @@ body.totem-body {
 }
 
 .totem-body {
-  display: grid;
-  place-items: center;
+  display: block;
   width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
   height: 100dvh;
 }
 
+/* Embed (iframe no videoled): canvas exacto, sem letterbox */
+html.is-embed,
+body.totem-body.is-embed {
+  width: var(--totem-w);
+  height: var(--totem-h);
+  min-height: var(--totem-h);
+  max-width: var(--totem-w);
+  max-height: var(--totem-h);
+}
+
+body.totem-body.is-embed {
+  place-items: stretch;
+}
+
+body.totem-body.is-embed .totem {
+  width: var(--totem-w);
+  height: var(--totem-h);
+  max-height: var(--totem-h);
+}
+
+body.totem-body.is-embed .totem-others {
+  display: none;
+}
+
 .totem {
-  width: min(var(--totem-w), 100vw);
-  height: min(var(--totem-h), 100dvh);
-  max-height: 100dvh;
+  width: var(--totem-w);
+  height: var(--totem-h);
+  max-width: none;
+  max-height: none;
+  aspect-ratio: 256 / 512;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 3px;
   padding: var(--totem-pad-y) var(--totem-pad-x);
+  margin: 0;
   background:
     radial-gradient(120% 50% at 50% 0%, rgba(34, 197, 94, 0.16), transparent 55%),
     linear-gradient(180deg, #0e141c 0%, var(--ph-bg) 45%, #05070a 100%);
   color: var(--ph-text);
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .totem::before {
@@ -87,7 +119,7 @@ body.totem-body {
 .totem-header {
   flex: 0 0 auto;
   text-align: center;
-  padding-bottom: 6px;
+  padding-bottom: 3px;
   border-bottom: 1px solid var(--ph-border);
   width: var(--photos-row);
   max-width: 100%;
@@ -99,7 +131,7 @@ body.totem-body {
   width: 100%;
   max-width: 100%;
   height: auto;
-  max-height: 64px;
+  max-height: 28px;
   margin: 0 auto;
   object-fit: contain;
 }
@@ -296,12 +328,12 @@ body.totem-body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 6px;
   width: var(--photos-row);
   max-width: 100%;
   margin-inline: auto;
-  padding-top: 6px;
-  padding-bottom: 10px;
+  padding-top: 3px;
+  padding-bottom: 4px;
   border-top: 1px solid var(--ph-border);
 }
 
@@ -339,38 +371,29 @@ body.totem-body {
   color: var(--ph-text);
 }
 
-/* Outros campos — mesma largura que fotos/placar; altura reservada */
+/* Outros campos — grelha compacta (campo | jogadores), como antes */
 .totem-others {
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 3px;
   width: var(--photos-row);
   max-width: 100%;
   margin-inline: auto;
-  padding-top: 10px;
+  padding-top: 6px;
   border-top: 1px solid var(--ph-border);
 }
 
 .totem-other {
   display: grid;
-  grid-template-columns: 5.6rem minmax(0, 1fr);
+  grid-template-columns: 4.6rem minmax(0, 1fr);
   align-items: center;
-  column-gap: 10px;
-  padding: 7px 10px;
+  column-gap: 12px; /* um pouco mais de ar entre campo e jogadores */
+  padding: 4px 6px;
   background: rgba(255, 255, 255, 0.045);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  border-radius: 6px;
   min-width: 0;
-}
-
-.totem-other-court {
-  font-family: "Bebas Neue", sans-serif;
-  font-size: 1.35rem;
-  letter-spacing: 0.06em;
-  color: var(--ph-accent);
-  line-height: 1;
-  white-space: nowrap;
 }
 
 .totem-other-side {
@@ -380,8 +403,17 @@ body.totem-body {
   min-width: 0;
 }
 
+.totem-other-court {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 1.15rem;
+  letter-spacing: 0.06em;
+  color: var(--ph-accent);
+  line-height: 1;
+  white-space: nowrap;
+}
+
 .totem-other-meta {
-  font-size: 0.62rem;
+  font-size: 0.55rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -396,7 +428,7 @@ body.totem-body {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 
 .totem-other-row {
@@ -581,7 +613,7 @@ body.totem-body {
   left: 50%;
   top: 46%;
   width: 88%;
-  max-width: 440px;
+  max-width: 220px;
   transform: translate(-50%, -50%) scale(0.55);
   opacity: 0;
   z-index: 5;
@@ -1221,41 +1253,10 @@ body.totem-body {
   100% { opacity: 1; transform: none; filter: none; text-shadow: none; }
 }
 
-/* Laptop / ecrãs < 1080: mesmo flex a 100dvh (já no .totem) */
-@media (max-height: 1079px) and (min-width: 641px) {
-  .totem {
-    width: min(var(--totem-w), 100vw);
-    height: 100dvh;
-    max-height: 100dvh;
-  }
-
-  .totem-logo {
-    max-height: 52px;
-  }
-
-  .totem-other {
-    padding: 5px 8px;
-  }
-
-  .totem-other-court {
-    font-size: 1.15rem;
-  }
-
-  .totem-other-pair {
-    font-size: 0.82rem;
-  }
-
-  .totem-other-set {
-    font-size: 1.1rem;
-  }
-
-  .totem-other-pts {
-    font-size: 1.15rem;
-  }
-}
+/* Canvas nativo 256×512 — sem forçar 100dvh em laptop. */
 
 /*
- * Mobile fullscreen — 100dvh, fotos no espaço restante.
+ * Mobile: mantém proporção 256×512 centrada (não estica a ecrã inteiro).
  */
 @media (max-width: 640px) {
   html,
@@ -1272,31 +1273,22 @@ body.totem-body {
     width: 100%;
     height: 100dvh;
     min-height: 100dvh;
-    place-items: unset;
   }
 
   .totem {
-    --totem-w: 100vw;
-    --totem-h: 100dvh;
-    --totem-pad-x: max(12px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
-    --totem-pad-y: max(8px, env(safe-area-inset-top, 0px));
-    --photo-gap: 8px;
-
-    width: 100%;
-    width: 100vw;
-    height: 100dvh;
-    max-height: 100dvh;
-    min-height: 0;
+    --totem-w: 256px;
+    --totem-h: 512px;
+    width: 256px;
+    height: 512px;
+    max-width: none;
+    max-height: none;
     margin: 0;
-    gap: 4px;
-    padding-top: max(8px, env(safe-area-inset-top, 0px));
-    padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
-    padding-left: max(12px, env(safe-area-inset-left, 0px));
-    padding-right: max(12px, env(safe-area-inset-right, 0px));
+    gap: 3px;
+    padding: var(--totem-pad-y) var(--totem-pad-x);
   }
 
   .totem-logo {
-    max-height: 44px;
+    max-height: 28px;
   }
 
   .totem-photo {
@@ -1334,14 +1326,14 @@ body.totem-body {
   }
 
   .totem-others {
-    gap: 4px;
+    gap: 3px;
   }
 
   .totem-other {
-    grid-template-columns: 4.8rem minmax(0, 1fr);
-    column-gap: 6px;
-    padding: 4px 6px;
-    border-radius: 7px;
+    grid-template-columns: 4.4rem minmax(0, 1fr);
+    column-gap: 10px;
+    padding: 4px 5px;
+    border-radius: 6px;
   }
 
   .totem-other-court {
@@ -1349,7 +1341,7 @@ body.totem-body {
   }
 
   .totem-other-meta {
-    font-size: 0.52rem;
+    font-size: 0.5rem;
   }
 
   .totem-other-pair {
@@ -1376,6 +1368,38 @@ body.totem-body {
 
   .totem.is-show-boom .totem-show {
     animation: none;
+  }
+
+  /* Videoled iframe: força canvas nativo 256×512 */
+  html.is-embed,
+  body.totem-body.is-embed {
+    width: 256px !important;
+    height: 512px !important;
+    min-height: 512px !important;
+    max-width: 256px;
+    max-height: 512px;
+  }
+
+  body.totem-body.is-embed {
+    display: grid;
+    place-items: stretch;
+  }
+
+  body.totem-body.is-embed .totem {
+    width: 256px !important;
+    height: 512px !important;
+    max-height: 512px !important;
+    margin: 0;
+    gap: 3px;
+    padding: 6px 8px;
+  }
+
+  body.totem-body.is-embed .totem-logo {
+    max-height: 28px;
+  }
+
+  body.totem-body.is-embed .totem-others {
+    display: none !important;
   }
 }
 

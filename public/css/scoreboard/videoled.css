@@ -1,0 +1,39 @@
+/* Video LED: 4 totems nativos 256×512 em fila, origem (0,0). Sem scale, sem centrar. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body.videoled-body {
+  margin: 0;
+  padding: 0;
+  width: 1024px;
+  height: 512px;
+  overflow: hidden;
+  background: #000;
+}
+
+.videoled-body {
+  position: relative;
+}
+
+.videoled-panel {
+  position: absolute;
+  top: 0;
+  width: 256px;
+  height: 512px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: block;
+  background: #000;
+  overflow: hidden;
+}
+
+.videoled-panel:nth-child(1) { left: 0; }
+.videoled-panel:nth-child(2) { left: 256px; }
+.videoled-panel:nth-child(3) { left: 512px; }
+.videoled-panel:nth-child(4) { left: 768px; }

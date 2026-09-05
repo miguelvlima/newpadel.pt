@@ -1,12 +1,21 @@
-{{-- Totem LED 480×1080 — estilo Open dos Ouriços. Não partilha UI com compact/gallery. --}}
+{{-- Totem LED 256×512 — estilo Open dos Ouriços. Não partilha UI com compact/gallery. --}}
 @php
+  if (app()->bound('debugbar')) {
+      app('debugbar')->disable();
+  }
   $sbUrl  = config('services.supabase.url');
   $sbAnon = config('services.supabase.anon');
   $screen = $screen ?? 'default';
-  $demoGameId = $demoGameId ?? 'fa9333dd-1b93-4948-8a95-879d6f9eb198';
+  $embed = request()->boolean('embed');
+  $quiet = request()->boolean('quiet') || $embed;
+  $gameId = request()->query('game') ?: ($demoGameId ?? null);
+  // Em embed nunca usar o jogo demo antigo — só selection/?game=
+  if ($embed && !request()->query('game')) {
+      $gameId = null;
+  }
 @endphp
 <!doctype html>
-<html lang="pt">
+<html lang="pt" class="totem-html{{ $embed ? ' is-embed' : '' }}">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
@@ -17,24 +26,26 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/scoreboard/totem.css?v=41" />
+  <link rel="stylesheet" href="/css/scoreboard/totem.css?v=48" />
 </head>
-<body class="totem-body">
+<body class="totem-body{{ $embed ? ' is-embed' : '' }}">
   <div
     id="totem"
     class="totem is-intro"
     data-sb-url="{{ $sbUrl }}"
     data-sb-anon="{{ $sbAnon }}"
     data-screen="{{ $screen }}"
-    data-demo-game-id="{{ $demoGameId }}"
+    data-game-id="{{ $gameId }}"
+    data-embed="{{ $embed ? '1' : '0' }}"
+    data-quiet="{{ $quiet ? '1' : '0' }}"
   >
     <header class="totem-header">
       <img
         class="totem-logo"
         src="/images/tournaments/3-open-dos-ouricos-logo-horizontal.png?v=2"
         alt="3º Open dos Ouriços"
-        width="420"
-        height="120"
+        width="220"
+        height="64"
       />
     </header>
 
@@ -78,13 +89,13 @@
           class="totem-show-logo"
           src="/images/tournaments/3-open-dos-ouricos-logo-horizontal.png?v=2"
           alt=""
-          width="420"
-          height="120"
+          width="220"
+          height="64"
         />
       </div>
     </div>
   </div>
 
-  <script type="module" src="/js/scoreboard/totem.js?v=31"></script>
+  <script type="module" src="/js/scoreboard/totem.js?v=37"></script>
 </body>
 </html>
