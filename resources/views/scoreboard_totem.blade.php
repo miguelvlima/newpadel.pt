@@ -96,6 +96,6 @@
     </div>
   </div>
 
-  <script type="module" src="/js/scoreboard/totem.js?v=37"></script>
+  <script type="module" src="/js/scoreboard/totem.js?v=40"></script>
 </body>
 </html>

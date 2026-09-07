@@ -1,4 +1,8 @@
 // Totem LED 256×512 — carregamento próprio (não altera index.js / ui.js).
+//
+// Fotos: se o jogo tem `tournament_match_id`, pede avatarUrl à academy
+// via proxy local `/api/scoreboard/match-context` (secret só no Laravel).
+// Fallback: DEMO_PHOTOS → ui-avatars.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import {
   parseFormat,
@@ -19,6 +23,9 @@ const DEMO_PHOTOS = {
 
 const FALLBACK_PHOTO = (name) =>
   `https://ui-avatars.com/api/?name=${encodeURIComponent(name || '?')}&background=1a222d&color=22c55e&size=400&bold=true`;
+
+/** Cache matchId → [avatarUrl|null × 4] */
+const avatarCache = new Map();
 
 const SET_LABELS = ['1º', '2º', '3º'];
 
@@ -116,8 +123,33 @@ function shortName(full) {
   return `${parts[0]} ${parts[parts.length - 1]}`;
 }
 
-function photoFor(name) {
+function photoFor(name, avatarUrl = null) {
+  if (avatarUrl) return avatarUrl;
   return DEMO_PHOTOS[name] || FALLBACK_PHOTO(name);
+}
+
+async function fetchMatchAvatars(matchId) {
+  const id = String(matchId || '').trim();
+  if (!id) return [null, null, null, null];
+  if (avatarCache.has(id)) return avatarCache.get(id);
+
+  try {
+    const res = await fetch(`/api/scoreboard/match-context?matchId=${encodeURIComponent(id)}`, {
+      headers: { Accept: 'application/json' },
+    });
+    if (!res.ok) throw new Error(`match-context ${res.status}`);
+    const data = await res.json();
+    const players = Array.isArray(data?.players) ? data.players : [];
+    const urls = [0, 1, 2, 3].map((i) => {
+      const u = players[i]?.avatarUrl;
+      return typeof u === 'string' && u.trim() ? u.trim() : null;
+    });
+    avatarCache.set(id, urls);
+    return urls;
+  } catch (e) {
+    console.warn('avatars academy:', e);
+    return [null, null, null, null];
+  }
 }
 
 /** Letras individuais — revelação tipo escrita, da esquerda para a direita. */
@@ -135,7 +167,7 @@ function letterSpans(text) {
     .join('');
 }
 
-function renderPhotos(el, names, serverIndexes, { animate = false } = {}) {
+function renderPhotos(el, names, serverIndexes, { animate = false, avatars = [] } = {}) {
   if (!el) return;
   el.innerHTML = names
     .map((name, i) => {
@@ -143,6 +175,7 @@ function renderPhotos(el, names, serverIndexes, { animate = false } = {}) {
       const label = shortName(name);
       const labelHtml = animate ? letterSpans(label) : escapeHtml(label);
       const slot = animate ? ` style="--slot:${i}"` : '';
+      const src = photoFor(name, avatars[i] || null);
       return `<figure class="totem-photo${serving}"${slot}>
         <div class="totem-photo-build" aria-hidden="true">
           <span class="totem-photo-tile"></span>
@@ -156,7 +189,7 @@ function renderPhotos(el, names, serverIndexes, { animate = false } = {}) {
           <span class="totem-photo-tile"></span>
         </div>
         <div class="totem-photo-scan" aria-hidden="true"></div>
-        <img src="${escapeHtml(photoFor(name))}" alt="${escapeHtml(name)}" loading="eager" />
+        <img src="${escapeHtml(src)}" alt="${escapeHtml(name)}" loading="eager" />
         <figcaption class="totem-photo-label">${labelHtml}</figcaption>
       </figure>`;
     })
@@ -471,12 +504,13 @@ function wait(ms) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
-function paint(game, courtName, screenKey = '', { playIntro = false, otherGames = null } = {}) {
+function paint(game, courtName, screenKey = '', { playIntro = false, otherGames = null, avatars = null } = {}) {
   const p1 = game.player1 || 'TBD';
   const p2 = game.player2 || 'TBD';
   const p3 = game.player3 || 'TBD';
   const p4 = game.player4 || 'TBD';
   const server = Number(game.server) || 0;
+  const photos = Array.isArray(avatars) ? avatars : [null, null, null, null];
 
   const raw = String(courtName || screenKey || '').trim();
   const court = raw.replace(/^campo\s+/i, '').toUpperCase() || '—';
@@ -489,8 +523,8 @@ function paint(game, courtName, screenKey = '', { playIntro = false, otherGames 
   const serveA = server === 1 || server === 2 ? [server] : [];
   const serveB = server === 3 || server === 4 ? [server - 2] : [];
   const animate = playIntro && !introPlayed;
-  renderPhotos($('photos-a'), [p1, p2], serveA, { animate });
-  renderPhotos($('photos-b'), [p3, p4], serveB, { animate });
+  renderPhotos($('photos-a'), [p1, p2], serveA, { animate, avatars: photos.slice(0, 2) });
+  renderPhotos($('photos-b'), [p3, p4], serveB, { animate, avatars: photos.slice(2, 4) });
 
   const d = computeDisplay(game);
   renderScoreBoard($('totem-score-board'), d);
@@ -654,10 +688,77 @@ async function settleNameToPhoto({ root, stage, textEl, fig, caption, label }) {
   await wait(120);
 }
 
+let introGen = 0;
+
+function ensureIntroDom(root) {
+  if (!root) return;
+  if (!$('totem-show')) {
+    const show = document.createElement('div');
+    show.className = 'totem-show';
+    show.id = 'totem-show';
+    show.setAttribute('aria-hidden', 'true');
+    show.innerHTML = `
+      <div class="totem-show-flash"></div>
+      <div class="totem-show-beams"></div>
+      <div class="totem-show-sparks" id="totem-show-sparks"></div>
+      <div class="totem-show-logo-wrap" id="totem-show-logo-wrap">
+        <img class="totem-show-logo" src="/images/tournaments/3-open-dos-ouricos-logo-horizontal.png?v=2" alt="" width="220" height="64" />
+      </div>`;
+    root.appendChild(show);
+  }
+  const score = root.querySelector('.totem-score');
+  if (score && !$('totem-show-vs')) {
+    const vs = document.createElement('div');
+    vs.className = 'totem-show-vs';
+    vs.id = 'totem-show-vs';
+    vs.setAttribute('aria-hidden', 'true');
+    vs.innerHTML = '<span class="totem-show-vs-text">VS</span>';
+    score.insertBefore(vs, score.firstChild);
+  }
+  if (score && !$('totem-name-stage')) {
+    const stage = document.createElement('div');
+    stage.className = 'totem-name-stage';
+    stage.id = 'totem-name-stage';
+    stage.setAttribute('aria-live', 'polite');
+    stage.innerHTML = '<p class="totem-name-stage-text" id="totem-name-stage-text"></p>';
+    const board = $('totem-score-board');
+    if (board) score.insertBefore(stage, board);
+    else score.appendChild(stage);
+  }
+}
+
+function prepareIntroReplay() {
+  introPlayed = false;
+  introGen += 1;
+  const root = $('totem');
+  if (!root) return;
+  ensureIntroDom(root);
+  root.classList.remove(
+    'is-ready',
+    'is-intro-play',
+    'is-show-boom',
+    'is-show-boom-2',
+    'is-show-logo',
+    'is-show-logo-out',
+    'is-show-vs',
+    'is-show-vs-out',
+    'is-show-settle',
+    'is-show-sides-a',
+    'is-show-sides-b',
+    'is-show-score',
+    'is-presenting',
+  );
+  root.classList.add('is-intro');
+}
+
 async function runIntro(players) {
   const root = $('totem');
   if (!root || introPlayed) return;
+  const myGen = ++introGen;
   introPlayed = true;
+  ensureIntroDom(root);
+
+  const stillMine = () => myGen === introGen;
 
   root.classList.add('is-intro');
   root.classList.remove(
@@ -676,48 +777,58 @@ async function runIntro(players) {
   spawnSparks($('totem-show-sparks'), 56);
 
   void root.offsetWidth;
-  // 1) Escuro → splash impactante (sem logo ainda)
   root.classList.add('is-intro-play');
   await wait(200);
+  if (!stillMine()) return;
   root.classList.add('is-show-boom');
   await wait(700);
-  // segundo batimento do flash
+  if (!stillMine()) return;
   root.classList.add('is-show-boom-2');
   await wait(900);
+  if (!stillMine()) return;
 
-  // 2) Logo só DEPOIS do splash — entra e sai fluido
   root.classList.add('is-show-logo');
   await wait(2600);
+  if (!stillMine()) return;
   root.classList.add('is-show-logo-out');
   await wait(700);
+  if (!stillMine()) return;
   root.classList.remove('is-show-boom', 'is-show-boom-2', 'is-show-logo', 'is-show-logo-out');
 
-  // 3) Dupla de cima + nomes (centro), encadeados
   root.classList.add('is-show-sides-a');
   await wait(850);
+  if (!stillMine()) return;
   await presentPlayer(players[0], { endPresenting: false });
+  if (!stillMine()) return;
   await presentPlayer(players[1], { keepPresenting: true, endPresenting: true });
+  if (!stillMine()) return;
   await wait(180);
+  if (!stillMine()) return;
 
-  // 4) VS no meio → desaparece antes da dupla de baixo
   root.classList.add('is-show-vs');
   await wait(1100);
+  if (!stillMine()) return;
   root.classList.add('is-show-vs-out');
   await wait(450);
+  if (!stillMine()) return;
   root.classList.remove('is-show-vs', 'is-show-vs-out');
 
-  // 5) Dupla de baixo — mesmas regras: só o foco activo, resto disabled
   root.classList.add('is-show-sides-b');
   await wait(850);
+  if (!stillMine()) return;
   await presentPlayer(players[2], { endPresenting: false });
+  if (!stillMine()) return;
   await presentPlayer(players[3], { keepPresenting: true, endPresenting: true });
+  if (!stillMine()) return;
   await wait(280);
+  if (!stillMine()) return;
 
-  // 6) Placar / header / footer
   root.classList.add('is-show-score');
   await wait(2000);
+  if (!stillMine()) return;
   root.classList.add('is-show-settle');
   await wait(700);
+  if (!stillMine()) return;
 
   root.classList.remove(
     'is-intro',
@@ -739,10 +850,6 @@ async function runIntro(players) {
     el.textContent = el.textContent;
   });
   root.querySelectorAll('.totem-photo-build, .totem-photo-scan').forEach((el) => el.remove());
-  const show = $('totem-show');
-  if (show) show.remove();
-  const vs = $('totem-show-vs');
-  if (vs) vs.remove();
   syncRailWidth();
 }
 
@@ -762,6 +869,21 @@ async function fetchCourtName(sb, courtId) {
   return data?.name || null;
 }
 
+async function fetchSelectedGameId(sb, boardId) {
+  if (!boardId) return null;
+  const { data, error } = await sb
+    .from('scoreboard_selections')
+    .select('game_id')
+    .eq('scoreboard_id', boardId)
+    .order('position', { ascending: true })
+    .limit(1);
+  if (error) {
+    console.warn('selection:', error);
+    return null;
+  }
+  return data?.[0]?.game_id || null;
+}
+
 (async () => {
   const root = $('totem');
   if (!root) return;
@@ -773,7 +895,8 @@ async function fetchCourtName(sb, courtId) {
   const isEmbed = root.dataset.embed === '1';
   const isQuiet = root.dataset.quiet === '1'
     || new URLSearchParams(window.location.search).has('quiet');
-  const skipIntro = isEmbed || isQuiet;
+  // quiet/embed: sem intro no 1.º paint; troca de jogo volta a animar
+  const skipFirstIntro = isEmbed || isQuiet;
 
   const onResize = () => syncRailWidth();
   window.addEventListener('resize', onResize);
@@ -782,53 +905,31 @@ async function fetchCourtName(sb, courtId) {
     ro.observe(root);
   }
 
+  const showWaiting = (msg) => {
+    root.classList.remove('is-intro', 'is-intro-play');
+    root.classList.add('is-ready');
+    const court = $('totem-court');
+    if (court) court.textContent = msg || `À ESPERA · ${screenKey}`;
+  };
+
   try {
     if (!/^https:\/\/.+\.supabase\.co/i.test(url)) throw new Error('SUPABASE_URL inválida');
     const sb = createClient(url, anon, { realtime: { params: { eventsPerSecond: 5 } } });
 
+    const { data: board, error: boardErr } = await sb
+      .from('scoreboards')
+      .select('id,key,title')
+      .eq('key', screenKey)
+      .maybeSingle();
+    if (boardErr) console.warn('scoreboards:', boardErr);
+
+    const courtName = String(screenKey || '').toUpperCase();
     let game = null;
-
-    // 1) game explícito (?game= / data-game-id) — usado pelo videoled
-    if (forcedGameId) {
-      game = await fetchGame(sb, forcedGameId);
-    }
-
-    // 2) selection do scoreboard (key)
-    if (!game) {
-      const { data: board } = await sb
-        .from('scoreboards')
-        .select('id,key,title')
-        .eq('key', screenKey)
-        .maybeSingle();
-
-      if (board?.id) {
-        const { data: sel } = await sb
-          .from('scoreboard_selections')
-          .select('game_id')
-          .eq('scoreboard_id', board.id)
-          .order('position', { ascending: true })
-          .limit(1)
-          .maybeSingle();
-        if (sel?.game_id) {
-          game = await fetchGame(sb, sel.game_id);
-        }
-      }
-    }
-
-    if (!game) throw new Error(`Sem jogo para ${screenKey}`);
-
-    const courtName = String(screenKey || (await fetchCourtName(sb, game.court_id)) || '').toUpperCase();
     let otherGames = [];
-    try {
-      otherGames = await fetchOtherCourtGames(sb, [screenKey, courtName]);
-    } catch (e) {
-      console.warn('outros campos (fallback demo):', e);
-      otherGames = OTHER_COURTS_DEMO.filter(
-        (g) => ![screenKey, courtName].map((x) => String(x || '').toUpperCase()).includes(String(g.court).toUpperCase()),
-      ).slice(0, 3);
-    }
-
-    paint(game, courtName, screenKey, { playIntro: !skipIntro, otherGames });
+    let gameChannel = null;
+    let currentGameId = null;
+    let currentAvatars = [null, null, null, null];
+    let firstPaintDone = false;
 
     const refreshOthers = async () => {
       try {
@@ -837,18 +938,110 @@ async function fetchCourtName(sb, courtId) {
       } catch (_) { /* keep last */ }
     };
 
-    sb.channel(`totem-game-${game.id}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'games', filter: `id=eq.${game.id}` },
-        (payload) => {
-          const next = payload.new;
-          if (!next) return;
-          paint({ ...game, ...next }, courtName, screenKey, { otherGames });
-          Object.assign(game, next);
-        },
-      )
-      .subscribe();
+    const bindGameChannel = (gameId) => {
+      if (gameChannel) {
+        try { sb.removeChannel(gameChannel); } catch (_) { /* ignore */ }
+        gameChannel = null;
+      }
+      if (!gameId) return;
+      gameChannel = sb.channel(`totem-game-${gameId}`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'games', filter: `id=eq.${gameId}` },
+          (payload) => {
+            const next = payload.new;
+            if (!next || next.id !== currentGameId) return;
+            Object.assign(game, next);
+            paint(game, courtName, screenKey, {
+              playIntro: false,
+              otherGames,
+              avatars: currentAvatars,
+            });
+          },
+        )
+        .subscribe();
+    };
+
+    const applyGame = async (nextGame, { withIntro }) => {
+      if (!nextGame?.id) return;
+      game = nextGame;
+      currentGameId = nextGame.id;
+      bindGameChannel(nextGame.id);
+      currentAvatars = await fetchMatchAvatars(nextGame.tournament_match_id);
+      if (withIntro) prepareIntroReplay();
+      paint(game, courtName, screenKey, {
+        playIntro: withIntro,
+        otherGames,
+        avatars: currentAvatars,
+      });
+      firstPaintDone = true;
+    };
+
+    const clearGame = () => {
+      game = null;
+      currentGameId = null;
+      currentAvatars = [null, null, null, null];
+      bindGameChannel(null);
+      showWaiting(`SEM JOGO · ${screenKey}`);
+      const boardEl = $('totem-score-board');
+      if (boardEl) boardEl.innerHTML = '';
+      const a = $('photos-a');
+      const b = $('photos-b');
+      if (a) a.innerHTML = '';
+      if (b) b.innerHTML = '';
+    };
+
+    const syncSelection = async ({ withIntro }) => {
+      try {
+        let gid = null;
+        if (board?.id) {
+          gid = await fetchSelectedGameId(sb, board.id);
+        } else if (forcedGameId) {
+          gid = forcedGameId;
+        }
+        if (!gid) {
+          if (currentGameId) clearGame();
+          else showWaiting(`SEM JOGO · ${screenKey}`);
+          return;
+        }
+        if (gid === currentGameId) return;
+        const next = await fetchGame(sb, gid);
+        if (!next) {
+          showWaiting(`JOGO INVÁLIDO · ${screenKey}`);
+          return;
+        }
+        // 1.º jogo neste ecrã: respeitar quiet; trocas seguintes: sempre intro
+        const play = firstPaintDone ? true : (withIntro && !skipFirstIntro);
+        applyGame(next, { withIntro: play });
+      } catch (e) {
+        console.warn('sync selection:', e);
+      }
+    };
+
+    // Estado inicial — NÃO abortar se ainda não houver jogo (mantém listeners)
+    let selectedId = board?.id ? await fetchSelectedGameId(sb, board.id) : null;
+    if (!selectedId && forcedGameId) selectedId = forcedGameId;
+
+    try {
+      otherGames = await fetchOtherCourtGames(sb, [screenKey, courtName]);
+    } catch (e) {
+      console.warn('outros campos (fallback demo):', e);
+      otherGames = OTHER_COURTS_DEMO.filter(
+        (g) => ![screenKey, courtName].map((x) => String(x || '').toUpperCase()).includes(String(g.court).toUpperCase()),
+      ).slice(0, 3);
+    }
+    renderOtherCourts($('totem-others'), [], otherGames);
+
+    if (selectedId) {
+      const initial = await fetchGame(sb, selectedId);
+      if (initial) {
+        applyGame(initial, { withIntro: !skipFirstIntro });
+      } else {
+        showWaiting(`JOGO INVÁLIDO · ${screenKey}`);
+      }
+    } else {
+      showWaiting(`SEM JOGO · ${screenKey}`);
+    }
 
     sb.channel(`totem-others-${screenKey}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'games' }, () => {
@@ -856,16 +1049,47 @@ async function fetchCourtName(sb, courtId) {
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'scoreboard_selections' }, () => {
         refreshOthers();
+        syncSelection({ withIntro: true });
       })
       .subscribe();
+
+    if (board?.id) {
+      sb.channel(`totem-sel-${board.id}`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'scoreboard_selections', filter: `scoreboard_id=eq.${board.id}` },
+          () => {
+            syncSelection({ withIntro: true });
+          },
+        )
+        .subscribe();
+    }
+
+    // Fallback se o realtime falhar (comum em iframes / LED)
+    setInterval(async () => {
+      try {
+        if (currentGameId && game) {
+          const fresh = await fetchGame(sb, currentGameId);
+          if (fresh) {
+            const changed =
+              JSON.stringify(fresh.score) !== JSON.stringify(game.score)
+              || Number(fresh.server) !== Number(game.server)
+              || fresh.player1 !== game.player1
+              || fresh.player2 !== game.player2
+              || fresh.player3 !== game.player3
+              || fresh.player4 !== game.player4;
+            if (changed) {
+              Object.assign(game, fresh);
+              paint(game, courtName, screenKey, { playIntro: false, otherGames, avatars: currentAvatars });
+            }
+          }
+        }
+      } catch (_) { /* ignore */ }
+      syncSelection({ withIntro: true });
+      refreshOthers();
+    }, 3000);
   } catch (err) {
     console.error(err);
-    const root = $('totem');
-    if (root) {
-      root.classList.remove('is-intro', 'is-intro-play');
-      root.classList.add('is-ready');
-    }
-    const court = $('totem-court');
-    if (court) court.textContent = err?.message || 'Erro ao carregar';
+    showWaiting(err?.message || 'Erro ao carregar');
   }
 })();

@@ -27,6 +27,45 @@ Route::get('/ementa', function () {
     return view('ementa');
 });
 
+/**
+ * Proxy academy → match-context (avatars).
+ * O Bearer fica só no servidor; o totem chama esta rota local.
+ */
+Route::get('/api/scoreboard/match-context', function (Request $request) {
+    $matchId = trim((string) $request->query('matchId', ''));
+    if ($matchId === '' || ! preg_match('/^[0-9a-fA-F-]{36}$/', $matchId)) {
+        return response()->json(['error' => 'matchId inválido'], 422);
+    }
+
+    $base = rtrim((string) config('services.academy.base_url'), '/');
+    $secret = (string) config('services.academy.bridge_secret');
+    if ($base === '' || $secret === '') {
+        return response()->json(['error' => 'Academy bridge não configurada'], 503);
+    }
+
+    try {
+        $res = Http::withToken($secret)
+            ->acceptJson()
+            ->timeout(8)
+            ->get($base.'/api/scoreboard/match-context', [
+                'matchId' => $matchId,
+            ]);
+    } catch (\Throwable $e) {
+        report($e);
+
+        return response()->json(['error' => 'Falha ao contactar academy'], 502);
+    }
+
+    if (! $res->ok()) {
+        return response()->json([
+            'error' => 'Academy error',
+            'status' => $res->status(),
+        ], $res->serverError() ? 502 : $res->status());
+    }
+
+    return response()->json($res->json());
+});
+
 /** Redirect legado DIETMED → AURA (key Supabase scoreboards). */
 Route::get('/scoreboard/DIETMED/{rest?}', function (?string $rest = null) {
     $target = '/scoreboard/AURA' . ($rest !== null && $rest !== '' ? '/' . ltrim($rest, '/') : '');

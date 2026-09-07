@@ -45,4 +45,10 @@ return [
         'anon' => 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqdGtxYmlzdXVoYnhqYXRiYW9qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgwMjkwMTYsImV4cCI6MjA4MzYwNTAxNn0.-2csT07fSlLDAYOypC_-HB5T0gZBa2zpUTRum5NtCts',
     ],
 
+    /* Ponte academy → fotos dos jogadores (secret só no servidor). */
+    'academy' => [
+        'base_url' => env('ACADEMY_BASE_URL', 'https://padel-core-app.vercel.app'),
+        'bridge_secret' => env('SCOREBOARD_BRIDGE_SECRET'),
+    ],
+
 ];
