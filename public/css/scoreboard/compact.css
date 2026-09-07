@@ -9,7 +9,7 @@
   --ph-surface: #121820;
   --ph-surface-elevated: #1a222d;
   --ph-border: rgba(255, 255, 255, 0.1);
-  --ph-text: #f3f5f7;
+  --ph-text: #ffffff;
   --ph-muted: #8b95a8;
   --ph-serve: #eab308;
   --ph-serve-glow: rgba(234, 179, 8, 0.45);
@@ -62,7 +62,7 @@ body.compact #grid {
   border: 1px solid var(--ph-border);
   border-radius: 1.15rem;
   overflow: hidden;
-  background: color-mix(in srgb, var(--ph-surface) 94%, transparent);
+  background: color-mix(in srgb, var(--ph-surface) 88%, transparent);
   box-shadow: 0 16px 42px rgba(0, 0, 0, 0.45);
 }
 
@@ -175,7 +175,7 @@ body.compact #grid {
   min-width: 0;
   padding: 0 21px;
   background: transparent;
-  color: var(--ph-text);
+  color: #ffffff;
   font-family: "Space Grotesk", system-ui, sans-serif;
   font-size: 29px;
   font-weight: 700;
@@ -186,6 +186,8 @@ body.compact #grid {
   border: 0;
   border-right: 1px solid var(--ph-border);
   box-shadow: none;
+  opacity: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
 }
 
 .compact-name__text {
@@ -194,18 +196,26 @@ body.compact #grid {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: #ffffff;
+  opacity: 1;
 }
 
-.compact-board.is-live .compact-name {
-  color: var(--ph-text);
+.compact-board.is-live .compact-name,
+.compact-board.is-live .compact-name__text {
+  color: #ffffff;
+  opacity: 1;
 }
 
-.compact-board.is-over .compact-name {
-  color: var(--ph-text);
+.compact-board.is-over .compact-name,
+.compact-board.is-over .compact-name__text {
+  color: #ffffff;
+  opacity: 1;
 }
 
-.compact-board.is-pregame .compact-name {
-  color: var(--ph-muted);
+.compact-board.is-pregame .compact-name,
+.compact-board.is-pregame .compact-name__text {
+  color: #ffffff;
+  opacity: 1;
 }
 
 .compact-name.is-serving::after {
@@ -227,7 +237,7 @@ body.compact #grid {
   align-items: center;
   justify-content: center;
   background: transparent;
-  color: var(--ph-text);
+  color: #ffffff;
   font-family: "Bebas Neue", sans-serif;
   font-size: 36px;
   font-weight: 400;
@@ -236,43 +246,50 @@ body.compact #grid {
   box-shadow: none;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
+  opacity: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
 }
 
 .compact-board.is-live .compact-set {
   background: transparent;
-  color: var(--ph-text);
+  color: #ffffff;
+  opacity: 1;
 }
 
 .compact-board.is-over .compact-set {
   background: transparent;
-  color: var(--ph-muted);
+  color: #ffffff;
+  opacity: 1;
 }
 
 .compact-board.is-pregame .compact-set {
   background: transparent;
-  color: color-mix(in srgb, var(--ph-muted) 70%, transparent);
+  color: #ffffff;
+  opacity: 1;
 }
 
 .compact-set.is-won {
-  color: var(--ph-accent);
-  background: var(--ph-accent-muted);
+  color: #ffffff;
+  background: var(--ph-accent);
+  text-shadow: none;
 }
 
 .compact-set.is-live {
-  color: #fff;
+  color: #ffffff;
+  opacity: 1;
 }
 
 .compact-set:empty {
-  color: rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.35);
 }
 
-/* Pontos (coluna now) — destaque verde como PTS do totem */
+/* Pontos (coluna now) — números brancos, fundo verde só como faixa */
 .compact-now {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: color-mix(in srgb, var(--ph-accent) 12%, transparent);
-  color: var(--ph-accent);
+  background: color-mix(in srgb, var(--ph-accent) 18%, #080b10);
+  color: #ffffff;
   font-family: "Bebas Neue", sans-serif;
   font-size: 42px;
   font-weight: 400;
@@ -280,25 +297,31 @@ body.compact #grid {
   box-shadow: none;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
+  opacity: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
 }
 
 .compact-board.is-live .compact-now {
-  background: color-mix(in srgb, var(--ph-accent) 12%, transparent);
-  color: var(--ph-accent);
+  background: color-mix(in srgb, var(--ph-accent) 18%, #080b10);
+  color: #ffffff;
+  opacity: 1;
 }
 
 .compact-board.is-over .compact-now {
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--ph-muted);
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  opacity: 1;
 }
 
 .compact-board.is-pregame .compact-now {
-  background: rgba(255, 255, 255, 0.03);
-  color: var(--ph-muted);
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  opacity: 1;
 }
 
 .compact-now:empty {
-  opacity: 0.35;
+  opacity: 0.45;
+  color: #ffffff;
 }
 
 @media (max-width: 900px) {
