@@ -190,7 +190,7 @@ function renderPhotos(el, names, serverIndexes, { animate = false, avatars = [] 
         </div>
         <div class="totem-photo-scan" aria-hidden="true"></div>
         <img src="${escapeHtml(src)}" alt="${escapeHtml(name)}" loading="eager" />
-        <figcaption class="totem-photo-label">${labelHtml}</figcaption>
+        <figcaption class="totem-photo-label"><span class="totem-photo-label-text">${labelHtml}</span></figcaption>
       </figure>`;
     })
     .join('');
@@ -472,6 +472,32 @@ function fitNameStageText(stage, textEl) {
   }
 }
 
+/** Nome na foto: escala para ocupar ~toda a largura do quadrado. */
+function fitPhotoLabel(el) {
+  if (!el) return;
+  let text = el.querySelector('.totem-photo-label-text');
+  if (!text) {
+    text = document.createElement('span');
+    text.className = 'totem-photo-label-text';
+    text.textContent = el.textContent;
+    el.textContent = '';
+    el.appendChild(text);
+  }
+  text.style.transform = 'none';
+  const pad = 4;
+  const max = Math.max(0, el.clientWidth - pad);
+  const need = text.scrollWidth;
+  if (max < 2 || need < 2) return;
+  // Cresce nomes curtos, encolhe longos — alvo ~96% da largura útil
+  const s = Math.min(1.85, Math.max(0.5, (max * 0.96) / need));
+  text.style.transform = `scale(${s})`;
+}
+
+function fitPhotoLabels(root = $('totem')) {
+  if (!root) return;
+  root.querySelectorAll('.totem-photo-label').forEach(fitPhotoLabel);
+}
+
 /** Fotos no espaço restante + alinha placar/footer/outros à mesma largura. */
 function syncRailWidth() {
   const root = $('totem');
@@ -488,6 +514,7 @@ function syncRailWidth() {
       const s = Math.max(48, Math.floor(Math.min(sideH, (sideW - gap) / 2)));
       root.style.setProperty('--photo-s', `${s}px`);
       root.style.setProperty('--photos-row', `${s * 2 + gap}px`);
+      fitPhotoLabels(root);
       return;
     }
   }
@@ -496,6 +523,7 @@ function syncRailWidth() {
   if (!photos) return;
   const w = photos.getBoundingClientRect().width;
   if (w > 2) root.style.setProperty('--photos-row', `${Math.round(w)}px`);
+  fitPhotoLabels(root);
 }
 
 let introPlayed = false;
@@ -640,7 +668,8 @@ async function settleNameToPhoto({ root, stage, textEl, fig, caption, label }) {
     return;
   }
 
-  caption.textContent = label;
+  caption.innerHTML = `<span class="totem-photo-label-text">${escapeHtml(label)}</span>`;
+  fitPhotoLabel(caption);
   const from = textEl.getBoundingClientRect();
   let toRect = caption.getBoundingClientRect();
 
@@ -847,10 +876,12 @@ async function runIntro(players) {
   );
   root.classList.add('is-ready');
   root.querySelectorAll('.totem-photo-label').forEach((el) => {
-    el.textContent = el.textContent;
+    const raw = el.textContent;
+    el.innerHTML = `<span class="totem-photo-label-text">${escapeHtml(raw.trim())}</span>`;
   });
   root.querySelectorAll('.totem-photo-build, .totem-photo-scan').forEach((el) => el.remove());
   syncRailWidth();
+  fitPhotoLabels(root);
 }
 
 async function fetchGame(sb, gameId) {

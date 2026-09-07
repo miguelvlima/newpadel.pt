@@ -202,17 +202,23 @@ body.totem-body.is-embed .totem-others {
   right: 0;
   bottom: 0;
   margin: 0;
-  padding: 1.6rem 0.35rem 0.45rem;
+  padding: 1.4rem 0.2rem 0.4rem;
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
-  font-size: 0.82rem;
+  font-size: 0.95rem;
   font-weight: 800;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
   text-align: center;
-  line-height: 1.1;
+  line-height: 1.05;
   text-transform: uppercase;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+.totem-photo-label-text {
+  display: inline-block;
+  max-width: 100%;
+  transform-origin: center bottom;
+  will-change: transform;
 }
 
 .totem-letter {
@@ -1296,8 +1302,8 @@ body.totem-body.is-embed .totem-others {
   }
 
   .totem-photo-label {
-    font-size: 0.68rem;
-    padding: 0.85rem 0.2rem 0.28rem;
+    font-size: 0.85rem;
+    padding: 0.85rem 0.15rem 0.28rem;
   }
 
   .totem-score-board {
