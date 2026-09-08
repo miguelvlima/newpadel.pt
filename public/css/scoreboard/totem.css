@@ -516,8 +516,9 @@ body.totem-body.is-embed .totem-others {
 }
 
 /*
- * Video LED mosaic only (?videoled=1): placar + outros ~3× maiores.
- * Escalas via query (?zoom=&score=&sets=&pts=&others=&footer=), default 1.
+ * Video LED mosaic only (?videoled=1).
+ * Base = tamanhos do totem normal; escalas via query
+ * (?zoom=&score=&sets=&pts=&others=&footer=), default 1.
  * Efectivo = base × zoom × grupo (× sets/pts quando aplicável).
  */
 html.is-videoled {
@@ -530,78 +531,45 @@ html.is-videoled {
 }
 
 html.is-videoled .totem-score-table thead th {
-  font-size: calc(1.35rem * var(--vl-zoom) * var(--vl-score));
-  padding: 0.55rem 0.15rem;
-}
-
-html.is-videoled .totem-score-table th,
-html.is-videoled .totem-score-table td {
-  padding: 0.55rem 0.15rem;
+  font-size: calc(0.6rem * var(--vl-zoom) * var(--vl-score));
 }
 
 html.is-videoled .totem-score-table .set-val {
-  font-size: calc(6rem * var(--vl-zoom) * var(--vl-score) * var(--vl-sets));
+  font-size: calc(2rem * var(--vl-zoom) * var(--vl-score) * var(--vl-sets));
 }
 
 html.is-videoled .totem-score-table .pts-val {
-  font-size: calc(8.25rem * var(--vl-zoom) * var(--vl-score) * var(--vl-pts));
-}
-
-html.is-videoled .totem-others {
-  gap: 5px;
-  padding-top: 8px;
-}
-
-html.is-videoled .totem-other {
-  grid-template-columns: minmax(3.5rem, 0.38fr) minmax(0, 1fr);
-  column-gap: 6px;
-  padding: 6px 5px;
-  border-radius: 5px;
+  font-size: calc(2.75rem * var(--vl-zoom) * var(--vl-score) * var(--vl-pts));
 }
 
 html.is-videoled .totem-other-court {
-  font-size: calc(3.45rem * var(--vl-zoom) * var(--vl-others));
-  letter-spacing: 0.02em;
+  font-size: calc(1.15rem * var(--vl-zoom) * var(--vl-others));
 }
 
 html.is-videoled .totem-other-meta {
-  font-size: calc(1.35rem * var(--vl-zoom) * var(--vl-others));
+  font-size: calc(0.55rem * var(--vl-zoom) * var(--vl-others));
 }
 
 html.is-videoled .totem-other-pair {
-  font-size: calc(2.76rem * var(--vl-zoom) * var(--vl-others));
-  letter-spacing: 0.01em;
+  font-size: calc(0.92rem * var(--vl-zoom) * var(--vl-others));
 }
 
 html.is-videoled .totem-other-set {
-  font-size: calc(3.75rem * var(--vl-zoom) * var(--vl-others));
-  min-width: 1em;
+  font-size: calc(1.25rem * var(--vl-zoom) * var(--vl-others));
 }
 
 html.is-videoled .totem-other-pts {
-  font-size: calc(3.9rem * var(--vl-zoom) * var(--vl-others));
-  min-width: 1.25em;
-  padding-left: 0.3em;
-}
-
-html.is-videoled .totem-other-sets {
-  gap: 0.25em;
-}
-
-html.is-videoled .totem-footer {
-  padding-top: 4px;
-  padding-bottom: 2px;
+  font-size: calc(1.3rem * var(--vl-zoom) * var(--vl-others));
 }
 
 html.is-videoled .totem-court {
-  font-size: calc(1.65rem * var(--vl-zoom) * var(--vl-footer));
-  letter-spacing: 0.04em;
+  font-size: calc(1.45rem * var(--vl-zoom) * var(--vl-footer));
   flex: 1 1 auto;
   min-width: 0;
 }
 
 html.is-videoled .totem-meta {
-  font-size: calc(1.8rem * var(--vl-zoom) * var(--vl-footer));
+  font-size: calc(1.15rem * var(--vl-zoom) * var(--vl-footer));
 }
 
 /* ─── SHOW TOTAL intro (arena americana) ─── */

@@ -1,6 +1,6 @@
 {{-- Video LED 1024×512 — 4 totems live (selection + placar), origem (0,0).
 
-  Tipografia (escalas, 1 = tamanho base actual; tipicamente 0.5–2):
+  Tipografia (escalas sobre o tamanho original do totem; 1 = igual ao totem isolado):
   ?zoom=1.1     → multiplica TUDO
   ?score=1.2    → placar central (cabeçalhos + números)
   ?sets=0.9     → só jogos/sets do placar (extra sobre score)
@@ -8,7 +8,8 @@
   ?others=1.3   → bloco "outros campos"
   ?footer=0.9   → "CAMPO …" + categoria/grupo em baixo
 
-  Ex.: /scoreboard/videoled?score=1.15&others=1.2&footer=0.95
+  Ex.: /scoreboard/videoled?zoom=2.5
+  Ex.: /scoreboard/videoled?score=3&others=2.5&footer=1.2
 --}}
 @php
   if (app()->bound('debugbar')) {
