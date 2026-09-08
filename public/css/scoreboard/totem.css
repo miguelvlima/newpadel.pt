@@ -515,6 +515,85 @@ body.totem-body.is-embed .totem-others {
   color: var(--ph-muted);
 }
 
+/*
+ * Video LED mosaic only (?videoled=1): placar + outros campos ~3× maiores
+ * para ler de longe no ecrã grande. Totem isolado fica igual.
+ */
+html.is-videoled .totem-score-table thead th {
+  font-size: 1.35rem;
+  padding: 0.55rem 0.15rem;
+}
+
+html.is-videoled .totem-score-table th,
+html.is-videoled .totem-score-table td {
+  padding: 0.55rem 0.15rem;
+}
+
+html.is-videoled .totem-score-table .set-val {
+  font-size: 6rem;
+}
+
+html.is-videoled .totem-score-table .pts-val {
+  font-size: 8.25rem;
+}
+
+html.is-videoled .totem-others {
+  gap: 5px;
+  padding-top: 8px;
+}
+
+html.is-videoled .totem-other {
+  grid-template-columns: minmax(3.5rem, 0.38fr) minmax(0, 1fr);
+  column-gap: 6px;
+  padding: 6px 5px;
+  border-radius: 5px;
+}
+
+html.is-videoled .totem-other-court {
+  font-size: 3.45rem;
+  letter-spacing: 0.02em;
+}
+
+html.is-videoled .totem-other-meta {
+  font-size: 1.35rem;
+}
+
+html.is-videoled .totem-other-pair {
+  font-size: 2.76rem;
+  letter-spacing: 0.01em;
+}
+
+html.is-videoled .totem-other-set {
+  font-size: 3.75rem;
+  min-width: 1em;
+}
+
+html.is-videoled .totem-other-pts {
+  font-size: 3.9rem;
+  min-width: 1.25em;
+  padding-left: 0.3em;
+}
+
+html.is-videoled .totem-other-sets {
+  gap: 0.25em;
+}
+
+html.is-videoled .totem-footer {
+  padding-top: 4px;
+  padding-bottom: 2px;
+}
+
+html.is-videoled .totem-court {
+  font-size: 1.65rem;
+  letter-spacing: 0.04em;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+html.is-videoled .totem-meta {
+  font-size: 1.8rem;
+}
+
 /* ─── SHOW TOTAL intro (arena americana) ─── */
 
 .totem-show {

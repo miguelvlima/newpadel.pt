@@ -32,6 +32,17 @@ const SET_LABELS = ['1º', '2º', '3º'];
 /** Ordem canónica dos campos (videoled + “outros”). */
 const FIELD_ORDER = ['REMAX', 'PERMEDIA', 'AURA', 'HEINEKEN'];
 
+/** Nome mostrado no rodapé (chave de ecrã mantém-se AURA). */
+const COURT_DISPLAY = {
+  AURA: 'AURA EVENT LAB',
+};
+
+function courtDisplayName(key) {
+  const raw = String(key || '').trim().replace(/^campo\s+/i, '').toUpperCase();
+  if (!raw) return '—';
+  return COURT_DISPLAY[raw] || raw;
+}
+
 /** Fallback local se a Supabase não devolver jogos dos outros campos. */
 const OTHER_COURTS_DEMO = [
   {
@@ -542,7 +553,7 @@ function paint(game, courtName, screenKey = '', { playIntro = false, otherGames 
 
   const raw = String(courtName || screenKey || '').trim();
   const court = raw.replace(/^campo\s+/i, '').toUpperCase() || '—';
-  $('totem-court').textContent = `CAMPO ${court}`;
+  $('totem-court').textContent = `CAMPO ${courtDisplayName(court)}`;
   const cat = $('totem-category');
   const grp = $('totem-group');
   if (cat) cat.textContent = 'M2';
@@ -940,7 +951,7 @@ async function fetchSelectedGameId(sb, boardId) {
     root.classList.remove('is-intro', 'is-intro-play');
     root.classList.add('is-ready');
     const court = $('totem-court');
-    if (court) court.textContent = msg || `À ESPERA · ${screenKey}`;
+    if (court) court.textContent = msg || `À ESPERA · ${courtDisplayName(screenKey)}`;
   };
 
   try {

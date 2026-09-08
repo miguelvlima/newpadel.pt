@@ -7,15 +7,20 @@
   $sbAnon = config('services.supabase.anon');
   $screen = $screen ?? 'default';
   $embed = request()->boolean('embed');
+  $videoled = request()->boolean('videoled');
   $quiet = request()->boolean('quiet') || $embed;
   $gameId = request()->query('game') ?: ($demoGameId ?? null);
   // Em embed nunca usar o jogo demo antigo — só selection/?game=
   if ($embed && !request()->query('game')) {
       $gameId = null;
   }
+  $courtDisplay = [
+      'AURA' => 'AURA EVENT LAB',
+  ];
+  $courtLabel = $courtDisplay[strtoupper((string) $screen)] ?? strtoupper((string) $screen);
 @endphp
 <!doctype html>
-<html lang="pt" class="totem-html{{ $embed ? ' is-embed' : '' }}">
+<html lang="pt" class="totem-html{{ $embed ? ' is-embed' : '' }}{{ $videoled ? ' is-videoled' : '' }}">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
@@ -26,9 +31,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/scoreboard/totem.css?v=49" />
+  <link rel="stylesheet" href="/css/scoreboard/totem.css?v=51" />
 </head>
-<body class="totem-body{{ $embed ? ' is-embed' : '' }}">
+<body class="totem-body{{ $embed ? ' is-embed' : '' }}{{ $videoled ? ' is-videoled' : '' }}">
   <div
     id="totem"
     class="totem is-intro"
@@ -69,7 +74,7 @@
     </section>
 
     <footer class="totem-footer">
-      <h1 class="totem-court" id="totem-court">CAMPO {{ strtoupper($screen) }}</h1>
+      <h1 class="totem-court" id="totem-court">CAMPO {{ $courtLabel }}</h1>
       <p class="totem-meta" id="totem-meta">
         <span id="totem-category">M2</span>
         <span class="totem-meta-sep" aria-hidden="true">·</span>
@@ -96,6 +101,6 @@
     </div>
   </div>
 
-  <script type="module" src="/js/scoreboard/totem.js?v=41"></script>
+  <script type="module" src="/js/scoreboard/totem.js?v=42"></script>
 </body>
 </html>

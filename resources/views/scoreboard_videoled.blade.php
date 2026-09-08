@@ -12,14 +12,14 @@
   <meta name="viewport" content="width=1024, height=512, initial-scale=1" />
   <title>Video LED · Scoreboards</title>
   <meta name="theme-color" content="#000000" />
-  <link rel="stylesheet" href="/css/scoreboard/videoled.css?v=7" />
+  <link rel="stylesheet" href="/css/scoreboard/videoled.css?v=8" />
 </head>
 <body class="videoled-body">
   @foreach ($screens as $screen)
     {{-- Mesmo totem isolado: lê selection live; troca de jogo → intro --}}
     <iframe
       class="videoled-panel"
-      src="{{ url('/scoreboard/'.$screen.'/totem') }}"
+      src="{{ url('/scoreboard/'.$screen.'/totem').'?videoled=1' }}"
       title="Totem {{ $screen }}"
       width="256"
       height="512"
