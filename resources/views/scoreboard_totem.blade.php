@@ -18,9 +18,38 @@
       'AURA' => 'AURA EVENT LAB',
   ];
   $courtLabel = $courtDisplay[strtoupper((string) $screen)] ?? strtoupper((string) $screen);
+
+  // Escalas tipográficas videoled (?zoom, ?score, ?sets, ?pts, ?others, ?footer). 1 = base actual.
+  $vlClamp = static function ($key) {
+      $raw = request()->query($key);
+      if ($raw === null || $raw === '') {
+          return null;
+      }
+      if (!is_numeric($raw)) {
+          return null;
+      }
+      return max(0.35, min(4.0, (float) $raw));
+  };
+  $vlZoom = $vlClamp('zoom') ?? 1.0;
+  $vlScore = $vlClamp('score') ?? 1.0;
+  $vlSets = $vlClamp('sets') ?? 1.0;
+  $vlPts = $vlClamp('pts') ?? 1.0;
+  $vlOthers = $vlClamp('others') ?? 1.0;
+  $vlFooter = $vlClamp('footer') ?? 1.0;
+  $vlStyle = $videoled
+      ? sprintf(
+          '--vl-zoom:%s;--vl-score:%s;--vl-sets:%s;--vl-pts:%s;--vl-others:%s;--vl-footer:%s',
+          $vlZoom,
+          $vlScore,
+          $vlSets,
+          $vlPts,
+          $vlOthers,
+          $vlFooter
+      )
+      : '';
 @endphp
 <!doctype html>
-<html lang="pt" class="totem-html{{ $embed ? ' is-embed' : '' }}{{ $videoled ? ' is-videoled' : '' }}">
+<html lang="pt" class="totem-html{{ $embed ? ' is-embed' : '' }}{{ $videoled ? ' is-videoled' : '' }}"@if($vlStyle) style="{{ $vlStyle }}"@endif>
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
@@ -31,7 +60,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/scoreboard/totem.css?v=51" />
+  <link rel="stylesheet" href="/css/scoreboard/totem.css?v=52" />
 </head>
 <body class="totem-body{{ $embed ? ' is-embed' : '' }}{{ $videoled ? ' is-videoled' : '' }}">
   <div

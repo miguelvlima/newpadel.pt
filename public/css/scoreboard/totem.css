@@ -516,11 +516,21 @@ body.totem-body.is-embed .totem-others {
 }
 
 /*
- * Video LED mosaic only (?videoled=1): placar + outros campos ~3× maiores
- * para ler de longe no ecrã grande. Totem isolado fica igual.
+ * Video LED mosaic only (?videoled=1): placar + outros ~3× maiores.
+ * Escalas via query (?zoom=&score=&sets=&pts=&others=&footer=), default 1.
+ * Efectivo = base × zoom × grupo (× sets/pts quando aplicável).
  */
+html.is-videoled {
+  --vl-zoom: 1;
+  --vl-score: 1;
+  --vl-sets: 1;
+  --vl-pts: 1;
+  --vl-others: 1;
+  --vl-footer: 1;
+}
+
 html.is-videoled .totem-score-table thead th {
-  font-size: 1.35rem;
+  font-size: calc(1.35rem * var(--vl-zoom) * var(--vl-score));
   padding: 0.55rem 0.15rem;
 }
 
@@ -530,11 +540,11 @@ html.is-videoled .totem-score-table td {
 }
 
 html.is-videoled .totem-score-table .set-val {
-  font-size: 6rem;
+  font-size: calc(6rem * var(--vl-zoom) * var(--vl-score) * var(--vl-sets));
 }
 
 html.is-videoled .totem-score-table .pts-val {
-  font-size: 8.25rem;
+  font-size: calc(8.25rem * var(--vl-zoom) * var(--vl-score) * var(--vl-pts));
 }
 
 html.is-videoled .totem-others {
@@ -550,26 +560,26 @@ html.is-videoled .totem-other {
 }
 
 html.is-videoled .totem-other-court {
-  font-size: 3.45rem;
+  font-size: calc(3.45rem * var(--vl-zoom) * var(--vl-others));
   letter-spacing: 0.02em;
 }
 
 html.is-videoled .totem-other-meta {
-  font-size: 1.35rem;
+  font-size: calc(1.35rem * var(--vl-zoom) * var(--vl-others));
 }
 
 html.is-videoled .totem-other-pair {
-  font-size: 2.76rem;
+  font-size: calc(2.76rem * var(--vl-zoom) * var(--vl-others));
   letter-spacing: 0.01em;
 }
 
 html.is-videoled .totem-other-set {
-  font-size: 3.75rem;
+  font-size: calc(3.75rem * var(--vl-zoom) * var(--vl-others));
   min-width: 1em;
 }
 
 html.is-videoled .totem-other-pts {
-  font-size: 3.9rem;
+  font-size: calc(3.9rem * var(--vl-zoom) * var(--vl-others));
   min-width: 1.25em;
   padding-left: 0.3em;
 }
@@ -584,14 +594,14 @@ html.is-videoled .totem-footer {
 }
 
 html.is-videoled .totem-court {
-  font-size: 1.65rem;
+  font-size: calc(1.65rem * var(--vl-zoom) * var(--vl-footer));
   letter-spacing: 0.04em;
   flex: 1 1 auto;
   min-width: 0;
 }
 
 html.is-videoled .totem-meta {
-  font-size: 1.8rem;
+  font-size: calc(1.8rem * var(--vl-zoom) * var(--vl-footer));
 }
 
 /* ─── SHOW TOTAL intro (arena americana) ─── */
