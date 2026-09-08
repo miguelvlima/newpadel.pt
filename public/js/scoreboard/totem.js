@@ -392,7 +392,7 @@ function renderOtherCourts(el, excludeKeys = [], games = OTHER_COURTS_DEMO) {
         : '';
       return `<article class="totem-other">
         <div class="totem-other-side">
-          <span class="totem-other-court">${escapeHtml(g.court)}</span>
+          <span class="totem-other-court">${escapeHtml(courtDisplayName(g.court))}</span>
           ${metaHtml}
         </div>
         <div class="totem-other-main">

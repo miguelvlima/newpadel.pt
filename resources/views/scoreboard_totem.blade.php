@@ -130,6 +130,6 @@
     </div>
   </div>
 
-  <script type="module" src="/js/scoreboard/totem.js?v=42"></script>
+  <script type="module" src="/js/scoreboard/totem.js?v=43"></script>
 </body>
 </html>
