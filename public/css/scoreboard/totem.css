@@ -517,17 +517,49 @@ body.totem-body.is-embed .totem-others {
 
 /*
  * Video LED mosaic only (?videoled=1).
- * Base = tamanhos do totem normal; escalas via query
- * (?zoom=&score=&sets=&pts=&others=&footer=), default 1.
+ * Canvas 512×1024 = 2× o totem 256×512. Tipografia rem a 17px (2× 8.5).
+ * Escalas extra via query (?zoom=&score=&sets=&pts=&others=&footer=), default 1.
  * Efectivo = base × zoom × grupo (× sets/pts quando aplicável).
  */
 html.is-videoled {
+  --totem-w: 512px;
+  --totem-h: 1024px;
+  --totem-pad-x: 16px;
+  --totem-pad-y: 12px;
+  --photo-gap: 12px;
   --vl-zoom: 1;
   --vl-score: 1;
   --vl-sets: 1;
   --vl-pts: 1;
   --vl-others: 1;
   --vl-footer: 1;
+  font-size: 17px;
+}
+
+html.is-videoled,
+body.totem-body.is-videoled {
+  width: var(--totem-w);
+  height: var(--totem-h);
+  min-height: var(--totem-h);
+  max-width: var(--totem-w);
+  max-height: var(--totem-h);
+  overflow: hidden;
+}
+
+body.totem-body.is-videoled {
+  min-height: var(--totem-h);
+  height: var(--totem-h);
+}
+
+body.totem-body.is-videoled .totem {
+  width: var(--totem-w);
+  height: var(--totem-h);
+  max-height: var(--totem-h);
+  gap: 6px;
+}
+
+body.totem-body.is-videoled .totem-logo {
+  max-height: 56px;
 }
 
 html.is-videoled .totem-score-table thead th {
@@ -1463,6 +1495,31 @@ html.is-videoled .totem-meta {
 
   body.totem-body.is-embed .totem-others {
     display: none !important;
+  }
+
+  /* Video LED 2048×1024: cada iframe é 512×1024 (o MQ mobile não pode reverter). */
+  html.is-videoled,
+  body.totem-body.is-videoled {
+    width: 512px !important;
+    height: 1024px !important;
+    min-height: 1024px !important;
+    max-width: 512px;
+    max-height: 1024px;
+  }
+
+  body.totem-body.is-videoled .totem {
+    --totem-w: 512px;
+    --totem-h: 1024px;
+    width: 512px !important;
+    height: 1024px !important;
+    max-height: 1024px !important;
+    margin: 0;
+    gap: 6px;
+    padding: 12px 16px;
+  }
+
+  body.totem-body.is-videoled .totem-logo {
+    max-height: 56px;
   }
 }
 

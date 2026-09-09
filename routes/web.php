@@ -77,7 +77,7 @@ Route::get('/scoreboard/dietmed/{rest?}', function (?string $rest = null) {
     return redirect($target, 301);
 })->where('rest', '.*');
 
-/** Video LED 1024×512 — 4 totems (REMAX/PERMEDIA/AURA/HEINEKEN) sem gaps. */
+/** Video LED 2048×1024 — 4 totems (REMAX/PERMEDIA/AURA/HEINEKEN) sem gaps. */
 Route::get('/scoreboard/videoled', function () {
     if (app()->bound('debugbar')) {
         app('debugbar')->disable();

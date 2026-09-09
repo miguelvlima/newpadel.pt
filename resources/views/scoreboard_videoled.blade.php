@@ -1,4 +1,4 @@
-{{-- Video LED 1024×512 — 4 totems live (selection + placar), origem (0,0).
+{{-- Video LED 2048×1024 — 4 totems live (selection + placar), origem (0,0).
 
   Tipografia (escalas sobre o tamanho original do totem; 1 = igual ao totem isolado):
   ?zoom=1.1     → multiplica TUDO
@@ -29,10 +29,10 @@
 <html lang="pt">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=1024, height=512, initial-scale=1" />
+  <meta name="viewport" content="width=2048, height=1024, initial-scale=1" />
   <title>Video LED · Scoreboards</title>
   <meta name="theme-color" content="#000000" />
-  <link rel="stylesheet" href="/css/scoreboard/videoled.css?v=9" />
+  <link rel="stylesheet" href="/css/scoreboard/videoled.css?v=10" />
 </head>
 <body class="videoled-body">
   @foreach ($screens as $screen)
@@ -41,8 +41,8 @@
       class="videoled-panel"
       src="{{ url('/scoreboard/'.$screen.'/totem').'?'.$iframeQuery }}"
       title="Totem {{ $screen }}"
-      width="256"
-      height="512"
+      width="512"
+      height="1024"
       loading="eager"
       scrolling="no"
     ></iframe>
