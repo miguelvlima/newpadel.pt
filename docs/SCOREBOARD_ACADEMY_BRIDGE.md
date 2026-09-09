@@ -26,8 +26,9 @@ GET {ACADEMY_BASE_URL}/api/scoreboard/match-context?matchId={tournament_match_id
 Authorization: Bearer {SCOREBOARD_BRIDGE_SECRET}
 ```
 
-3. Resposta inclui `players[0..3]` com `name` + `avatarUrl` (ordem = `player1`…`player4`).
-4. Se não houver `tournament_match_id` ou a API falhar → manter nomes do scoreboard e fallback de foto actual.
+3. Resposta inclui `players[0..3]` com `name` + `avatarUrl` (ordem = `player1`…`player4`),
+   mais `categoryName` / `groupLabel` (ou `groupCode`) para o rodapé do totem.
+4. Se não houver `tournament_match_id` ou a API falhar → manter nomes do scoreboard e fallback de foto actual; categoria/grupo ficam vazios (não inventar M2/Grupo A).
 
 Fonte das fotos na academy: `players.avatar_url` (bucket `tournament-hub`). **Não** há colunas de avatar na BD scoreboard.
 

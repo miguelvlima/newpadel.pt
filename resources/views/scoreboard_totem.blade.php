@@ -36,15 +36,18 @@
   $vlPts = $vlClamp('pts') ?? 1.0;
   $vlOthers = $vlClamp('others') ?? 1.0;
   $vlFooter = $vlClamp('footer') ?? 1.0;
+  $vlCssNum = static function ($n) {
+      return number_format((float) $n, 4, '.', '');
+  };
   $vlStyle = $videoled
       ? sprintf(
           '--vl-zoom:%s;--vl-score:%s;--vl-sets:%s;--vl-pts:%s;--vl-others:%s;--vl-footer:%s',
-          $vlZoom,
-          $vlScore,
-          $vlSets,
-          $vlPts,
-          $vlOthers,
-          $vlFooter
+          $vlCssNum($vlZoom),
+          $vlCssNum($vlScore),
+          $vlCssNum($vlSets),
+          $vlCssNum($vlPts),
+          $vlCssNum($vlOthers),
+          $vlCssNum($vlFooter)
       )
       : '';
 @endphp
@@ -60,7 +63,27 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/scoreboard/totem.css?v=57" />
+  <link rel="stylesheet" href="/css/scoreboard/totem.css?v=58" />
+  @if($videoled)
+  <style>
+    html.is-videoled {
+      --vl-zoom: {{ $vlCssNum($vlZoom) }} !important;
+      --vl-score: {{ $vlCssNum($vlScore) }} !important;
+      --vl-sets: {{ $vlCssNum($vlSets) }} !important;
+      --vl-pts: {{ $vlCssNum($vlPts) }} !important;
+      --vl-others: {{ $vlCssNum($vlOthers) }} !important;
+      --vl-footer: {{ $vlCssNum($vlFooter) }} !important;
+    }
+    html.is-videoled .totem-footer .totem-court,
+    html.is-videoled h1.totem-court {
+      font-size: calc(1.45rem * var(--vl-zoom, 1) * var(--vl-footer, 1)) !important;
+    }
+    html.is-videoled .totem-footer .totem-meta,
+    html.is-videoled .totem-meta {
+      font-size: calc(1.15rem * var(--vl-zoom, 1) * var(--vl-footer, 1)) !important;
+    }
+  </style>
+  @endif
 </head>
 <body class="totem-body{{ $embed ? ' is-embed' : '' }}{{ $videoled ? ' is-videoled' : '' }}">
   <div
@@ -105,9 +128,9 @@
     <footer class="totem-footer">
       <h1 class="totem-court" id="totem-court">CAMPO {{ $courtLabel }}</h1>
       <p class="totem-meta" id="totem-meta">
-        <span id="totem-category">M2</span>
-        <span class="totem-meta-sep" aria-hidden="true">·</span>
-        <span id="totem-group">Grupo A</span>
+        <span id="totem-category" hidden></span>
+        <span class="totem-meta-sep" aria-hidden="true" hidden>·</span>
+        <span id="totem-group" hidden></span>
       </p>
     </footer>
 
@@ -130,6 +153,6 @@
     </div>
   </div>
 
-  <script type="module" src="/js/scoreboard/totem.js?v=44"></script>
+  <script type="module" src="/js/scoreboard/totem.js?v=45"></script>
 </body>
 </html>

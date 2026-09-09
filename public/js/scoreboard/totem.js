@@ -25,7 +25,7 @@ const FALLBACK_PHOTO = (name) =>
   `https://ui-avatars.com/api/?name=${encodeURIComponent(name || '?')}&background=1a222d&color=22c55e&size=400&bold=true`;
 
 /** Cache matchId → [avatarUrl|null × 4] */
-const avatarCache = new Map();
+const matchContextCache = new Map();
 
 const SET_LABELS = ['1º', '2º', '3º'];
 
@@ -147,10 +147,11 @@ function photoFor(name, avatarUrl = null) {
   return DEMO_PHOTOS[name] || FALLBACK_PHOTO(name);
 }
 
-async function fetchMatchAvatars(matchId) {
+async function fetchMatchContext(matchId) {
+  const empty = { avatars: [null, null, null, null], category: '', group: '' };
   const id = String(matchId || '').trim();
-  if (!id) return [null, null, null, null];
-  if (avatarCache.has(id)) return avatarCache.get(id);
+  if (!id) return empty;
+  if (matchContextCache.has(id)) return matchContextCache.get(id);
 
   try {
     const res = await fetch(`/api/scoreboard/match-context?matchId=${encodeURIComponent(id)}`, {
@@ -159,16 +160,35 @@ async function fetchMatchAvatars(matchId) {
     if (!res.ok) throw new Error(`match-context ${res.status}`);
     const data = await res.json();
     const players = Array.isArray(data?.players) ? data.players : [];
-    const urls = [0, 1, 2, 3].map((i) => {
+    const avatars = [0, 1, 2, 3].map((i) => {
       const u = players[i]?.avatarUrl;
       return typeof u === 'string' && u.trim() ? u.trim() : null;
     });
-    avatarCache.set(id, urls);
-    return urls;
+    const category = String(data?.categoryName || '').trim();
+    let group = String(data?.groupLabel || '').trim();
+    if (!group) {
+      const code = String(data?.groupCode || '').trim();
+      const phase = String(data?.phase || '').trim().toLowerCase();
+      if (code) {
+        group = /^grupo\b/i.test(code) ? code : `Grupo ${code}`;
+      } else if (phase === 'eliminatorio') {
+        const br = data?.bracketRound;
+        group = br != null && Number.isFinite(Number(br)) ? `Ronda ${Number(br)}` : 'Eliminatória';
+      }
+    }
+    const ctx = { avatars, category, group };
+    matchContextCache.set(id, ctx);
+    return ctx;
   } catch (e) {
-    console.warn('avatars academy:', e);
-    return [null, null, null, null];
+    console.warn('match-context academy:', e);
+    return empty;
   }
+}
+
+/** @deprecated alias — prefer fetchMatchContext */
+async function fetchMatchAvatars(matchId) {
+  const ctx = await fetchMatchContext(matchId);
+  return ctx.avatars;
 }
 
 /** Letras individuais — revelação tipo escrita, da esquerda para a direita. */
@@ -551,7 +571,7 @@ function wait(ms) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
-function paint(game, courtName, screenKey = '', { playIntro = false, otherGames = null, avatars = null } = {}) {
+function paint(game, courtName, screenKey = '', { playIntro = false, otherGames = null, avatars = null, category = '', group = '' } = {}) {
   const p1 = game.player1 || 'TBD';
   const p2 = game.player2 || 'TBD';
   const p3 = game.player3 || 'TBD';
@@ -564,8 +584,18 @@ function paint(game, courtName, screenKey = '', { playIntro = false, otherGames 
   $('totem-court').textContent = `CAMPO ${courtDisplayName(court)}`;
   const cat = $('totem-category');
   const grp = $('totem-group');
-  if (cat) cat.textContent = 'M2';
-  if (grp) grp.textContent = 'Grupo A';
+  const sep = document.querySelector('.totem-meta-sep');
+  const catText = String(category || '').trim();
+  const grpText = String(group || '').trim();
+  if (cat) {
+    cat.textContent = catText;
+    cat.hidden = !catText;
+  }
+  if (grp) {
+    grp.textContent = grpText;
+    grp.hidden = !grpText;
+  }
+  if (sep) sep.hidden = !(catText && grpText);
 
   const serveA = server === 1 || server === 2 ? [server] : [];
   const serveB = server === 3 || server === 4 ? [server - 2] : [];
@@ -934,7 +964,33 @@ async function fetchSelectedGameId(sb, boardId) {
   return data?.[0]?.game_id || null;
 }
 
+function applyVideoledQueryScales() {
+  const q = new URLSearchParams(window.location.search);
+  if (q.get('videoled') !== '1' && q.get('videoled') !== 'true') return;
+  const clamp = (key) => {
+    const raw = q.get(key);
+    if (raw == null || raw === '') return null;
+    const n = Number(raw);
+    if (!Number.isFinite(n)) return null;
+    return Math.max(0.35, Math.min(4, n));
+  };
+  const root = document.documentElement;
+  const map = {
+    '--vl-zoom': 'zoom',
+    '--vl-score': 'score',
+    '--vl-sets': 'sets',
+    '--vl-pts': 'pts',
+    '--vl-others': 'others',
+    '--vl-footer': 'footer',
+  };
+  Object.entries(map).forEach(([cssVar, key]) => {
+    const v = clamp(key);
+    if (v != null) root.style.setProperty(cssVar, String(v));
+  });
+}
+
 (async () => {
+  applyVideoledQueryScales();
   const root = $('totem');
   if (!root) return;
 
@@ -979,6 +1035,7 @@ async function fetchSelectedGameId(sb, boardId) {
     let gameChannel = null;
     let currentGameId = null;
     let currentAvatars = [null, null, null, null];
+    let currentMeta = { category: '', group: '' };
     let firstPaintDone = false;
 
     const refreshOthers = async () => {
@@ -1006,6 +1063,8 @@ async function fetchSelectedGameId(sb, boardId) {
               playIntro: false,
               otherGames,
               avatars: currentAvatars,
+              category: currentMeta.category,
+              group: currentMeta.group,
             });
           },
         )
@@ -1017,12 +1076,16 @@ async function fetchSelectedGameId(sb, boardId) {
       game = nextGame;
       currentGameId = nextGame.id;
       bindGameChannel(nextGame.id);
-      currentAvatars = await fetchMatchAvatars(nextGame.tournament_match_id);
+      const ctx = await fetchMatchContext(nextGame.tournament_match_id);
+      currentAvatars = ctx.avatars;
+      currentMeta = { category: ctx.category, group: ctx.group };
       if (withIntro) prepareIntroReplay();
       paint(game, courtName, screenKey, {
         playIntro: withIntro,
         otherGames,
         avatars: currentAvatars,
+        category: currentMeta.category,
+        group: currentMeta.group,
       });
       firstPaintDone = true;
     };
@@ -1031,8 +1094,15 @@ async function fetchSelectedGameId(sb, boardId) {
       game = null;
       currentGameId = null;
       currentAvatars = [null, null, null, null];
+      currentMeta = { category: '', group: '' };
       bindGameChannel(null);
       showWaiting(`SEM JOGO · ${screenKey}`);
+      const cat = $('totem-category');
+      const grp = $('totem-group');
+      const sep = document.querySelector('.totem-meta-sep');
+      if (cat) { cat.textContent = ''; cat.hidden = true; }
+      if (grp) { grp.textContent = ''; grp.hidden = true; }
+      if (sep) sep.hidden = true;
       const boardEl = $('totem-score-board');
       if (boardEl) boardEl.innerHTML = '';
       const a = $('photos-a');
@@ -1130,7 +1200,13 @@ async function fetchSelectedGameId(sb, boardId) {
               || fresh.player4 !== game.player4;
             if (changed) {
               Object.assign(game, fresh);
-              paint(game, courtName, screenKey, { playIntro: false, otherGames, avatars: currentAvatars });
+              paint(game, courtName, screenKey, {
+                playIntro: false,
+                otherGames,
+                avatars: currentAvatars,
+                category: currentMeta.category,
+                group: currentMeta.group,
+              });
             }
           }
         }
