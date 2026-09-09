@@ -60,7 +60,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/scoreboard/totem.css?v=54" />
+  <link rel="stylesheet" href="/css/scoreboard/totem.css?v=56" />
 </head>
 <body class="totem-body{{ $embed ? ' is-embed' : '' }}{{ $videoled ? ' is-videoled' : '' }}">
   <div
@@ -130,6 +130,6 @@
     </div>
   </div>
 
-  <script type="module" src="/js/scoreboard/totem.js?v=43"></script>
+  <script type="module" src="/js/scoreboard/totem.js?v=44"></script>
 </body>
 </html>

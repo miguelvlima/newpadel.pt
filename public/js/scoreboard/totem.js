@@ -43,6 +43,14 @@ function courtDisplayName(key) {
   return COURT_DISPLAY[raw] || raw;
 }
 
+function courtOtherCourtHtml(key) {
+  const raw = String(key || '').trim().replace(/^campo\s+/i, '').toUpperCase();
+  if (raw === 'AURA') {
+    return '<span class="totem-other-court is-stacked"><span>AURA</span><span>EVENT LAB</span></span>';
+  }
+  return `<span class="totem-other-court">${escapeHtml(courtDisplayName(key))}</span>`;
+}
+
 /** Fallback local se a Supabase não devolver jogos dos outros campos. */
 const OTHER_COURTS_DEMO = [
   {
@@ -392,7 +400,7 @@ function renderOtherCourts(el, excludeKeys = [], games = OTHER_COURTS_DEMO) {
         : '';
       return `<article class="totem-other">
         <div class="totem-other-side">
-          <span class="totem-other-court">${escapeHtml(courtDisplayName(g.court))}</span>
+          ${courtOtherCourtHtml(g.court)}
           ${metaHtml}
         </div>
         <div class="totem-other-main">

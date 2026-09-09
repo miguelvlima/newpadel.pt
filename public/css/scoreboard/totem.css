@@ -394,7 +394,7 @@ body.totem-body.is-embed .totem-others {
   display: grid;
   grid-template-columns: 4.6rem minmax(0, 1fr);
   align-items: center;
-  column-gap: 12px; /* um pouco mais de ar entre campo e jogadores */
+  column-gap: 18px;
   padding: 4px 6px;
   background: rgba(255, 255, 255, 0.045);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -407,6 +407,7 @@ body.totem-body.is-embed .totem-others {
   flex-direction: column;
   gap: 2px;
   min-width: 0;
+  overflow: hidden;
 }
 
 .totem-other-court {
@@ -416,6 +417,19 @@ body.totem-body.is-embed .totem-others {
   color: var(--ph-accent);
   line-height: 1;
   white-space: nowrap;
+}
+
+.totem-other-court.is-stacked {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.05em;
+  line-height: 0.92;
+}
+
+.totem-other-court.is-stacked span:last-child {
+  font-size: 0.82em;
+  letter-spacing: 0.04em;
 }
 
 .totem-other-meta {
@@ -1426,7 +1440,7 @@ html.is-videoled .totem-meta {
 
   .totem-other {
     grid-template-columns: 4.4rem minmax(0, 1fr);
-    column-gap: 10px;
+    column-gap: 16px;
     padding: 4px 5px;
     border-radius: 6px;
   }
@@ -1520,6 +1534,10 @@ html.is-videoled .totem-meta {
 
   body.totem-body.is-videoled .totem-logo {
     max-height: 56px;
+  }
+
+  body.totem-body.is-videoled .totem-other {
+    column-gap: 18px;
   }
 }
 
