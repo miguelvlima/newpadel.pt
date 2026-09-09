@@ -467,6 +467,7 @@ body.totem-body.is-embed .totem-others {
   letter-spacing: 0.02em;
   color: var(--ph-text);
   line-height: 1.15;
+  text-transform: uppercase;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
