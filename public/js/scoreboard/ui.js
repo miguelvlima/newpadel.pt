@@ -642,8 +642,8 @@ export function buildOrUpdateCompactGrid(grid, positions, slots, patch) {
 
   const brand = {
     logo: grid.dataset.brandLogo || '/images/tournaments/3-open-dos-ouricos-logo.png',
-    category: grid.dataset.brandCategory || 'M2',
-    group: grid.dataset.brandGroup || 'Grupo A',
+    category: String(grid.dataset.brandCategory || '').trim(),
+    group: String(grid.dataset.brandGroup || '').trim(),
   };
 
   const meta = computeShape(game);
@@ -701,10 +701,14 @@ export function buildOrUpdateCompactGrid(grid, positions, slots, patch) {
     }
   }
 
+  const COURT_DISPLAY = { AURA: 'AURA EVENT LAB' };
   const rawCourt = String(game.court_name || grid.dataset.screen || '').trim();
-  const courtLabel = rawCourt
-    ? `CAMPO ${rawCourt.replace(/^campo\s+/i, '').toUpperCase()}`
+  const courtKey = rawCourt.replace(/^campo\s+/i, '').toUpperCase();
+  const courtLabel = courtKey
+    ? `CAMPO ${COURT_DISPLAY[courtKey] || courtKey}`
     : 'CAMPO —';
+  const showMeta = Boolean(brand.category || brand.group);
+  const showSep = Boolean(brand.category && brand.group);
 
   grid.innerHTML = `
     <section class="compact-board ${boardState}">
@@ -713,10 +717,10 @@ export function buildOrUpdateCompactGrid(grid, positions, slots, patch) {
       </aside>
       <header class="compact-bar">
         <span class="compact-bar-court">${compactEscape(courtLabel)}</span>
-        <span class="compact-bar-meta">
-          <span class="compact-bar-cat">${compactEscape(brand.category)}</span>
-          <span class="compact-bar-sep" aria-hidden="true">·</span>
-          <span class="compact-bar-group">${compactEscape(brand.group)}</span>
+        <span class="compact-bar-meta"${showMeta ? '' : ' hidden'}>
+          <span class="compact-bar-cat"${brand.category ? '' : ' hidden'}>${compactEscape(brand.category)}</span>
+          <span class="compact-bar-sep" aria-hidden="true"${showSep ? '' : ' hidden'}>·</span>
+          <span class="compact-bar-group"${brand.group ? '' : ' hidden'}>${compactEscape(brand.group)}</span>
         </span>
       </header>
       <div class="compact-rows">

@@ -1,7 +1,7 @@
 // /public/js/scoreboard/index.js
 // Cache-bust dos módulos (ui.js sem ?v= ficava stale em prod).
 
-import { setAppHeight, onFullscreenToggle, byId } from './utils.js?v=5.6';
+import { setAppHeight, onFullscreenToggle, byId } from './utils.js?v=5.7';
 import {
   initSupabase,
   fetchScreen,
@@ -9,14 +9,14 @@ import {
   subscribeSelections,
   subscribeGames,
   subscribeScreenMeta
-} from './supabase-api.js?v=5.6';
+} from './supabase-api.js?v=5.7';
 import {
   buildOrUpdateGrid,
   buildOrUpdateCompactGrid,
   fitCompactNames,
   getCurrentSlots,
   setCurrentSlots
-} from './ui.js?v=5.6';
+} from './ui.js?v=5.7';
 import {
   ensureNumWrappers,
   setRowHeights,
@@ -24,7 +24,49 @@ import {
   scaleNumbersToFit,
   fitBadges,
   fitHeadings,
-} from './sizing.js?v=5.6';
+} from './sizing.js?v=5.7';
+
+const matchMetaCache = new Map();
+
+async function fetchMatchMeta(matchId) {
+  const empty = { category: '', group: '' };
+  const id = String(matchId || '').trim();
+  if (!id) return empty;
+  if (matchMetaCache.has(id)) return matchMetaCache.get(id);
+  try {
+    const res = await fetch(`/api/scoreboard/match-context?matchId=${encodeURIComponent(id)}`, {
+      headers: { Accept: 'application/json' },
+    });
+    if (!res.ok) throw new Error(`match-context ${res.status}`);
+    const data = await res.json();
+    const category = String(data?.categoryName || '').trim();
+    let group = String(data?.groupLabel || '').trim();
+    if (!group) {
+      const code = String(data?.groupCode || '').trim();
+      const phase = String(data?.phase || '').trim().toLowerCase();
+      if (code) {
+        group = /^grupo\b/i.test(code) ? code : `Grupo ${code}`;
+      } else if (phase === 'eliminatorio') {
+        const br = data?.bracketRound;
+        group = br != null && Number.isFinite(Number(br)) ? `Ronda ${Number(br)}` : 'Eliminatória';
+      }
+    }
+    const meta = { category, group };
+    matchMetaCache.set(id, meta);
+    return meta;
+  } catch (e) {
+    console.warn('compact match-context:', e);
+    return empty;
+  }
+}
+
+async function applyCompactBrandMeta(grid, slots) {
+  if (!grid) return;
+  const game = Array.isArray(slots) ? slots.find(Boolean) : null;
+  const meta = await fetchMatchMeta(game?.tournament_match_id);
+  grid.dataset.brandCategory = meta.category || '';
+  grid.dataset.brandGroup = meta.group || '';
+}
 
 (async () => {
   // Ajuste do 100vh mobile
@@ -132,6 +174,7 @@ import {
     // Se não houver jogos, redireciona para a galeria
     if (!hasAnyGame(pack.slots)) { redirectToGallery(); return; }
 
+    if (isCompact) await applyCompactBrandMeta(grid, pack.slots);
     renderGrid(grid, pack.positions, pack.slots);
     touch('Ligado', true);
 
@@ -145,13 +188,17 @@ import {
 
       if (!hasAnyGame(p.slots)) { redirectToGallery(); return; }
 
+      if (isCompact) await applyCompactBrandMeta(grid, p.slots);
       renderGrid(grid, p.positions, p.slots);
       touch('Seleções atualizadas', true);
       queueRefit(false);
     });
 
     // Live: atualizações de jogos (pontuação em tempo real)
-    subscribeGames(sb, () => getCurrentSlots(), (idx, game) => {
+    subscribeGames(sb, () => getCurrentSlots(), async (idx, game) => {
+      if (isCompact && game?.tournament_match_id) {
+        await applyCompactBrandMeta(grid, [game]);
+      }
       renderGrid(
         grid,
         screen.positions || getCurrentSlots().length,
@@ -176,6 +223,7 @@ import {
 
         if (!hasAnyGame(p.slots)) { redirectToGallery(); return; }
 
+        if (isCompact) await applyCompactBrandMeta(grid, p.slots);
         renderGrid(grid, p.positions, p.slots);
         queueRefit(false);
       }

@@ -33,10 +33,10 @@
         data-sb-anon="{{ $sbAnon }}"
         data-screen="{{ $screen }}"
         data-brand-logo="/images/tournaments/3-open-dos-ouricos-logo.png"
-        data-brand-category="M2"
-        data-brand-group="Grupo A"
+        data-brand-category=""
+        data-brand-group=""
     ></main>
 
-    <script type="module" src="/js/scoreboard/index.js?v=5.6"></script>
+    <script type="module" src="/js/scoreboard/index.js?v=5.7"></script>
 </body>
 </html>
