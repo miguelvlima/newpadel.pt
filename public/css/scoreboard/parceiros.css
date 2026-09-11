@@ -76,6 +76,20 @@
   object-position: center;
 }
 
+.parceiros-logo[hidden],
+.parceiros-logo-fallback[hidden] {
+  display: none !important;
+}
+
+.parceiros-logo-wrap.is-to-light {
+  filter: brightness(0) invert(1);
+  -webkit-filter: brightness(0) invert(1);
+}
+
+.parceiros-logo-wrap.is-to-light .parceiros-logo {
+  opacity: 0.95;
+}
+
 .parceiros-logo-fallback {
   display: grid;
   place-items: center;

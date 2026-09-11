@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/scoreboard/videoled.css?v=10" />
-  <link rel="stylesheet" href="/css/scoreboard/parceiros.css?v=1" />
+  <link rel="stylesheet" href="/css/scoreboard/parceiros.css?v=2" />
 </head>
 <body class="videoled-body parceiros-body" data-slug="{{ $slug }}" data-interval="{{ $interval }}">
   @for ($i = 0; $i < 4; $i++)
@@ -50,6 +50,6 @@
     </article>
   @endfor
   <script type="application/json" id="parceiros-boot">{!! $partnersJson !!}</script>
-  <script type="module" src="/js/scoreboard/parceiros.js?v=1"></script>
+  <script type="module" src="/js/scoreboard/parceiros.js?v=2"></script>
 </body>
 </html>
