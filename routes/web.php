@@ -66,6 +66,44 @@ Route::get('/api/scoreboard/match-context', function (Request $request) {
     return response()->json($res->json());
 });
 
+/**
+ * Proxy academy → parceiros publicados do festival (LED).
+ */
+Route::get('/api/scoreboard/partners', function (Request $request) {
+    $slug = trim((string) $request->query('slug', '3-open-dos-ouricos'));
+    if ($slug === '' || ! preg_match('/^[a-z0-9-]{3,80}$/i', $slug)) {
+        return response()->json(['error' => 'slug inválido'], 422);
+    }
+
+    $base = rtrim((string) config('services.academy.base_url'), '/');
+    $secret = (string) config('services.academy.bridge_secret');
+    if ($base === '' || $secret === '') {
+        return response()->json(['error' => 'Academy bridge não configurada'], 503);
+    }
+
+    try {
+        $res = Http::withToken($secret)
+            ->acceptJson()
+            ->timeout(10)
+            ->get($base.'/api/scoreboard/partners', [
+                'slug' => $slug,
+            ]);
+    } catch (\Throwable $e) {
+        report($e);
+
+        return response()->json(['error' => 'Falha ao contactar academy'], 502);
+    }
+
+    if (! $res->ok()) {
+        return response()->json([
+            'error' => 'Academy error',
+            'status' => $res->status(),
+        ], $res->serverError() ? 502 : $res->status());
+    }
+
+    return response()->json($res->json());
+});
+
 /** Redirect legado DIETMED → AURA (key Supabase scoreboards). */
 Route::get('/scoreboard/DIETMED/{rest?}', function (?string $rest = null) {
     $target = '/scoreboard/AURA' . ($rest !== null && $rest !== '' ? '/' . ltrim($rest, '/') : '');
@@ -143,6 +181,42 @@ Route::get('/scoreboard/videoled', function () {
         'gameIds' => $gameIds,
     ]);
 })->name('scoreboard.videoled');
+
+/** Video LED 2048×1024 — 4 blocos a rodar parceiros do festival. */
+Route::get('/scoreboard/parceiros', function (Request $request) {
+    if (app()->bound('debugbar')) {
+        app('debugbar')->disable();
+    }
+
+    $slug = trim((string) $request->query('slug', '3-open-dos-ouricos'));
+    if ($slug === '' || ! preg_match('/^[a-z0-9-]{3,80}$/i', $slug)) {
+        $slug = '3-open-dos-ouricos';
+    }
+
+    $partners = [];
+    $base = rtrim((string) config('services.academy.base_url'), '/');
+    $secret = (string) config('services.academy.bridge_secret');
+    if ($base !== '' && $secret !== '') {
+        try {
+            $res = Http::withToken($secret)
+                ->acceptJson()
+                ->timeout(10)
+                ->get($base.'/api/scoreboard/partners', [
+                    'slug' => $slug,
+                ]);
+            if ($res->ok()) {
+                $partners = $res->json('partners') ?? [];
+            }
+        } catch (\Throwable $e) {
+            report($e);
+        }
+    }
+
+    return view('scoreboard_parceiros', [
+        'partners' => is_array($partners) ? $partners : [],
+        'slug' => $slug,
+    ]);
+})->name('scoreboard.parceiros');
 
 Route::get('/scoreboard/{screen?}', function (string $screen = 'default') {
     return view('scoreboard', ['screen' => $screen]); // o Blade já usa $screen

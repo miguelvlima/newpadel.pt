@@ -1,0 +1,112 @@
+/* 4 colunas 512×1024 (layout em videoled.css). Cartão de parceiro por bloco. */
+
+.parceiros-body {
+  color: #f3f5f7;
+  font-family: "Space Grotesk", system-ui, sans-serif;
+}
+
+.parceiros-panel {
+  display: flex;
+  flex-direction: column;
+  padding: 28px 30px 32px;
+  background: #080b10;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.parceiros-panel:nth-child(4) {
+  border-right: 0;
+}
+
+.parceiros-header {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 22px;
+}
+
+.parceiros-event-logo {
+  display: block;
+  width: auto;
+  height: 56px;
+  max-width: 92%;
+  object-fit: contain;
+}
+
+.parceiros-card {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #121820;
+  padding: 36px 28px 32px;
+  text-align: center;
+  opacity: 1;
+  transition: opacity 0.35s ease;
+}
+
+.parceiros-panel.is-empty .parceiros-card {
+  opacity: 0.25;
+}
+
+.parceiros-panel.is-fading .parceiros-card {
+  opacity: 0;
+}
+
+.parceiros-logo-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 100%;
+  height: 300px;
+}
+
+.parceiros-logo {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+.parceiros-logo-fallback {
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.16);
+  color: #22c55e;
+  font-weight: 800;
+  font-size: 2.4rem;
+}
+
+.parceiros-name {
+  margin: 0;
+  flex: 0 0 auto;
+  font-size: 2.35rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.parceiros-desc {
+  margin: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 9;
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #8b95a8;
+}
