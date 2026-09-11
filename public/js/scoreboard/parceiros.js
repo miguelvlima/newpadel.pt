@@ -118,9 +118,14 @@ function paint(panel, partner) {
   }
 }
 
-function pagePartners(partners, page) {
+/** Cada retângulo percorre sozinho a lista completa (os 4 partem de pontos diferentes). */
+function partnersForTick(partners, tick) {
   if (!partners.length) return [null, null, null, null];
-  return Array.from({ length: COLS }, (_, i) => partners[(page * COLS + i) % partners.length]);
+  const n = partners.length;
+  return Array.from({ length: COLS }, (_, slot) => {
+    const start = Math.floor((slot * n) / COLS);
+    return partners[(start + tick) % n];
+  });
 }
 
 function main() {
@@ -129,14 +134,14 @@ function main() {
   const intervalMs = Math.round(Number(body.dataset.interval || 12) * 1000);
   const panels = [...document.querySelectorAll('.parceiros-panel')];
   let partners = readBoot();
-  let page = 0;
+  let tick = 0;
   let timer = null;
 
-  function render(nextPage, { fade } = { fade: false }) {
-    const slice = pagePartners(partners, nextPage);
+  function render(nextTick, { fade } = { fade: false }) {
+    const slice = partnersForTick(partners, nextTick);
     const apply = () => {
       panels.forEach((panel, i) => paint(panel, slice[i]));
-      page = nextPage;
+      tick = nextTick;
     };
     if (!fade || !partners.length) {
       apply();
@@ -151,13 +156,12 @@ function main() {
 
   function startRotate() {
     if (timer) window.clearInterval(timer);
-    if (partners.length <= COLS) {
+    if (partners.length <= 1) {
       render(0, { fade: false });
       return;
     }
-    const pages = Math.ceil(partners.length / COLS);
     timer = window.setInterval(() => {
-      render((page + 1) % pages, { fade: true });
+      render((tick + 1) % partners.length, { fade: true });
     }, intervalMs);
   }
 
@@ -169,7 +173,7 @@ function main() {
       const next = await fetchPartners(slug);
       if (!next.length) return;
       partners = next;
-      render(page % Math.max(1, Math.ceil(partners.length / COLS)), { fade: false });
+      render(tick % Math.max(1, partners.length), { fade: false });
       startRotate();
     } catch (e) {
       console.warn('parceiros academy:', e);

@@ -1,7 +1,7 @@
 {{-- Video LED 2048×1024 — 4 blocos iguais ao /scoreboard/videoled, a rodar parceiros.
 
   ?slug=3-open-dos-ouricos
-  ?interval=12   → segundos por página de 4
+  ?interval=12   → segundos por parceiro em cada retângulo (ciclo completo)
 --}}
 @php
   if (app()->bound('debugbar')) {
@@ -50,6 +50,6 @@
     </article>
   @endfor
   <script type="application/json" id="parceiros-boot">{!! $partnersJson !!}</script>
-  <script type="module" src="/js/scoreboard/parceiros.js?v=2"></script>
+  <script type="module" src="/js/scoreboard/parceiros.js?v=4"></script>
 </body>
 </html>

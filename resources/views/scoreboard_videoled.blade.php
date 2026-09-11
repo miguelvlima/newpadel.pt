@@ -5,8 +5,8 @@
   ?score=1.2    → placar central (cabeçalhos + números)
   ?sets=0.9     → só jogos/sets do placar (extra sobre score)
   ?pts=1.1      → só pontos do game actual (extra sobre score)
-  ?others=1.3   → bloco "outros campos"
-  ?footer=0.9   → "CAMPO …" + categoria/grupo em baixo
+  ?others=1.3   → título "OUTROS CAMPOS" + lista
+  ?footer=0.9   → "CAMPO …" + categoria/grupo (acima das fotos)
 
   Ex.: /scoreboard/videoled?zoom=2.5
   Ex.: /scoreboard/videoled?score=3&others=2.5&footer=1.2

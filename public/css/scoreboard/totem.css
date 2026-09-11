@@ -71,7 +71,8 @@ body.totem-body.is-embed .totem {
   max-height: var(--totem-h);
 }
 
-body.totem-body.is-embed .totem-others {
+body.totem-body.is-embed .totem-others,
+body.totem-body.is-embed .totem-others-heading {
   display: none;
 }
 
@@ -377,6 +378,24 @@ body.totem-body.is-embed .totem-others {
   color: var(--ph-text);
 }
 
+.totem-others-heading {
+  display: none;
+  flex: 0 0 auto;
+  margin: 0 auto;
+  width: var(--photos-row);
+  max-width: 100%;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 1.45rem;
+  line-height: 1;
+  letter-spacing: 0.1em;
+  font-weight: 400;
+  color: var(--ph-muted);
+  white-space: nowrap;
+  padding-top: 3px;
+  padding-bottom: 2px;
+  border-top: 1px solid var(--ph-border);
+}
+
 /* Outros campos — grelha compacta (campo | jogadores), como antes */
 .totem-others {
   flex: 0 0 auto;
@@ -609,15 +628,38 @@ html.is-videoled .totem-other-pts {
   font-size: calc(1.3rem * var(--vl-zoom) * var(--vl-others));
 }
 
-html.is-videoled .totem-court {
-  font-size: calc(1.45rem * var(--vl-zoom) * var(--vl-footer));
+html.is-videoled .totem-court,
+html.is-videoled h1.totem-court {
+  font-size: calc(1.45rem * var(--vl-zoom, 1) * var(--vl-footer, 1));
   flex: 1 1 auto;
   min-width: 0;
 }
 
 html.is-videoled .totem-meta {
-  font-size: calc(1.15rem * var(--vl-zoom) * var(--vl-footer));
+  font-size: calc(1.15rem * var(--vl-zoom, 1) * var(--vl-footer, 1));
 }
+
+html.is-videoled .totem-header { order: 0; }
+html.is-videoled .totem-footer {
+  order: 1;
+  border-top: 0;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+html.is-videoled .totem-side-a { order: 2; }
+html.is-videoled .totem-score { order: 3; }
+html.is-videoled .totem-side-b { order: 4; }
+html.is-videoled .totem-others-heading {
+  display: block;
+  order: 5;
+  font-size: calc(1.45rem * var(--vl-zoom, 1) * var(--vl-others, 1));
+}
+html.is-videoled .totem-others {
+  order: 6;
+  border-top: 0;
+  padding-top: 3px;
+}
+html.is-videoled .totem-show { order: 7; }
 
 /* ─── SHOW TOTAL intro (arena americana) ─── */
 
@@ -834,6 +876,7 @@ html.is-videoled .totem-meta {
 .totem.is-intro:not(.is-intro-play) .totem-side,
 .totem.is-intro:not(.is-intro-play) .totem-score,
 .totem.is-intro:not(.is-intro-play) .totem-footer,
+.totem.is-intro:not(.is-intro-play) .totem-others-heading,
 .totem.is-intro:not(.is-intro-play) .totem-others {
   opacity: 0;
 }
@@ -846,6 +889,7 @@ html.is-videoled .totem-meta {
 .totem.is-intro.is-intro-play .totem-header,
 .totem.is-intro.is-intro-play .totem-side,
 .totem.is-intro.is-intro-play .totem-footer,
+.totem.is-intro.is-intro-play .totem-others-heading,
 .totem.is-intro.is-intro-play .totem-others {
   opacity: 0;
 }
@@ -931,6 +975,11 @@ html.is-videoled .totem-meta {
   animation: totem-intro-footer 1.3s cubic-bezier(0.22, 1, 0.36, 1) 1.1s both;
 }
 
+html.is-videoled .totem.is-show-score .totem-footer {
+  animation: totem-intro-logo 1.4s cubic-bezier(0.2, 1.1, 0.3, 1) both;
+}
+
+.totem.is-show-score .totem-others-heading,
 .totem.is-show-score .totem-others {
   animation: totem-intro-footer 1.2s cubic-bezier(0.22, 1, 0.36, 1) 1.45s both;
 }
@@ -1508,7 +1557,8 @@ html.is-videoled .totem-meta {
     max-height: 28px;
   }
 
-  body.totem-body.is-embed .totem-others {
+  body.totem-body.is-embed .totem-others,
+  body.totem-body.is-embed .totem-others-heading {
     display: none !important;
   }
 
@@ -1540,6 +1590,21 @@ html.is-videoled .totem-meta {
   body.totem-body.is-videoled .totem-other {
     column-gap: 18px;
   }
+
+  html.is-videoled .totem-footer .totem-court,
+  html.is-videoled h1.totem-court {
+    font-size: calc(1.45rem * var(--vl-zoom, 1) * var(--vl-footer, 1)) !important;
+  }
+
+  html.is-videoled .totem-footer .totem-meta,
+  html.is-videoled .totem-meta {
+    font-size: calc(1.15rem * var(--vl-zoom, 1) * var(--vl-footer, 1)) !important;
+  }
+
+  html.is-videoled .totem-others-heading {
+    display: block !important;
+    font-size: calc(1.45rem * var(--vl-zoom, 1) * var(--vl-others, 1)) !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1547,6 +1612,7 @@ html.is-videoled .totem-meta {
   .totem.is-intro .totem-side,
   .totem.is-intro .totem-score,
   .totem.is-intro .totem-footer,
+  .totem.is-intro .totem-others-heading,
   .totem.is-intro .totem-others,
   .totem.is-intro .totem-photo img,
   .totem.is-intro .totem-photo-label {

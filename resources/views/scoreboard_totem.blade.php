@@ -63,7 +63,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/scoreboard/totem.css?v=58" />
+  <link rel="stylesheet" href="/css/scoreboard/totem.css?v=59" />
   @if($videoled)
   <style>
     html.is-videoled {
@@ -81,6 +81,9 @@
     html.is-videoled .totem-footer .totem-meta,
     html.is-videoled .totem-meta {
       font-size: calc(1.15rem * var(--vl-zoom, 1) * var(--vl-footer, 1)) !important;
+    }
+    html.is-videoled .totem-others-heading {
+      font-size: calc(1.45rem * var(--vl-zoom, 1) * var(--vl-others, 1)) !important;
     }
   </style>
   @endif
@@ -134,7 +137,8 @@
       </p>
     </footer>
 
-    <section class="totem-others" id="totem-others" aria-label="Outros campos"></section>
+    <h2 class="totem-others-heading" id="totem-others-heading">OUTROS CAMPOS</h2>
+    <section class="totem-others" id="totem-others" aria-labelledby="totem-others-heading"></section>
 
     {{-- Camada SHOW TOTAL (só na intro) --}}
     <div class="totem-show" id="totem-show" aria-hidden="true">
