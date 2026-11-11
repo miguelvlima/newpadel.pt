@@ -16,7 +16,7 @@ import {
   fitCompactNames,
   getCurrentSlots,
   setCurrentSlots
-} from './ui.js?v=5.14';
+} from './ui.js?v=5.19';
 import {
   ensureNumWrappers,
   setRowHeights,

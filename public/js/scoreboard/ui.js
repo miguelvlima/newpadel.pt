@@ -582,11 +582,6 @@ function compactNowValues(game, meta, showNow) {
   ];
 }
 
-function compactColsClass(setCount, showNow) {
-  const n = Math.max(1, Math.min(3, Number(setCount) || 1));
-  return `compact-cols compact-cols--sets-${n}${showNow ? ' compact-cols--now' : ''}`;
-}
-
 function compactShortLabel(title) {
   const t = String(title || '').trim().toLowerCase();
   if (!t) return '';
@@ -600,39 +595,68 @@ function compactShortLabel(title) {
   return String(title).toUpperCase();
 }
 
-function compactHeaderHtml(titles, nowLabel, showNow, setCount) {
+/** One shared table so head + both rows share the same column widths. */
+function compactTableHtml({
+  titles,
+  nowLabel,
+  showNow,
+  setCount,
+  topName,
+  botName,
+  topSets,
+  botSets,
+  topNow,
+  botNow,
+  topServing,
+  botServing,
+  topFlags,
+  botFlags,
+}) {
   const labels = Array.isArray(titles) && titles.length
     ? titles.map(compactShortLabel)
     : Array.from({ length: setCount }, (_, i) => `${i + 1}º`);
 
-  return `
-    <div class="${compactColsClass(setCount, showNow)} compact-cols--head">
-      <div class="compact-serve" aria-hidden="true"></div>
-      <div class="compact-name compact-name--head"></div>
-      ${labels
-        .map((t) => `<div class="compact-set compact-set--head">${compactEscape(t)}</div>`)
-        .join('')}
-      ${showNow ? `<div class="compact-now compact-now--head">${compactEscape(compactShortLabel(nowLabel))}</div>` : ''}
-    </div>
-  `;
-}
+  const headSets = labels
+    .map((t) => `<th class="compact-set compact-set--head">${compactEscape(t)}</th>`)
+    .join('');
+  const headNow = showNow
+    ? `<th class="compact-now compact-now--head">${compactEscape(compactShortLabel(nowLabel))}</th>`
+    : '';
 
-function compactRowHtml(name, sets, now, serving, setCount, setFlags = [], showNow = true) {
-  const visibleSets = (Array.isArray(sets) ? sets : []).slice(0, setCount);
-  const rowClass = `${compactColsClass(setCount, showNow)} compact-row`;
+  const row = (name, sets, now, serving, flags) => {
+    const setCells = (Array.isArray(sets) ? sets : [])
+      .slice(0, setCount)
+      .map((v, i) => {
+        const flag = flags[i] || '';
+        return `<td class="compact-set${flag ? ` ${flag}` : ''}">${compactEscape(v)}</td>`;
+      })
+      .join('');
+    const nowCell = showNow ? `<td class="compact-now">${compactEscape(now)}</td>` : '';
+    return `
+      <tr class="compact-row">
+        <td class="compact-serve${serving ? ' is-on' : ''}" aria-hidden="true">●</td>
+        <td class="compact-name"><span class="compact-name__text">${compactEscape(name)}</span></td>
+        ${setCells}
+        ${nowCell}
+      </tr>
+    `;
+  };
 
   return `
-    <div class="${rowClass}">
-      <div class="compact-serve${serving ? ' is-on' : ''}" aria-hidden="true">●</div>
-      <div class="compact-name"><span class="compact-name__text">${compactEscape(name)}</span></div>
-      ${visibleSets
-        .map((v, i) => {
-          const flag = setFlags[i] || '';
-          return `<div class="compact-set${flag ? ` ${flag}` : ''}">${compactEscape(v)}</div>`;
-        })
-        .join('')}
-      ${showNow ? `<div class="compact-now">${compactEscape(now)}</div>` : ''}
-    </div>
+    <table class="compact-table">
+      <thead>
+        <tr class="compact-cols--head">
+          <th class="compact-serve" aria-hidden="true"></th>
+          <th class="compact-name compact-name--head"></th>
+          ${headSets}
+          ${headNow}
+        </tr>
+      </thead>
+      <tbody>
+        ${row(topName, topSets, topNow, topServing, topFlags)}
+        ${row(botName, botSets, botNow, botServing, botFlags)}
+      </tbody>
+    </table>
   `;
 }
 
@@ -731,12 +755,8 @@ export function buildOrUpdateCompactGrid(grid, positions, slots, patch) {
     const aNum = Number(a);
     const bNum = Number(b);
     const bothNumeric = a !== '' && b !== '' && Number.isFinite(aNum) && Number.isFinite(bNum);
-    const isLast = i === setCount - 1;
-    // Live highlight only on the in-progress points column path — set cells stay neutral while NOW is visible.
-    if (!isOver && !showNow && isLast && started) {
-      topFlags[i] = 'is-live';
-      botFlags[i] = 'is-live';
-    } else if (bothNumeric && aNum !== bNum && (isOver || meta.setConcluded[meta.cols?.[i]] || isProsetFormat(game, meta))) {
+    const concluded = Boolean(meta.setConcluded?.[meta.cols?.[i]]) || isProsetFormat(game, meta);
+    if (bothNumeric && aNum !== bNum && (isOver || concluded)) {
       topFlags[i] = aNum > bNum ? 'is-won' : '';
       botFlags[i] = bNum > aNum ? 'is-won' : '';
     } else {
@@ -768,9 +788,22 @@ export function buildOrUpdateCompactGrid(grid, positions, slots, patch) {
         </span>
       </header>
       <div class="compact-rows">
-        ${compactHeaderHtml(meta.titles, nowLabel, showNow, setCount)}
-        ${compactRowHtml(topName, topSets, topNow, topServing, setCount, topFlags, showNow)}
-        ${compactRowHtml(botName, botSets, botNow, botServing, setCount, botFlags, showNow)}
+        ${compactTableHtml({
+          titles: meta.titles,
+          nowLabel,
+          showNow,
+          setCount,
+          topName,
+          botName,
+          topSets,
+          botSets,
+          topNow,
+          botNow,
+          topServing,
+          botServing,
+          topFlags,
+          botFlags,
+        })}
       </div>
     </section>
   `;
