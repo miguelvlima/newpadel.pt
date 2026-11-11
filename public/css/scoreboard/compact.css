@@ -13,7 +13,8 @@
   --ph-muted: #8b95a8;
   --ph-serve: #eab308;
   --ph-serve-glow: rgba(234, 179, 8, 0.45);
-  --name-max: 560px;
+  --serve-w: 28px;
+  --name-max: 580px;
   --set-w: 60px;
   --pts-w: 72px;
   --row-h: 52px;
@@ -102,14 +103,14 @@ body.compact #grid {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  padding: 4px 14px;
+  padding: 5px 14px 5px calc(var(--serve-w) + 14px);
   border-bottom: 1px solid var(--ph-border);
   background: color-mix(in srgb, var(--ph-bg) 78%, #000);
 }
 
 .compact-bar-court {
   font-family: "Bebas Neue", sans-serif;
-  font-size: 0.95rem;
+  font-size: 1.2rem;
   font-weight: 400;
   letter-spacing: 0.1em;
   line-height: 1;
@@ -122,7 +123,7 @@ body.compact #grid {
   align-items: baseline;
   gap: 0.4em;
   font-family: "Space Grotesk", system-ui, sans-serif;
-  font-size: 0.85rem;
+  font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -144,7 +145,7 @@ body.compact #grid {
 
 .compact-row {
   display: grid;
-  grid-template-columns: minmax(0, var(--name-max)) var(--set-w) var(--set-w) var(--set-w) var(--pts-w);
+  grid-template-columns: var(--serve-w) minmax(0, var(--name-max)) var(--set-w) var(--set-w) var(--set-w) var(--pts-w);
   column-gap: 0;
   height: var(--row-h);
   width: max-content;
@@ -156,28 +157,49 @@ body.compact #grid {
 }
 
 .compact-row--sets-1 {
-  grid-template-columns: minmax(0, var(--name-max)) var(--set-w) var(--pts-w);
+  grid-template-columns: var(--serve-w) minmax(0, var(--name-max)) var(--set-w) var(--pts-w);
 }
 
 .compact-row--sets-2 {
-  grid-template-columns: minmax(0, var(--name-max)) var(--set-w) var(--set-w) var(--pts-w);
+  grid-template-columns: var(--serve-w) minmax(0, var(--name-max)) var(--set-w) var(--set-w) var(--pts-w);
 }
 
 .compact-row--sets-3 {
-  grid-template-columns: minmax(0, var(--name-max)) var(--set-w) var(--set-w) var(--set-w) var(--pts-w);
+  grid-template-columns: var(--serve-w) minmax(0, var(--name-max)) var(--set-w) var(--set-w) var(--set-w) var(--pts-w);
+}
+
+.compact-serve {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--serve-w);
+  color: transparent;
+  font-size: 16px;
+  line-height: 1;
+  border-right: 1px solid var(--ph-border);
+  user-select: none;
+}
+
+.compact-serve.is-on {
+  color: var(--ph-serve);
+  text-shadow: 0 0 14px var(--ph-serve-glow);
+}
+
+.compact-board.is-over .compact-serve.is-on {
+  color: color-mix(in srgb, var(--ph-serve) 55%, transparent);
+  text-shadow: none;
 }
 
 /* Nomes */
 .compact-name {
   display: flex;
   align-items: center;
-  gap: 10px;
   min-width: 0;
   padding: 0 14px;
   background: transparent;
   color: #ffffff;
   font-family: "Space Grotesk", system-ui, sans-serif;
-  font-size: 34px;
+  font-size: 36px;
   font-weight: 700;
   line-height: 1;
   letter-spacing: 0.03em;
@@ -216,19 +238,6 @@ body.compact #grid {
 .compact-board.is-pregame .compact-name__text {
   color: #ffffff;
   opacity: 1;
-}
-
-.compact-name.is-serving::after {
-  content: "●";
-  color: var(--ph-serve);
-  font-size: 18px;
-  flex: 0 0 auto;
-  text-shadow: 0 0 14px var(--ph-serve-glow);
-}
-
-.compact-board.is-over .compact-name.is-serving::after {
-  color: color-mix(in srgb, var(--ph-serve) 55%, transparent);
-  text-shadow: none;
 }
 
 /* Sets */
@@ -326,7 +335,8 @@ body.compact #grid {
 
 @media (max-width: 900px) {
   :root {
-    --name-max: 380px;
+    --serve-w: 24px;
+    --name-max: 400px;
     --set-w: 50px;
     --pts-w: 62px;
     --row-h: 46px;
@@ -349,21 +359,25 @@ body.compact #grid {
   }
 
   .compact-bar {
-    padding: 3px 10px;
+    padding: 4px 10px 4px calc(var(--serve-w) + 10px);
     gap: 10px;
   }
 
   .compact-bar-court {
-    font-size: 0.85rem;
+    font-size: 1.05rem;
   }
 
   .compact-bar-meta {
-    font-size: 0.75rem;
+    font-size: 0.92rem;
   }
 
   .compact-name {
     padding: 0 12px;
-    font-size: 26px;
+    font-size: 28px;
+  }
+
+  .compact-serve {
+    font-size: 14px;
   }
 
   .compact-set {

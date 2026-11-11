@@ -603,7 +603,8 @@ function compactRowHtml(name, sets, now, serving, setCount, setFlags = []) {
 
   return `
     <div class="${rowClass}">
-      <div class="compact-name ${serving ? 'is-serving' : ''}"><span class="compact-name__text">${compactEscape(name)}</span></div>
+      <div class="compact-serve${serving ? ' is-on' : ''}" aria-hidden="true">●</div>
+      <div class="compact-name"><span class="compact-name__text">${compactEscape(name)}</span></div>
       ${visibleSets
         .map((v, i) => {
           const flag = setFlags[i] || '';
@@ -618,9 +619,14 @@ function compactRowHtml(name, sets, now, serving, setCount, setFlags = []) {
 export function fitCompactNames(root) {
   if (!root) return;
 
-  root.querySelectorAll('.compact-name').forEach((cell) => {
+  const cells = [...root.querySelectorAll('.compact-name')];
+  if (!cells.length) return;
+
+  // Same size on both rows — otherwise the longer pair shrinks alone.
+  let shared = Infinity;
+  for (const cell of cells) {
     const text = cell.querySelector('.compact-name__text');
-    if (!text) return;
+    if (!text) continue;
 
     cell.style.fontSize = '';
     let fs = parseFloat(getComputedStyle(cell).fontSize) || 22;
@@ -630,7 +636,13 @@ export function fitCompactNames(root) {
       fs -= 1;
       cell.style.fontSize = `${fs}px`;
     }
-  });
+    shared = Math.min(shared, fs);
+  }
+
+  if (!Number.isFinite(shared)) return;
+  for (const cell of cells) {
+    cell.style.fontSize = `${shared}px`;
+  }
 }
 
 export function buildOrUpdateCompactGrid(grid, positions, slots, patch) {
