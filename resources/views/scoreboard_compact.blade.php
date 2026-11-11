@@ -16,7 +16,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="/css/scoreboard/scoreboard.css?v=5.7">
-    <link rel="stylesheet" href="/css/scoreboard/compact.css?v=5.9">
+    <link rel="stylesheet" href="/css/scoreboard/compact.css?v=5.10">
 </head>
 <body class="compact">
 
