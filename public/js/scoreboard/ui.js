@@ -587,10 +587,23 @@ function compactColsClass(setCount, showNow) {
   return `compact-cols compact-cols--sets-${n}${showNow ? ' compact-cols--now' : ''}`;
 }
 
+function compactShortLabel(title) {
+  const t = String(title || '').trim().toLowerCase();
+  if (!t) return '';
+  if (t.includes('super')) return 'STB';
+  if (t.includes('proset')) return 'PROSET';
+  if (t.includes('tie') || t === 'tb') return 'TB';
+  if (t.includes('jogo') || t.includes('pts') || t.includes('point')) return 'PTS';
+  if (t.startsWith('1')) return '1º';
+  if (t.startsWith('2')) return '2º';
+  if (t.startsWith('3')) return '3º';
+  return String(title).toUpperCase();
+}
+
 function compactHeaderHtml(titles, nowLabel, showNow, setCount) {
   const labels = Array.isArray(titles) && titles.length
-    ? titles
-    : Array.from({ length: setCount }, (_, i) => `${i + 1}º Set`);
+    ? titles.map(compactShortLabel)
+    : Array.from({ length: setCount }, (_, i) => `${i + 1}º`);
 
   return `
     <div class="${compactColsClass(setCount, showNow)} compact-cols--head">
@@ -599,7 +612,7 @@ function compactHeaderHtml(titles, nowLabel, showNow, setCount) {
       ${labels
         .map((t) => `<div class="compact-set compact-set--head">${compactEscape(t)}</div>`)
         .join('')}
-      ${showNow ? `<div class="compact-now compact-now--head">${compactEscape(nowLabel)}</div>` : ''}
+      ${showNow ? `<div class="compact-now compact-now--head">${compactEscape(compactShortLabel(nowLabel))}</div>` : ''}
     </div>
   `;
 }

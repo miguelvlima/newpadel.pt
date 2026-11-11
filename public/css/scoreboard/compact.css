@@ -1,6 +1,5 @@
 /* Compact overlay — linguagem visual do totem (sem fotos).
- * Página transparente; o board é um cartão escuro.
- * Escala ~130% face ao layout original (OBS 1:1). */
+ * Página transparente; o board é um cartão escuro. */
 
 :root {
   --ph-accent: #22c55e;
@@ -13,12 +12,13 @@
   --ph-muted: #8b95a8;
   --ph-serve: #eab308;
   --ph-serve-glow: rgba(234, 179, 8, 0.45);
-  --serve-w: 28px;
-  --name-max: 580px;
-  --set-w: 76px;
-  --pts-w: 72px;
-  --row-h: 52px;
-  --head-h: 26px;
+  --serve-w: 30px;
+  --name-max: 640px;
+  --set-w: 58px;
+  --pts-w: 64px;
+  --row-h: 54px;
+  --head-h: 28px;
+  --bar-h: 34px;
 }
 
 html,
@@ -56,13 +56,13 @@ body.compact #grid {
 
 .compact-board {
   display: grid;
-  grid-template-columns: auto minmax(0, max-content);
+  grid-template-columns: auto max-content;
   grid-template-rows: auto auto;
   align-items: stretch;
   width: max-content;
   max-width: 100%;
   border: 1px solid var(--ph-border);
-  border-radius: 1.15rem;
+  border-radius: 1rem;
   overflow: hidden;
   background: color-mix(in srgb, var(--ph-surface) 88%, transparent);
   box-shadow: 0 16px 42px rgba(0, 0, 0, 0.45);
@@ -75,17 +75,17 @@ body.compact #grid {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 168px;
-  padding: 4px 6px;
+  width: 148px;
+  padding: 6px 8px;
   border-right: 1px solid var(--ph-border);
   background: color-mix(in srgb, var(--ph-bg) 55%, var(--ph-surface));
 }
 
 .compact-brand-logo {
   display: block;
-  width: 156px;
+  width: 132px;
   height: auto;
-  max-height: calc(var(--row-h) * 2 + var(--head-h) + 2.1rem);
+  max-height: calc(var(--bar-h) + var(--head-h) + var(--row-h) * 2);
   object-fit: contain;
 }
 
@@ -95,6 +95,7 @@ body.compact #grid {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  width: max-content;
 }
 
 .compact-bar {
@@ -103,17 +104,18 @@ body.compact #grid {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  padding: 5px 14px 5px calc(var(--serve-w) + 14px);
+  gap: 16px;
+  min-height: var(--bar-h);
+  padding: 0 14px 0 calc(var(--serve-w) + 12px);
   border-bottom: 1px solid var(--ph-border);
   background: color-mix(in srgb, var(--ph-bg) 78%, #000);
 }
 
 .compact-bar-court {
   font-family: "Bebas Neue", sans-serif;
-  font-size: 1.2rem;
+  font-size: 1.35rem;
   font-weight: 400;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   line-height: 1;
   color: var(--ph-muted);
   white-space: nowrap;
@@ -122,11 +124,11 @@ body.compact #grid {
 .compact-bar-meta {
   display: inline-flex;
   align-items: baseline;
-  gap: 0.4em;
+  gap: 0.35em;
   font-family: "Space Grotesk", system-ui, sans-serif;
-  font-size: 1.05rem;
+  font-size: 1.15rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   line-height: 1;
   white-space: nowrap;
@@ -149,27 +151,27 @@ body.compact #grid {
   column-gap: 0;
   width: max-content;
   max-width: 100%;
-  grid-template-columns: var(--serve-w) minmax(0, var(--name-max)) var(--set-w);
+  grid-template-columns: var(--serve-w) max-content var(--set-w);
 }
 
 .compact-cols--sets-2 {
-  grid-template-columns: var(--serve-w) minmax(0, var(--name-max)) var(--set-w) var(--set-w);
+  grid-template-columns: var(--serve-w) max-content var(--set-w) var(--set-w);
 }
 
 .compact-cols--sets-3 {
-  grid-template-columns: var(--serve-w) minmax(0, var(--name-max)) var(--set-w) var(--set-w) var(--set-w);
+  grid-template-columns: var(--serve-w) max-content var(--set-w) var(--set-w) var(--set-w);
 }
 
 .compact-cols--sets-1.compact-cols--now {
-  grid-template-columns: var(--serve-w) minmax(0, var(--name-max)) var(--set-w) var(--pts-w);
+  grid-template-columns: var(--serve-w) max-content var(--set-w) var(--pts-w);
 }
 
 .compact-cols--sets-2.compact-cols--now {
-  grid-template-columns: var(--serve-w) minmax(0, var(--name-max)) var(--set-w) var(--set-w) var(--pts-w);
+  grid-template-columns: var(--serve-w) max-content var(--set-w) var(--set-w) var(--pts-w);
 }
 
 .compact-cols--sets-3.compact-cols--now {
-  grid-template-columns: var(--serve-w) minmax(0, var(--name-max)) var(--set-w) var(--set-w) var(--set-w) var(--pts-w);
+  grid-template-columns: var(--serve-w) max-content var(--set-w) var(--set-w) var(--set-w) var(--pts-w);
 }
 
 .compact-row {
@@ -191,8 +193,9 @@ body.compact #grid {
   align-items: center;
   justify-content: center;
   width: var(--serve-w);
+  min-width: 0;
   color: transparent;
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1;
   border-right: 1px solid var(--ph-border);
   user-select: none;
@@ -208,19 +211,22 @@ body.compact #grid {
   text-shadow: none;
 }
 
-/* Nomes */
+/* Nomes — peso visual principal, alinhado aos números */
 .compact-name {
   display: flex;
   align-items: center;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: var(--name-max);
   min-width: 0;
-  padding: 0 14px;
+  padding: 0 16px;
   background: transparent;
   color: #ffffff;
   font-family: "Space Grotesk", system-ui, sans-serif;
-  font-size: 36px;
+  font-size: 38px;
   font-weight: 700;
   line-height: 1;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
   overflow: hidden;
   border: 0;
@@ -231,7 +237,9 @@ body.compact #grid {
 }
 
 .compact-name--head {
-  padding: 0;
+  padding: 0 16px;
+  width: auto;
+  max-width: none;
 }
 
 .compact-name__text {
@@ -245,17 +253,9 @@ body.compact #grid {
 }
 
 .compact-board.is-live .compact-name,
-.compact-board.is-live .compact-name__text {
-  color: #ffffff;
-  opacity: 1;
-}
-
+.compact-board.is-live .compact-name__text,
 .compact-board.is-over .compact-name,
-.compact-board.is-over .compact-name__text {
-  color: #ffffff;
-  opacity: 1;
-}
-
+.compact-board.is-over .compact-name__text,
 .compact-board.is-pregame .compact-name,
 .compact-board.is-pregame .compact-name__text {
   color: #ffffff;
@@ -267,10 +267,12 @@ body.compact #grid {
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
+  min-width: 0;
   background: transparent;
   color: #ffffff;
   font-family: "Bebas Neue", sans-serif;
-  font-size: 32px;
+  font-size: 34px;
   font-weight: 400;
   border: 0;
   border-right: 1px solid var(--ph-border);
@@ -281,18 +283,8 @@ body.compact #grid {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
 }
 
-.compact-board.is-live .compact-set {
-  background: transparent;
-  color: #ffffff;
-  opacity: 1;
-}
-
-.compact-board.is-over .compact-set {
-  background: transparent;
-  color: #ffffff;
-  opacity: 1;
-}
-
+.compact-board.is-live .compact-set,
+.compact-board.is-over .compact-set,
 .compact-board.is-pregame .compact-set {
   background: transparent;
   color: #ffffff;
@@ -317,28 +309,35 @@ body.compact #grid {
 .compact-set--head,
 .compact-now--head {
   font-family: "Space Grotesk", system-ui, sans-serif;
-  font-size: 0.68rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ph-muted);
-  background: transparent;
+  background: transparent !important;
   text-shadow: none;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
-  padding: 0 4px;
+  text-overflow: clip;
+  padding: 0;
 }
 
-/* Pontos (coluna now) — números brancos, fundo verde só como faixa */
+/* Sem divisor à direita na última coluna (evita “coluna fantasma”) */
+.compact-cols > :last-child {
+  border-right: 0;
+}
+
+/* Pontos (coluna now) */
 .compact-now {
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
+  min-width: 0;
   background: color-mix(in srgb, var(--ph-accent) 18%, #080b10);
   color: #ffffff;
   font-family: "Bebas Neue", sans-serif;
-  font-size: 36px;
+  font-size: 34px;
   font-weight: 400;
   border: 0;
   box-shadow: none;
@@ -354,12 +353,7 @@ body.compact #grid {
   opacity: 1;
 }
 
-.compact-board.is-over .compact-now {
-  background: rgba(255, 255, 255, 0.06);
-  color: #ffffff;
-  opacity: 1;
-}
-
+.compact-board.is-over .compact-now,
 .compact-board.is-pregame .compact-now {
   background: rgba(255, 255, 255, 0.06);
   color: #ffffff;
@@ -373,12 +367,13 @@ body.compact #grid {
 
 @media (max-width: 900px) {
   :root {
-    --serve-w: 24px;
-    --name-max: 400px;
-    --set-w: 64px;
-    --pts-w: 62px;
-    --row-h: 46px;
-    --head-h: 22px;
+    --serve-w: 26px;
+    --name-max: 420px;
+    --set-w: 50px;
+    --pts-w: 56px;
+    --row-h: 48px;
+    --head-h: 24px;
+    --bar-h: 30px;
   }
 
   body.compact #grid {
@@ -388,42 +383,43 @@ body.compact #grid {
   }
 
   .compact-brand {
-    width: 132px;
-    padding: 3px 5px;
+    width: 120px;
+    padding: 4px 6px;
   }
 
   .compact-brand-logo {
-    width: 120px;
-    max-height: calc(var(--row-h) * 2 + 1.8rem);
+    width: 108px;
   }
 
   .compact-bar {
-    padding: 4px 10px 4px calc(var(--serve-w) + 10px);
-    gap: 10px;
+    padding: 0 10px 0 calc(var(--serve-w) + 10px);
+    gap: 12px;
   }
 
   .compact-bar-court {
-    font-size: 1.05rem;
+    font-size: 1.15rem;
   }
 
   .compact-bar-meta {
-    font-size: 0.92rem;
+    font-size: 1rem;
   }
 
   .compact-name {
     padding: 0 12px;
-    font-size: 28px;
+    font-size: 32px;
   }
 
   .compact-serve {
-    font-size: 14px;
+    font-size: 13px;
   }
 
-  .compact-set {
-    font-size: 26px;
-  }
-
+  .compact-set,
   .compact-now {
-    font-size: 30px;
+    font-size: 28px;
+  }
+
+  .compact-set--head,
+  .compact-now--head {
+    font-size: 0.7rem;
   }
 }
