@@ -536,50 +536,35 @@ function compactTeamLabel(...rawNames) {
   return players.map(abbreviatePersonName).join(' / ');
 }
 
-function compactPadSets(values) {
-  const out = Array.isArray(values) ? values.slice(0, 3) : [];
-  while (out.length < 3) out.push('');
-  return out;
+function compactShowNow(game, meta) {
+  const prosetTB = isProsetTieBreak(game, meta);
+  const prosetFinished = isProsetFinished(game, meta);
+  // Same rule as the normal scoreboard tile.
+  return meta.superTB ? true : (prosetTB ? true : (!prosetFinished && !meta.matchOver));
 }
 
-function compactVisibleSetCount(topSets, botSets) {
-  const maxLen = Math.max(topSets.length, botSets.length, 1);
-
-  for (let i = maxLen - 1; i >= 0; i--) {
-    const topVal = String(topSets[i] ?? '').trim();
-    const botVal = String(botSets[i] ?? '').trim();
-
-    if (topVal !== '' || botVal !== '') {
-      return i + 1;
-    }
-  }
-
-  return 1;
+function compactNowLabel(game, meta) {
+  const prosetTB = isProsetTieBreak(game, meta);
+  return meta.superTB ? 'Super TB' : (prosetTB || meta.normalTB ? 'TB' : 'JOGO');
 }
 
 function compactSetValues(game, meta, teamNo) {
   if (isProsetFormat(game, meta)) {
     const [ps1, ps2] = getProsetDisplay(meta);
-    return compactPadSets([teamNo === 1 ? ps1 : ps2]);
+    return [String(teamNo === 1 ? ps1 : ps2)];
   }
-
-  const vals = (meta.cols || []).map(i => String(setCellVal(meta, i, teamNo) ?? ''));
-  return compactPadSets(vals);
+  return (meta.cols || []).map((i) => String(setCellVal(meta, i, teamNo) ?? ''));
 }
 
-function compactNowValues(game, meta) {
-  const { cfg, sets, cur } = meta;
+function compactNowValues(game, meta, showNow) {
+  if (!showNow) return ['', ''];
 
+  const { cfg, sets, cur } = meta;
   const tb1 = Number(cur.tb_team1 || 0);
   const tb2 = Number(cur.tb_team2 || 0);
   const p1 = Number(cur.points_team1 || 0);
   const p2 = Number(cur.points_team2 || 0);
-
   const prosetTB = isProsetTieBreak(game, meta);
-  const prosetFinished = isProsetFinished(game, meta);
-  const showNow = meta.superTB ? true : (prosetTB ? true : (!prosetFinished && !meta.matchOver));
-
-  if (!showNow) return ['', ''];
 
   if (meta.superTB) {
     const base1 = Number(sets?.[2]?.team1 || 0);
@@ -597,9 +582,31 @@ function compactNowValues(game, meta) {
   ];
 }
 
-function compactRowHtml(name, sets, now, serving, setCount, setFlags = []) {
-  const visibleSets = compactPadSets(sets).slice(0, setCount);
-  const rowClass = `compact-row compact-row--sets-${setCount}`;
+function compactColsClass(setCount, showNow) {
+  const n = Math.max(1, Math.min(3, Number(setCount) || 1));
+  return `compact-cols compact-cols--sets-${n}${showNow ? ' compact-cols--now' : ''}`;
+}
+
+function compactHeaderHtml(titles, nowLabel, showNow, setCount) {
+  const labels = Array.isArray(titles) && titles.length
+    ? titles
+    : Array.from({ length: setCount }, (_, i) => `${i + 1}º Set`);
+
+  return `
+    <div class="${compactColsClass(setCount, showNow)} compact-cols--head">
+      <div class="compact-serve" aria-hidden="true"></div>
+      <div class="compact-name compact-name--head"></div>
+      ${labels
+        .map((t) => `<div class="compact-set compact-set--head">${compactEscape(t)}</div>`)
+        .join('')}
+      ${showNow ? `<div class="compact-now compact-now--head">${compactEscape(nowLabel)}</div>` : ''}
+    </div>
+  `;
+}
+
+function compactRowHtml(name, sets, now, serving, setCount, setFlags = [], showNow = true) {
+  const visibleSets = (Array.isArray(sets) ? sets : []).slice(0, setCount);
+  const rowClass = `${compactColsClass(setCount, showNow)} compact-row`;
 
   return `
     <div class="${rowClass}">
@@ -611,7 +618,7 @@ function compactRowHtml(name, sets, now, serving, setCount, setFlags = []) {
           return `<div class="compact-set${flag ? ` ${flag}` : ''}">${compactEscape(v)}</div>`;
         })
         .join('')}
-      <div class="compact-now">${compactEscape(now)}</div>
+      ${showNow ? `<div class="compact-now">${compactEscape(now)}</div>` : ''}
     </div>
   `;
 }
@@ -675,11 +682,12 @@ export function buildOrUpdateCompactGrid(grid, positions, slots, patch) {
   const topName = compactTeamLabel(game.player1, game.player2);
   const botName = compactTeamLabel(game.player3, game.player4);
 
+  const showNow = compactShowNow(game, meta);
+  const nowLabel = compactNowLabel(game, meta);
   const topSets = compactSetValues(game, meta, 1);
   const botSets = compactSetValues(game, meta, 2);
-  const setCount = compactVisibleSetCount(topSets, botSets);
-
-  const [topNow, botNow] = compactNowValues(game, meta);
+  const setCount = Math.max(topSets.length, botSets.length, meta.titles?.length || 0, 1);
+  const [topNow, botNow] = compactNowValues(game, meta, showNow);
 
   const topServing = Number(game.server) === 1 || Number(game.server) === 2;
   const botServing = Number(game.server) === 3 || Number(game.server) === 4;
@@ -702,21 +710,20 @@ export function buildOrUpdateCompactGrid(grid, positions, slots, patch) {
   const isOver = meta.matchOver || prosetFinished;
   const boardState = isOver ? 'is-over' : (started ? 'is-live' : 'is-pregame');
 
-  const topVisible = compactPadSets(topSets).slice(0, setCount);
-  const botVisible = compactPadSets(botSets).slice(0, setCount);
   const topFlags = [];
   const botFlags = [];
   for (let i = 0; i < setCount; i++) {
-    const a = String(topVisible[i] ?? '').trim();
-    const b = String(botVisible[i] ?? '').trim();
+    const a = String(topSets[i] ?? '').trim();
+    const b = String(botSets[i] ?? '').trim();
     const aNum = Number(a);
     const bNum = Number(b);
     const bothNumeric = a !== '' && b !== '' && Number.isFinite(aNum) && Number.isFinite(bNum);
     const isLast = i === setCount - 1;
-    if (!isOver && isLast && started) {
+    // Live highlight only on the in-progress points column path — set cells stay neutral while NOW is visible.
+    if (!isOver && !showNow && isLast && started) {
       topFlags[i] = 'is-live';
       botFlags[i] = 'is-live';
-    } else if (bothNumeric && aNum !== bNum) {
+    } else if (bothNumeric && aNum !== bNum && (isOver || meta.setConcluded[meta.cols?.[i]] || isProsetFormat(game, meta))) {
       topFlags[i] = aNum > bNum ? 'is-won' : '';
       botFlags[i] = bNum > aNum ? 'is-won' : '';
     } else {
@@ -748,8 +755,9 @@ export function buildOrUpdateCompactGrid(grid, positions, slots, patch) {
         </span>
       </header>
       <div class="compact-rows">
-        ${compactRowHtml(topName, topSets, topNow, topServing, setCount, topFlags)}
-        ${compactRowHtml(botName, botSets, botNow, botServing, setCount, botFlags)}
+        ${compactHeaderHtml(meta.titles, nowLabel, showNow, setCount)}
+        ${compactRowHtml(topName, topSets, topNow, topServing, setCount, topFlags, showNow)}
+        ${compactRowHtml(botName, botSets, botNow, botServing, setCount, botFlags, showNow)}
       </div>
     </section>
   `;

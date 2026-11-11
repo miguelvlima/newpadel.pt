@@ -15,9 +15,10 @@
   --ph-serve-glow: rgba(234, 179, 8, 0.45);
   --serve-w: 28px;
   --name-max: 580px;
-  --set-w: 60px;
+  --set-w: 76px;
   --pts-w: 72px;
   --row-h: 52px;
+  --head-h: 26px;
 }
 
 html,
@@ -84,7 +85,7 @@ body.compact #grid {
   display: block;
   width: 156px;
   height: auto;
-  max-height: calc(var(--row-h) * 2 + 2.1rem);
+  max-height: calc(var(--row-h) * 2 + var(--head-h) + 2.1rem);
   object-fit: contain;
 }
 
@@ -143,29 +144,46 @@ body.compact #grid {
   color: var(--ph-text);
 }
 
-.compact-row {
+.compact-cols {
   display: grid;
-  grid-template-columns: var(--serve-w) minmax(0, var(--name-max)) var(--set-w) var(--set-w) var(--set-w) var(--pts-w);
   column-gap: 0;
-  height: var(--row-h);
   width: max-content;
   max-width: 100%;
+  grid-template-columns: var(--serve-w) minmax(0, var(--name-max)) var(--set-w);
+}
+
+.compact-cols--sets-2 {
+  grid-template-columns: var(--serve-w) minmax(0, var(--name-max)) var(--set-w) var(--set-w);
+}
+
+.compact-cols--sets-3 {
+  grid-template-columns: var(--serve-w) minmax(0, var(--name-max)) var(--set-w) var(--set-w) var(--set-w);
+}
+
+.compact-cols--sets-1.compact-cols--now {
+  grid-template-columns: var(--serve-w) minmax(0, var(--name-max)) var(--set-w) var(--pts-w);
+}
+
+.compact-cols--sets-2.compact-cols--now {
+  grid-template-columns: var(--serve-w) minmax(0, var(--name-max)) var(--set-w) var(--set-w) var(--pts-w);
+}
+
+.compact-cols--sets-3.compact-cols--now {
+  grid-template-columns: var(--serve-w) minmax(0, var(--name-max)) var(--set-w) var(--set-w) var(--set-w) var(--pts-w);
+}
+
+.compact-row {
+  height: var(--row-h);
 }
 
 .compact-row + .compact-row {
   border-top: 1px solid var(--ph-border);
 }
 
-.compact-row--sets-1 {
-  grid-template-columns: var(--serve-w) minmax(0, var(--name-max)) var(--set-w) var(--pts-w);
-}
-
-.compact-row--sets-2 {
-  grid-template-columns: var(--serve-w) minmax(0, var(--name-max)) var(--set-w) var(--set-w) var(--pts-w);
-}
-
-.compact-row--sets-3 {
-  grid-template-columns: var(--serve-w) minmax(0, var(--name-max)) var(--set-w) var(--set-w) var(--set-w) var(--pts-w);
+.compact-cols--head {
+  height: var(--head-h);
+  border-bottom: 1px solid var(--ph-border);
+  background: color-mix(in srgb, var(--ph-bg) 70%, var(--ph-surface));
 }
 
 .compact-serve {
@@ -210,6 +228,10 @@ body.compact #grid {
   box-shadow: none;
   opacity: 1;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+}
+
+.compact-name--head {
+  padding: 0;
 }
 
 .compact-name__text {
@@ -292,6 +314,22 @@ body.compact #grid {
   color: rgba(255, 255, 255, 0.35);
 }
 
+.compact-set--head,
+.compact-now--head {
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ph-muted);
+  background: transparent;
+  text-shadow: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 4px;
+}
+
 /* Pontos (coluna now) — números brancos, fundo verde só como faixa */
 .compact-now {
   display: flex;
@@ -337,9 +375,10 @@ body.compact #grid {
   :root {
     --serve-w: 24px;
     --name-max: 400px;
-    --set-w: 50px;
+    --set-w: 64px;
     --pts-w: 62px;
     --row-h: 46px;
+    --head-h: 22px;
   }
 
   body.compact #grid {
