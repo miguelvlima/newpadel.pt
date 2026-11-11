@@ -147,6 +147,13 @@ function photoFor(name, avatarUrl = null) {
   return DEMO_PHOTOS[name] || FALLBACK_PHOTO(name);
 }
 
+function elimRoundLabel(round, totalRounds) {
+  if (round === totalRounds) return 'Final';
+  if (round === totalRounds - 1) return 'Meias-finais';
+  if (round === totalRounds - 2 && totalRounds >= 3) return 'Quartos';
+  return `Ronda ${round}`;
+}
+
 async function fetchMatchContext(matchId) {
   const empty = { avatars: [null, null, null, null], category: '', group: '' };
   const id = String(matchId || '').trim();
@@ -165,15 +172,26 @@ async function fetchMatchContext(matchId) {
       return typeof u === 'string' && u.trim() ? u.trim() : null;
     });
     const category = String(data?.categoryName || '').trim();
+    const code = String(data?.groupCode || '').trim();
+    const phase = String(data?.phase || '').trim().toLowerCase();
+    const br = data?.bracketRound;
+    const total = data?.bracketRoundCount;
     let group = String(data?.groupLabel || '').trim();
-    if (!group) {
-      const code = String(data?.groupCode || '').trim();
-      const phase = String(data?.phase || '').trim().toLowerCase();
+    if (
+      phase === 'eliminatorio' &&
+      br != null &&
+      Number.isFinite(Number(br)) &&
+      total != null &&
+      Number(total) > 0
+    ) {
+      group = elimRoundLabel(Number(br), Number(total));
+    } else if (!group) {
       if (code) {
         group = /^grupo\b/i.test(code) ? code : `Grupo ${code}`;
       } else if (phase === 'eliminatorio') {
-        const br = data?.bracketRound;
-        group = br != null && Number.isFinite(Number(br)) ? `Ronda ${Number(br)}` : 'Eliminatória';
+        group = br != null && Number.isFinite(Number(br))
+          ? `Ronda ${Number(br)}`
+          : 'Eliminatória';
       }
     }
     const ctx = { avatars, category, group };

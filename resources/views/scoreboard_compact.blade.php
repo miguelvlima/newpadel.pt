@@ -15,8 +15,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="/css/scoreboard/scoreboard.css?v=5.0">
-    <link rel="stylesheet" href="/css/scoreboard/compact.css?v=5.7">
+    <link rel="stylesheet" href="/css/scoreboard/scoreboard.css?v=5.7">
+    <link rel="stylesheet" href="/css/scoreboard/compact.css?v=5.9">
 </head>
 <body class="compact">
 
@@ -32,11 +32,11 @@
         data-sb-url="{{ $sbUrl }}"
         data-sb-anon="{{ $sbAnon }}"
         data-screen="{{ $screen }}"
-        data-brand-logo="/images/tournaments/3-open-dos-ouricos-logo.png"
+        data-brand-logo="/images/tournaments/5-open-remax-dinamica-logo.png?v=1"
         data-brand-category=""
         data-brand-group=""
     ></main>
 
-    <script type="module" src="/js/scoreboard/index.js?v=5.7"></script>
+    <script type="module" src="/js/scoreboard/index.js?v=5.9"></script>
 </body>
 </html>

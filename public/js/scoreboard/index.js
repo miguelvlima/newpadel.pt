@@ -1,7 +1,7 @@
 // /public/js/scoreboard/index.js
 // Cache-bust dos módulos (ui.js sem ?v= ficava stale em prod).
 
-import { setAppHeight, onFullscreenToggle, byId } from './utils.js?v=5.7';
+import { setAppHeight, onFullscreenToggle, byId } from './utils.js?v=5.9';
 import {
   initSupabase,
   fetchScreen,
@@ -9,14 +9,14 @@ import {
   subscribeSelections,
   subscribeGames,
   subscribeScreenMeta
-} from './supabase-api.js?v=5.7';
+} from './supabase-api.js?v=5.9';
 import {
   buildOrUpdateGrid,
   buildOrUpdateCompactGrid,
   fitCompactNames,
   getCurrentSlots,
   setCurrentSlots
-} from './ui.js?v=5.7';
+} from './ui.js?v=5.9';
 import {
   ensureNumWrappers,
   setRowHeights,
@@ -24,9 +24,16 @@ import {
   scaleNumbersToFit,
   fitBadges,
   fitHeadings,
-} from './sizing.js?v=5.7';
+} from './sizing.js?v=5.9';
 
 const matchMetaCache = new Map();
+
+function elimRoundLabel(round, totalRounds) {
+  if (round === totalRounds) return 'Final';
+  if (round === totalRounds - 1) return 'Meias-finais';
+  if (round === totalRounds - 2 && totalRounds >= 3) return 'Quartos';
+  return `Ronda ${round}`;
+}
 
 async function fetchMatchMeta(matchId) {
   const empty = { category: '', group: '' };
@@ -40,27 +47,39 @@ async function fetchMatchMeta(matchId) {
     if (!res.ok) throw new Error(`match-context ${res.status}`);
     const data = await res.json();
     const category = String(data?.categoryName || '').trim();
+    const code = String(data?.groupCode || '').trim();
+    const phase = String(data?.phase || '').trim().toLowerCase();
+    const br = data?.bracketRound;
+    const total = data?.bracketRoundCount;
     let group = String(data?.groupLabel || '').trim();
-    if (!group) {
-      const code = String(data?.groupCode || '').trim();
-      const phase = String(data?.phase || '').trim().toLowerCase();
+    // Prefer computed elim labels when we know total rounds (fixes stale "Ronda N").
+    if (
+      phase === 'eliminatorio' &&
+      br != null &&
+      Number.isFinite(Number(br)) &&
+      total != null &&
+      Number(total) > 0
+    ) {
+      group = elimRoundLabel(Number(br), Number(total));
+    } else if (!group) {
       if (code) {
         group = /^grupo\b/i.test(code) ? code : `Grupo ${code}`;
       } else if (phase === 'eliminatorio') {
-        const br = data?.bracketRound;
-        group = br != null && Number.isFinite(Number(br)) ? `Ronda ${Number(br)}` : 'Eliminatória';
+        group = br != null && Number.isFinite(Number(br))
+          ? `Ronda ${Number(br)}`
+          : 'Eliminatória';
       }
     }
     const meta = { category, group };
     matchMetaCache.set(id, meta);
     return meta;
   } catch (e) {
-    console.warn('compact match-context:', e);
+    console.warn('scoreboard match-context:', e);
     return empty;
   }
 }
 
-async function applyCompactBrandMeta(grid, slots) {
+async function applyBrandMeta(grid, slots) {
   if (!grid) return;
   const game = Array.isArray(slots) ? slots.find(Boolean) : null;
   const meta = await fetchMatchMeta(game?.tournament_match_id);
@@ -174,7 +193,7 @@ async function applyCompactBrandMeta(grid, slots) {
     // Se não houver jogos, redireciona para a galeria
     if (!hasAnyGame(pack.slots)) { redirectToGallery(); return; }
 
-    if (isCompact) await applyCompactBrandMeta(grid, pack.slots);
+    await applyBrandMeta(grid, pack.slots);
     renderGrid(grid, pack.positions, pack.slots);
     touch('Ligado', true);
 
@@ -188,7 +207,7 @@ async function applyCompactBrandMeta(grid, slots) {
 
       if (!hasAnyGame(p.slots)) { redirectToGallery(); return; }
 
-      if (isCompact) await applyCompactBrandMeta(grid, p.slots);
+      await applyBrandMeta(grid, p.slots);
       renderGrid(grid, p.positions, p.slots);
       touch('Seleções atualizadas', true);
       queueRefit(false);
@@ -196,8 +215,8 @@ async function applyCompactBrandMeta(grid, slots) {
 
     // Live: atualizações de jogos (pontuação em tempo real)
     subscribeGames(sb, () => getCurrentSlots(), async (idx, game) => {
-      if (isCompact && game?.tournament_match_id) {
-        await applyCompactBrandMeta(grid, [game]);
+      if (game?.tournament_match_id) {
+        await applyBrandMeta(grid, [game]);
       }
       renderGrid(
         grid,
@@ -223,7 +242,7 @@ async function applyCompactBrandMeta(grid, slots) {
 
         if (!hasAnyGame(p.slots)) { redirectToGallery(); return; }
 
-        if (isCompact) await applyCompactBrandMeta(grid, p.slots);
+        await applyBrandMeta(grid, p.slots);
         renderGrid(grid, p.positions, p.slots);
         queueRefit(false);
       }

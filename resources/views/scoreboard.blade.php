@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="/css/scoreboard/scoreboard.css?v=5.6">
+  <link rel="stylesheet" href="/css/scoreboard/scoreboard.css?v=5.8">
 </head>
 <body>
 
@@ -23,11 +23,11 @@
         data-sb-url="{{ $sbUrl }}"
         data-sb-anon="{{ $sbAnon }}"
         data-screen="{{ $screen }}"
-        data-brand-category="M2"
-        data-brand-group="Grupo A">
+        data-brand-category=""
+        data-brand-group="">
     <div class="tile placeholder">Sem jogos configurados para este ecrã.</div>
   </main>
 
-  <script type="module" src="/js/scoreboard/index.js?v=5.6"></script>
+  <script type="module" src="/js/scoreboard/index.js?v=5.9"></script>
 </body>
 </html>

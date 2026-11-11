@@ -225,20 +225,22 @@ function buildTile(game){
   const maybeNowBotTd  = showNow ? `<td class="now"><div class="cell-now"><span class="num">${nowBot}</span></div></td>` : '';
 
   const gridEl = document.getElementById('grid');
-  const brandCategory = gridEl?.dataset?.brandCategory || 'M2';
-  const brandGroup = gridEl?.dataset?.brandGroup || 'Grupo A';
+  const brandCategory = String(gridEl?.dataset?.brandCategory || '').trim();
+  const brandGroup = String(gridEl?.dataset?.brandGroup || '').trim();
   const rawCourt = String(game.court_name || gridEl?.dataset?.screen || '').trim();
   const courtLabel = rawCourt
     ? `CAMPO ${rawCourt.replace(/^campo\s+/i, '').toUpperCase()}`
     : 'CAMPO —';
+  const showMeta = Boolean(brandCategory || brandGroup);
+  const showSep = Boolean(brandCategory && brandGroup);
 
   wrap.innerHTML = `
     <header class="tile-bar">
       <span class="tile-bar-court">${escapeHtml(courtLabel)}</span>
-      <span class="tile-bar-meta">
-        <span class="tile-bar-cat">${escapeHtml(brandCategory)}</span>
-        <span class="tile-bar-sep" aria-hidden="true">·</span>
-        <span class="tile-bar-group">${escapeHtml(brandGroup)}</span>
+      <span class="tile-bar-meta"${showMeta ? '' : ' hidden'}>
+        <span class="tile-bar-cat"${brandCategory ? '' : ' hidden'}>${escapeHtml(brandCategory)}</span>
+        <span class="tile-bar-sep" aria-hidden="true"${showSep ? '' : ' hidden'}>·</span>
+        <span class="tile-bar-group"${brandGroup ? '' : ' hidden'}>${escapeHtml(brandGroup)}</span>
       </span>
     </header>
     <div class="tile-content">
@@ -304,8 +306,8 @@ function updateTile(el, game){
   el.dataset.gameId = game.id;
 
   const gridEl = document.getElementById('grid');
-  const brandCategory = gridEl?.dataset?.brandCategory || 'M2';
-  const brandGroup = gridEl?.dataset?.brandGroup || 'Grupo A';
+  const brandCategory = String(gridEl?.dataset?.brandCategory || '').trim();
+  const brandGroup = String(gridEl?.dataset?.brandGroup || '').trim();
   const rawCourt = String(game.court_name || gridEl?.dataset?.screen || '').trim();
   const courtLabel = rawCourt
     ? `CAMPO ${rawCourt.replace(/^campo\s+/i, '').toUpperCase()}`
@@ -313,9 +315,19 @@ function updateTile(el, game){
   const courtEl = el.querySelector('.tile-bar-court');
   const catEl = el.querySelector('.tile-bar-cat');
   const groupEl = el.querySelector('.tile-bar-group');
+  const metaEl = el.querySelector('.tile-bar-meta');
+  const sepEl = el.querySelector('.tile-bar-sep');
   if (courtEl) courtEl.textContent = courtLabel;
-  if (catEl) catEl.textContent = brandCategory;
-  if (groupEl) groupEl.textContent = brandGroup;
+  if (catEl) {
+    catEl.textContent = brandCategory;
+    catEl.hidden = !brandCategory;
+  }
+  if (groupEl) {
+    groupEl.textContent = brandGroup;
+    groupEl.hidden = !brandGroup;
+  }
+  if (sepEl) sepEl.hidden = !(brandCategory && brandGroup);
+  if (metaEl) metaEl.hidden = !(brandCategory || brandGroup);
 
   const anySetFinished = meta.setConcluded.some(Boolean);
   const anySetFilled   = meta.sets.some(ss => (Number(ss?.team1||0)+Number(ss?.team2||0))>0);
@@ -401,8 +413,8 @@ function emptyTile(){
   const wrap = document.createElement('div');
   wrap.className='tile'; wrap.dataset.type='empty';
   const gridEl = document.getElementById('grid');
-  const brandCategory = gridEl?.dataset?.brandCategory || 'M2';
-  const brandGroup = gridEl?.dataset?.brandGroup || 'Grupo A';
+  const brandCategory = String(gridEl?.dataset?.brandCategory || '').trim();
+  const brandGroup = String(gridEl?.dataset?.brandGroup || '').trim();
   const rawCourt = String(gridEl?.dataset?.screen || '').trim();
   const courtLabel = rawCourt
     ? `CAMPO ${rawCourt.replace(/^campo\s+/i, '').toUpperCase()}`
@@ -410,10 +422,10 @@ function emptyTile(){
   wrap.innerHTML = `
     <header class="tile-bar">
       <span class="tile-bar-court">${escapeHtml(courtLabel)}</span>
-      <span class="tile-bar-meta">
-        <span class="tile-bar-cat">${escapeHtml(brandCategory)}</span>
-        <span class="tile-bar-sep" aria-hidden="true">·</span>
-        <span class="tile-bar-group">${escapeHtml(brandGroup)}</span>
+      <span class="tile-bar-meta"${(brandCategory || brandGroup) ? '' : ' hidden'}>
+        <span class="tile-bar-cat"${brandCategory ? '' : ' hidden'}>${escapeHtml(brandCategory)}</span>
+        <span class="tile-bar-sep" aria-hidden="true"${(brandCategory && brandGroup) ? '' : ' hidden'}>·</span>
+        <span class="tile-bar-group"${brandGroup ? '' : ' hidden'}>${escapeHtml(brandGroup)}</span>
       </span>
     </header>
     <div class="tile-content">
@@ -641,7 +653,7 @@ export function buildOrUpdateCompactGrid(grid, positions, slots, patch) {
   }
 
   const brand = {
-    logo: grid.dataset.brandLogo || '/images/tournaments/3-open-dos-ouricos-logo.png',
+    logo: grid.dataset.brandLogo || '/images/tournaments/5-open-remax-dinamica-logo.png?v=1',
     category: String(grid.dataset.brandCategory || '').trim(),
     group: String(grid.dataset.brandGroup || '').trim(),
   };

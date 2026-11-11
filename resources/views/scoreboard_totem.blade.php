@@ -157,6 +157,6 @@
     </div>
   </div>
 
-  <script type="module" src="/js/scoreboard/totem.js?v=45"></script>
+  <script type="module" src="/js/scoreboard/totem.js?v=46"></script>
 </body>
 </html>
