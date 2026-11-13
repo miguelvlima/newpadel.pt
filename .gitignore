@@ -3,6 +3,10 @@
 #/public/build
 /public/hot
 /public/storage
+# Large homepage media — keep only on the server; never overwrite via Git/LFS deploy
+/public/media/*.mp4
+/public/media/*.webm
+/public/media/intro-poster.jpg
 /storage/*.key
 /storage/debugbar/
 #/vendor

@@ -10,9 +10,18 @@ deployment:
         # Start logging
         - echo "[$(date +'%Y-%m-%d %H:%M:%S')] Starting deployment..." | tee $LOGFILE
 
+        # Preserve server-only media (homepage video) across deploys
+        - mkdir -p /tmp/newpadel_media_backup
+        - (cp -a $DEPLOYPATH/public/media/. /tmp/newpadel_media_backup/ 2>/dev/null || :) 2>&1 | tee -a $LOGFILE
+
         # Copy files
         - (/bin/cp -R * .* $DEPLOYPATH 2>/dev/null || :) 2>&1 | tee -a $LOGFILE
         - (rm -rf $DEPLOYPATH/.git) 2>&1 | tee -a $LOGFILE
+
+        # Restore media after copy (do not let Git/LFS stubs replace the real MP4)
+        - mkdir -p $DEPLOYPATH/public/media
+        - (cp -a /tmp/newpadel_media_backup/. $DEPLOYPATH/public/media/ 2>/dev/null || :) 2>&1 | tee -a $LOGFILE
+        - (rm -rf /tmp/newpadel_media_backup) 2>&1 | tee -a $LOGFILE
         - echo "[$(date +'%Y-%m-%d %H:%M:%S')] Copy files complete." | tee -a $LOGFILE
 
         # Laravel commands
