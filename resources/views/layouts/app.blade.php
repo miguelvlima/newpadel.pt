@@ -8,7 +8,11 @@
   <link rel="canonical" href="https://www.newpadel.pt" />
   <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon">
 
-  <link rel="stylesheet" href="/assets/css/np-clean.css?v=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="/assets/css/np-2027.css?v=16" />
 
   {{-- Mantém os pixels/analytics que já tens no app.blade.php --}}
   <script>
