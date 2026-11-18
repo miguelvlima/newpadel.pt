@@ -225,10 +225,10 @@
             <table>
               <thead><tr><th></th><th>1h</th><th>1h30</th></tr></thead>
               <tbody>
-                <tr><th>Light Sócio</th><td>4,50 €</td><td>6,50 €</td></tr>
-                <tr><th>Light Não Sócio</th><td>5,50 €</td><td>7,50 €</td></tr>
-                <tr><th>Prime Sócio</th><td>6,50 €</td><td>8,50 €</td></tr>
-                <tr><th>Prime Não Sócio</th><td>7,50 €</td><td>9,50 €</td></tr>
+                <tr><th>Light Sócio</th><td>4,00 €</td><td>6,00 €</td></tr>
+                <tr><th>Light Não Sócio</th><td>5,00 €</td><td>7,00 €</td></tr>
+                <tr><th>Prime Sócio</th><td>6,00 €</td><td>8,00 €</td></tr>
+                <tr><th>Prime Não Sócio</th><td>7,00 €</td><td>9,00 €</td></tr>
               </tbody>
             </table>
           </div>
