@@ -23,6 +23,11 @@ Route::get('/', function () {
     ]);
 });
 
+/** Preview homepage 2027 — live a 1 Jan 2027; entretanto só em /2027 */
+Route::get('/2027', function () {
+    return view('welcome-2027');
+});
+
 Route::get('/ementa', function () {
     return view('ementa');
 });
